@@ -1,0 +1,99 @@
+<!-- ================= App Header ================= -->
+
+<style>
+#app-header {
+  background:#fff;
+  border-bottom:1px solid #ddd;
+  padding:16px 20px;
+  text-align: center;   /* ✅ 兩行一起置中 */
+}
+
+#app-header .nav {
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+/* 預設全部隱藏 */
+#app-header .item {
+  width: 84px;          /* 原本 96 → 縮小一點 */
+  height: 84px;         /* 原本 96 → 縮小一點 */
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;             /* 間距一起縮 */
+  font-size: 15px;      /* 文字微縮 */
+  font-weight: 800;
+  border-radius: 16px;  /* 圓角跟著比例縮 */
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+  
+#app-header .icon { font-size:28px; }
+
+#app-header .item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+/* 基本項目 */
+#app-header .home {
+  display:flex;
+  background:#f5f5f5;
+  color:#333;
+}
+
+#app-header .text small {
+  font-size: 16px;      /* 跟「登出」一樣大 */
+  font-weight: 800;     /* 跟上面的字一致 */
+  line-height: 1.2;
+  color: inherit;       /* 跟登出同色 */
+  display: block;       /* ✅ 讓 small 獨立一行，置中才會準 */
+
+}
+
+/* 顏色 */
+#app-header .judge  { background:#e8f1ff; }
+#app-header .record { background:#e8f5e9; }
+#app-header .admin  { background:#ede7f6; }
+
+/* ✅ 用 body 身分 class 決定顯示 */
+body.role-judge  #app-header .judge  { display:flex; }
+body.role-record #app-header .record { display:flex; }
+body.role-admin  #app-header .item   { display:flex; }
+</style>
+
+<div id="app-header">
+  <nav class="nav">
+    <a href="index.html" class="item home">
+      <span class="icon">🏠</span>
+      <span class="text">首頁</span>
+    </a>
+
+    <a href="judge_dashboard.html" class="item judge">
+      <span class="icon">🧑‍⚖️</span>
+      <span class="text">裁判<br>班表</span>
+    </a>
+
+    <a href="record_dashboard.html" class="item record">
+      <span class="icon">📝</span>
+      <span class="text">紀錄<br>班表</span>
+    </a>
+
+    <a href="admin_dashboard.html" class="item admin">
+      <span class="icon">⚙️</span>
+      <span class="text">管理<br>介面</span>
+    </a>
+
+    <a href="change_password.html" class="item home">
+      <span class="icon">🔐</span>
+      <span class="text">修改<br>密碼</span>
+    </a>
+
+    <a href="#" class="item home" onclick="logout()">
+      <span class="icon">🚪</span>
+      <span class="text">登出<br><small id="header-username"></small></span>
+    </a>
+  </nav>
+</div>
