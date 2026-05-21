@@ -187,9 +187,7 @@ function openMySchedule(){
   list.innerHTML = '載入中...';
 
   callApi({
-    action:'getJudgeGamesByMonth',
-    year:new Date().getFullYear(),
-    month:new Date().getMonth()+1,
+    action:'getSignableGames',   // ✅ 改這支（拿全資料）
     user_id: session.user_id
   }, res => {
 
@@ -200,35 +198,81 @@ function openMySchedule(){
 
     const games = res.games || [];
 
-    if (!games.length){
-      list.innerHTML = '本月無賽事';
+    // ✅ ✅ ✅ 只保留「有參與」的
+    const myGames = games.filter(g => g.my_position);
+
+    if (!myGames.length){
+      list.innerHTML = '目前沒有班表';
       return;
     }
-      list.innerHTML = games.map(g => {
-        return `
-        <div class="weekly-card">
-          
-          <div class="game-code">${g.game_code || ''}</div>
-          <div class="game-group">${g.group || ''}</div>
-      
-          <div class="game-match">
-            ${g.teamA || ''} <span>vs</span> ${g.teamB || ''}
-          </div>
-      
-          <div class="game-time">
-            ${g.date || ''} ${g.time || ''}
-          </div>
-      
-          <div class="game-field">
-            📍 ${g.field || ''}
-          </div>
-      
+
+    // ✅ ✅ ✅ 統計
+    let completed = 0;
+    let upcoming = 0;
+
+    const today = new Date();
+
+    myGames.forEach(g=>{
+      const gameDate = new Date(g.date || g.game_date || '');
+
+      if (gameDate < today){
+        completed++;
+      }else{
+        upcoming++;
+      }
+    });
+
+    // ✅ ✅ ✅ UI render（完整）
+    list.innerHTML = myGames.map(g => {
+
+      const roleName = {
+        'PU':'主審',
+        'U1':'一壘審',
+        'U2':'二壘審',
+        'U3':'三壘審',
+        'REC':'記錄'
+      };
+
+      return `
+      <div class="weekly-card">
+
+        <div class="game-code">${g.game_code || ''}</div>
+
+        <div class="game-match">
+          ${g.home || ''} <span>vs</span> ${g.away || ''}
         </div>
-        `;
-      }).join('');
+
+        <div class="game-time">
+          ${g.date || g.game_date || ''}
+        </div>
+
+        <div class="game-field">
+          📍 ${g.field || ''}
+        </div>
+
+        <div style="margin-top:6px;font-size:13px;color:#2563eb;font-weight:700;">
+          👉 ${roleName[g.my_position] || g.my_position}
+        </div>
+
+      </div>
+      `;
+
+    }).join('') +
+    
+    // ✅ ✅ ✅ 底下統計（你要的）
+    `
+    <div style="
+      text-align:center;
+      margin-top:10px;
+      font-size:14px;
+      font-weight:700;
+      color:#374151;
+    ">
+      生涯 ${completed}　預計 ${upcoming}
+    </div>
+    `;
   });
 }
-
 
 /*********************************************************
  * ✅ ✅ ✅ 本週聯盟班表（補回你功能）
