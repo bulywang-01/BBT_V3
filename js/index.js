@@ -234,21 +234,39 @@ function loadYearStats(){
  *********************************************************/
 function renderGameCard(g){
 
-  const judgeRoles = ['PU','U1','U2','U3'];
+  // ✅ 排序（固定位置）
+  const judgeOrder = ['PU','U1','U2','U3'];
 
-  const judgeExists = judgeRoles.some(r => g.judges?.[r]);
+  const judgeList = judgeOrder.map(r => g.judges?.[r] || '');
 
-  const judgeHTML = judgeExists
-    ? `
+  const judgeCount = judgeList.filter(Boolean).length;
+
+  let judgeHTML = '';
+
+  if (judgeCount === 0){
+    judgeHTML = `<div style="padding:6px 0;">本場不需要裁判</div>`;
+  } else {
+
+    const roleMap = {
+      1: ['PU'],
+      2: ['PU','U1'],
+      3: ['PU','U1','U3'],
+      4: ['PU','U1','U2','U3']
+    };
+
+    const roles = roleMap[judgeCount];
+
+    judgeHTML = `
       <div class="row-line header">
-        ${judgeRoles.map(r=>`<div class="col">${r}</div>`).join('')}
+        ${roles.map(r=>`<div class="col">${r === 'PU' ? '主審' : r}</div>`).join('')}
       </div>
       <div class="row-line values">
-        ${judgeRoles.map(r=>`<div class="col">${g.judges[r] || ''}</div>`).join('')}
+        ${roles.map(r=>`<div class="col">${g.judges[r] || ''}</div>`).join('')}
       </div>
-    `
-    : `<div style="padding:6px 0;">本場不需要裁判</div>`;
+    `;
+  }
 
+  // ✅ 紀錄（固定三格）
   const recordHTML = `
     <div class="row-line header">
       <div class="col">記錄</div>
@@ -266,15 +284,19 @@ function renderGameCard(g){
   <div class="weekly-card">
 
     <div class="schedule-line-1">
-      ${g.date}（日） ${g.game_code}
+      ${g.date} ${g.game_code}
     </div>
 
     <div class="schedule-line-2">
-      ${g.home_team || ''} <span>vs</span> ${g.away_team || ''}
+      ${g.home_team} <span>vs</span> ${g.away_team}
     </div>
 
     <div class="game-field">
-      📍 ${g.field || ''}
+      📍 ${g.field}
+    </div>
+
+    <div style="font-size:14px;margin-top:4px;">
+      ⏰ ${g.time}
     </div>
 
     <div class="section">
