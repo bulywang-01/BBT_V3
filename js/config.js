@@ -11,7 +11,7 @@ function callApi(params, callback) {
   qs.set('callback', cbname);
 
   const script = document.createElement('script');
-  script.src = API_URL + '?' + qs.toString();
+  script.src = API_BASE + '?' + qs.toString();
 
   let finished = false;   // ✅ 成功旗標（關鍵）
 
