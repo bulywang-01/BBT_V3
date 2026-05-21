@@ -91,16 +91,16 @@ function bindButtons(){
  *********************************************************/
 function loadDashboard(){
 
-  callApi({ action:'getSignableGames' }, res => {
-
-    if (!res || res.result !== 'ok') return;
+  callApi({
+    action:'getSignableGames',
+    user_id: session.user_id
+  }, res => {
 
     const games = res.games || [];
     const today = new Date();
 
     let judgeDone = 0;
     let judgeFuture = 0;
-
     let recordDone = 0;
     let recordFuture = 0;
 
@@ -108,10 +108,9 @@ function loadDashboard(){
 
       if (!g.my_position) return;
 
-      const d = parseDate(g.date);
-      if (!d) return;
+      const d = new Date(g.date);
 
-      const isRecord = ['REC','TRAINEE','VIDEO'].includes(g.my_position);
+      const isRecord = g.my_position.startsWith('REC');
 
       if (d < today){
         isRecord ? recordDone++ : judgeDone++;
@@ -120,23 +119,22 @@ function loadDashboard(){
       }
     });
 
-    // ✅ 更新 UI
     document.getElementById('stat-judge').textContent = judgeDone + judgeFuture;
     document.getElementById('stat-record').textContent = recordDone + recordFuture;
     document.getElementById('stat-total').textContent =
       judgeDone + judgeFuture + recordDone + recordFuture;
 
-    // ✅ ✅ ✅ 子文字（你要的 生涯 / 預計）
-    document.getElementById('stat-judge-sub').innerHTML =
+    document.getElementById('stat-judge-sub').textContent =
       `生涯 ${judgeDone}　預計 ${judgeFuture}`;
 
-    document.getElementById('stat-record-sub').innerHTML =
+    document.getElementById('stat-record-sub').textContent =
       `生涯 ${recordDone}　預計 ${recordFuture}`;
 
-    document.getElementById('stat-total-sub').innerHTML =
-      `生涯 ${judgeDone+recordDone}　預計 ${judgeFuture+recordFuture}`;
+    document.getElementById('stat-total-sub').textContent =
+      `生涯 ${judgeDone + recordDone}　預計 ${judgeFuture + recordFuture}`;
   });
 }
+
 
 /*********************************************************
  * ✅ 時間格式
@@ -280,37 +278,51 @@ function renderGameCard(g){
     </div>
   `;
 
+
   return `
   <div class="weekly-card">
 
-    <div class="schedule-line-1">
-      ${g.date} ${g.game_code}
+    <div style="display:flex;justify-content:space-between;">
+      <div>${g.date}</div>
+      <div style="font-weight:bold;color:#2563eb;">${g.game_code}</div>
+      <div>${g.time}</div>
     </div>
 
-    <div class="schedule-line-2">
-      ${g.home_team} <span>vs</span> ${g.away_team}
+    <div style="text-align:center;margin:6px 0;">
+      ${g.home_team} vs ${g.away_team}
     </div>
 
-    <div class="game-field">
+    <div style="font-size:12px;">
       📍 ${g.field}
     </div>
 
-    <div style="font-size:14px;margin-top:4px;">
-      ⏰ ${g.time}
+    <div class="row-line">
+      <div>主審</div>
+      <div>一壘</div>
+      <div>二壘</div>
+      <div>三壘</div>
+    </div>
+    <div class="row-line">
+      <div>${g.judges.PU}</div>
+      <div>${g.judges.U1}</div>
+      <div>${g.judges.U2}</div>
+      <div>${g.judges.U3}</div>
     </div>
 
-    <div class="section">
-      <div class="label">裁判</div>
-      ${judgeHTML}
+    <div class="row-line">
+      <div>記錄</div>
+      <div>見習</div>
+      <div>影像</div>
     </div>
-
-    <div class="section">
-      <div class="label">紀錄</div>
-      ${recordHTML}
+    <div class="row-line">
+      <div>${g.records.REC_MAIN}</div>
+      <div>${g.records.REC_TRAINEE}</div>
+      <div>${g.records.REC_VIDEO}</div>
     </div>
 
   </div>
   `;
+
 }
 
 
@@ -322,38 +334,55 @@ function openMySchedule(){
   const overlay = document.getElementById('schedule-overlay');
   const list = document.getElementById('my-schedule-list');
 
-  overlay.style.display = 'flex';
+  if (overlay) overlay.style.display = 'flex';
+  if (!list) return;
+
   list.innerHTML = '載入中...';
 
-  callApi({ action:'getSignableGames' }, res => {
+  callApi({
+    action:'getSignableGames',
+    user_id: session.user_id
+  }, res => {
+
+    console.log('我的班表 API:', res);
 
     if (!res || res.result !== 'ok'){
       list.innerHTML = '載入失敗';
       return;
     }
 
-    const today = new Date();
+    const games = res.games || [];
+    const myName = session.name;
 
-    const myGames = (res.games || []).filter(g => {
+    /************* ✅ 真正安全的「我的班表」判斷 *************/
+    const myGames = games.filter(g => {
 
-      if (!g.my_position) return false;
+      // ✅ 用 my_position（主判斷）
+      if (g.my_position) return true;
 
-      const d = parseDate(g.date);
-      if (!d) return false;
+      // ✅ fallback：看名字（避免漏資料）
+      const judges = Object.values(g.judges || {});
+      const records = Object.values(g.records || {});
 
-      return d >= today;   // ✅ 未來
+      return [...judges, ...records].includes(myName);
     });
 
     if (!myGames.length){
-      list.innerHTML = '目前沒有未來班表';
+      list.innerHTML = '目前沒有班表';
       return;
     }
 
-    myGames.sort((a,b)=> parseDate(a.date) - parseDate(b.date));
+    /************* ✅ 排序（時間） *************/
+    myGames.sort((a,b)=>{
+      return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
+    });
 
-    list.innerHTML = myGames.map(renderGameCard).join('');
+    /************* ✅ render *************/
+    list.innerHTML = myGames.map(g => renderGameCard(g)).join('');
   });
+
 }
+
 
 
 /*********************************************************
