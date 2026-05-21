@@ -1375,11 +1375,8 @@ function submitSignup(){
     return;
   }
 
-  const session = JSON.parse(localStorage.getItem('session_user') || {});
-  if (!session.user_id) {
-    showMessage('登入狀態已失效，請重新登入');
-    return;
-  }
+  const session = ensureLogin();
+  if (!session) return;
 
   const payload = entries.map(
     id => `${id}:${selectedPositions[id]}`
@@ -1474,11 +1471,8 @@ function cancelMySignup(signupId) {
 
 // 按了就直接送出，不用再按鍵了
 function signupJudgeInstant(gameId, position) {
-  const session = JSON.parse(localStorage.getItem('session_user') || {});
-  if (!session.user_id) {
-    showMessage('登入狀態已失效，請重新登入');
-    return;
-  }
+  const session = ensureLogin();
+  if (!session) return;
 
   showLoading('報名中...');
 
