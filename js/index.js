@@ -1,8 +1,8 @@
 /*********************************************************
  * ✅ Index Page（最終穩定版）
- * 👉 已整合 auth / header / API
  *********************************************************/
 
+// ✅ ✅ ✅ 全域只宣告一次（修掉你原本的錯）
 let session = null;
 
 
@@ -11,11 +11,18 @@ let session = null;
  *********************************************************/
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ✅ 統一登入檢查（唯一入口）
+  // ✅ 確保 config.js 有載入
+  if (typeof API_BASE === 'undefined'){
+    console.error('❌ API_BASE is not defined（config.js 沒載入）');
+    alert('系統錯誤：API設定未載入');
+    return;
+  }
+
+  // ✅ ✅ ✅ 統一登入入口
   session = initAuth();
   if (!session) return;
 
-  // ✅ 初始化 Header
+  // ✅ Header 初始化
   if (window.initHeader){
     initHeader();
   }
@@ -31,13 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadDashboard(){
 
   if (!session || !session.user_id){
+    console.warn('❌ session 不存在');
     return;
   }
 
-  // ✅ 顯示 loading（如果有 UI 可以自己加）
+  // ✅ 預設顯示
   setCounts('--','--','--');
 
-  // ✅ 同時抓三種統計
+  // ✅ 同時載入
   loadJudgeCount();
   loadRecordCount();
   loadYearStats();
@@ -49,7 +57,7 @@ function loadDashboard(){
  *********************************************************/
 function loadJudgeCount(){
 
-  callApi({
+  callApiSafe({
     action: 'getJudgeGamesByMonth',
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
@@ -73,7 +81,7 @@ function loadJudgeCount(){
  *********************************************************/
 function loadRecordCount(){
 
-  callApi({
+  callApiSafe({
     action: 'getRecordGamesByMonth',
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
@@ -97,8 +105,8 @@ function loadRecordCount(){
  *********************************************************/
 function loadYearStats(){
 
-  callApi({
-    action: 'getSignableGames',   // ✅ 用全年 API
+  callApiSafe({
+    action: 'getSignableGames',
     user_id: session.user_id
   }, res => {
 
@@ -112,10 +120,7 @@ function loadYearStats(){
     let count = 0;
 
     games.forEach(g=>{
-      // ✅ 有參與才算
-      if (g.my_position){
-        count++;
-      }
+      if (g.my_position) count++;
     });
 
     setYearCount(count);
@@ -127,7 +132,6 @@ function loadYearStats(){
  * ✅ UI 更新
  *********************************************************/
 function setCounts(judge, record, year){
-
   if (judge !== undefined) setJudgeCount(judge);
   if (record !== undefined) setRecordCount(record);
   if (year !== undefined) setYearCount(year);
@@ -150,20 +154,46 @@ function setYearCount(v){
 
 
 /*********************************************************
- * ✅ API 呼叫（JSONP）
+ * ✅ 安全版 API 呼叫（防 crash）
+ *********************************************************/
+function callApiSafe(params, callback){
+
+  try{
+    callApi(params, callback);
+  }catch(e){
+    console.error('❌ API 呼叫失敗', e);
+  }
+}
+
+
+/*********************************************************
+ * ✅ JSONP API（修過穩定版）
  *********************************************************/
 function callApi(params, callback){
 
-  const url = API_BASE +
-    '?' + Object.keys(params)
-      .map(k => k + '=' + encodeURIComponent(params[k]))
-      .join('&') +
-    '&callback=handleApiResponse';
+  const query = Object.keys(params)
+    .map(k => k + '=' + encodeURIComponent(params[k]))
+    .join('&');
+
+  const cbName = 'cb_' + Date.now();
+
+  const url = `${API_BASE}?${query}&callback=${cbName}`;
 
   const script = document.createElement('script');
 
-  window.handleApiResponse = function(res){
-    callback(res);
+  // ✅ 回應函式（避免衝突）
+  window[cbName] = function(res){
+    try{
+      callback(res);
+    }finally{
+      delete window[cbName];
+      document.body.removeChild(script);
+    }
+  };
+
+  script.onerror = function(){
+    console.error('❌ JSONP 載入失敗');
+    delete window[cbName];
     document.body.removeChild(script);
   };
 
