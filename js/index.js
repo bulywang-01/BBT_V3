@@ -204,10 +204,28 @@ function openMySchedule(){
       list.innerHTML = '本月無賽事';
       return;
     }
-
-    list.innerHTML = games.map(g=>{
-      return `<div>${g.game_code || ''}</div>`;
-    }).join('');
+      list.innerHTML = games.map(g => {
+        return `
+        <div class="weekly-card">
+          
+          <div class="game-code">${g.game_code || ''}</div>
+          <div class="game-group">${g.group || ''}</div>
+      
+          <div class="game-match">
+            ${g.teamA || ''} <span>vs</span> ${g.teamB || ''}
+          </div>
+      
+          <div class="game-time">
+            ${g.date || ''} ${g.time || ''}
+          </div>
+      
+          <div class="game-field">
+            📍 ${g.field || ''}
+          </div>
+      
+        </div>
+        `;
+      }).join('');
   });
 }
 
@@ -238,9 +256,27 @@ function openWeeklySchedule(){
       content.innerHTML = '本週無賽事';
       return;
     }
-
-    content.innerHTML = games.map(g=>{
-      return `<div>${g.game_code || ''}</div>`;
-    }).join('');
+      content.innerHTML = games.map(g => {
+        return `
+        <div class="weekly-card">
+      
+          <div class="game-code">${g.game_code || ''}</div>
+          <div class="game-group">${g.group || ''}</div>
+      
+          <div class="game-match">
+            ${g.teamA || ''} <span>vs</span> ${g.teamB || ''}
+          </div>
+      
+          <div class="game-time">
+            ${g.date || ''} ${g.time || ''}
+          </div>
+      
+          <div class="game-field">
+            📍 ${g.field || ''}
+          </div>
+      
+        </div>
+        `;
+      }).join('');
   });
 }
