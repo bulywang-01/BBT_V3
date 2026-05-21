@@ -187,7 +187,7 @@ function openMySchedule(){
   list.innerHTML = '載入中...';
 
   callApi({
-    action:'getSignableGames',   // ✅ 改這支（拿全資料）
+    action:'getSignableGames',
     user_id: session.user_id
   }, res => {
 
@@ -198,81 +198,69 @@ function openMySchedule(){
 
     const games = res.games || [];
 
-    // ✅ ✅ ✅ 只保留「有參與」的
+    // ✅ ✅ ✅ 只留我的
     const myGames = games.filter(g => g.my_position);
 
     if (!myGames.length){
-      list.innerHTML = '目前沒有班表';
+      list.innerHTML = '沒有班表';
       return;
     }
 
-    // ✅ ✅ ✅ 統計
     let completed = 0;
     let upcoming = 0;
-
     const today = new Date();
 
-    myGames.forEach(g=>{
-      const gameDate = new Date(g.date || g.game_date || '');
+    // ✅ ✅ ✅ 排序（最新在上）
+    myGames.sort((a,b)=> new Date(a.date) - new Date(b.date));
 
-      if (gameDate < today){
-        completed++;
-      }else{
-        upcoming++;
-      }
+    myGames.forEach(g=>{
+      const d = new Date(g.date);
+      if (d < today) completed++;
+      else upcoming++;
     });
 
-    // ✅ ✅ ✅ UI render（完整）
     list.innerHTML = myGames.map(g => {
 
-      const roleName = {
-        'PU':'主審',
-        'U1':'一壘審',
-        'U2':'二壘審',
-        'U3':'三壘審',
-        'REC':'記錄'
+      const roleMap = {
+        PU:'主審',
+        U1:'一壘審',
+        U2:'二壘審',
+        U3:'三壘審',
+        REC:'記錄'
       };
 
       return `
       <div class="weekly-card">
 
-        <div class="game-code">${g.game_code || ''}</div>
-
-        <div class="game-match">
-          ${g.home || ''} <span>vs</span> ${g.away || ''}
+        <div class="game-line-1">
+          <span class="date">${g.date || ''}</span>
+          <span class="code">${g.game_code || ''}</span>
         </div>
 
-        <div class="game-time">
-          ${g.date || g.game_date || ''}
+        <div class="game-line-2">
+          ${g.home || ''} <span>vs</span> ${g.away || ''}
         </div>
 
         <div class="game-field">
           📍 ${g.field || ''}
         </div>
 
-        <div style="margin-top:6px;font-size:13px;color:#2563eb;font-weight:700;">
-          👉 ${roleName[g.my_position] || g.my_position}
+        <div style="margin-top:6px;color:#2563eb;font-size:13px;font-weight:700;">
+          👉 ${roleMap[g.my_position] || g.my_position}
         </div>
 
       </div>
       `;
-
     }).join('') +
-    
-    // ✅ ✅ ✅ 底下統計（你要的）
+
     `
-    <div style="
-      text-align:center;
-      margin-top:10px;
-      font-size:14px;
-      font-weight:700;
-      color:#374151;
-    ">
+    <div style="text-align:center;margin-top:10px;font-weight:700;">
       生涯 ${completed}　預計 ${upcoming}
     </div>
     `;
   });
 }
+
 
 /*********************************************************
  * ✅ ✅ ✅ 本週聯盟班表（補回你功能）
@@ -300,27 +288,54 @@ function openWeeklySchedule(){
       content.innerHTML = '本週無賽事';
       return;
     }
-      content.innerHTML = games.map(g => {
-        return `
-        <div class="weekly-card">
-      
-          <div class="game-code">${g.game_code || ''}</div>
-          <div class="game-group">${g.group || ''}</div>
-      
-          <div class="game-match">
-            ${g.teamA || ''} <span>vs</span> ${g.teamB || ''}
-          </div>
-      
-          <div class="game-time">
-            ${g.date || ''} ${g.time || ''}
-          </div>
-      
-          <div class="game-field">
-            📍 ${g.field || ''}
-          </div>
-      
+
+    content.innerHTML = games.map(g => {
+
+      return `
+      <div class="weekly-card">
+
+        <div class="game-line-1">
+          <span class="date">${g.date}</span>
+          <span class="code">${g.game_code}</span>
+          <span class="group">${g.group || ''}</span>
         </div>
-        `;
-      }).join('');
+
+        <div class="game-line-2">
+          ${g.home || ''} <span>vs</span> ${g.away || ''}
+        </div>
+
+        <div class="game-field">
+          📍 ${g.field || ''}
+        </div>
+
+        <!-- ✅ ✅ ✅ 六格 -->
+        <div class="row-all">
+          <div class="row-inner">
+
+            <div class="row-line header">
+              <div class="col">主審</div>
+              <div class="col">一壘</div>
+              <div class="col">三壘</div>
+              <div class="col">記錄</div>
+              <div class="col">見習</div>
+              <div class="col">影像</div>
+            </div>
+
+            <div class="row-line values">
+              <div class="col">${g.PU || ''}</div>
+              <div class="col">${g.U1 || ''}</div>
+              <div class="col">${g.U3 || ''}</div>
+              <div class="col">${g.REC || ''}</div>
+              <div class="col">${g.TRAINEE || ''}</div>
+              <div class="col">${g.VIDEO || ''}</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+      `;
+    }).join('');
   });
 }
+
