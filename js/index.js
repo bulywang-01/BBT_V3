@@ -234,51 +234,57 @@ function loadYearStats(){
  *********************************************************/
 function renderGameCard(g){
 
-  // ✅ 安全日期
-  const dateText = (g.date || '').replace(/-/g,'/');
-
-  // ✅ 裁判欄位（你要自己對你的 API）
-  const judges = [
-    g.PU || g.judge1,
-    g.U1 || g.judge2,
-    g.U2 || g.judge3,
-    g.U3 || g.judge4
+  // ✅ ✅ ✅ 這裡才是關鍵（不要再用 PU / U1）
+  const judgeFields = [
+    g.judge1,
+    g.judge2,
+    g.judge3,
+    g.judge4
   ].filter(Boolean);
 
-  let judgeRow = '';
+  const recordFields = [
+    g.recorder,
+    g.recorder2,
+    g.recorder3
+  ];
 
-  if (judges.length === 0){
-    judgeRow = `<div style="padding:6px 0;">本場不需要裁判</div>`;
+  /*********** 裁判顯示 ***********/
+  let judgeHTML = '';
+
+  if (judgeFields.length === 0){
+
+    judgeHTML = `<div style="padding:6px 0;">本場不需要裁判</div>`;
+
   } else {
 
-    const roleOrder = [
+    const roleMap = [
       ['PU'],
       ['PU','U1'],
       ['PU','U1','U3'],
       ['PU','U1','U2','U3']
-    ][judges.length - 1];
+    ];
 
-    judgeRow = `
+    const roles = roleMap[judgeFields.length - 1];
+
+    judgeHTML = `
       <div class="row-line header">
-        ${roleOrder.map(r=>`<div class="col">${r}</div>`).join('')}
+        ${roles.map(r => `<div class="col">${r}</div>`).join('')}
       </div>
       <div class="row-line values">
-        ${roleOrder.map((r,i)=>`<div class="col">${judges[i] || ''}</div>`).join('')}
+        ${judgeFields.map(n => `<div class="col">${n}</div>`).join('')}
       </div>
     `;
   }
 
-  // ✅ 記錄（固定3格）
-  const recordRow = `
+  /*********** 紀錄顯示 ***********/
+  const recordHTML = `
     <div class="row-line header">
       <div class="col">記錄</div>
       <div class="col">見習</div>
       <div class="col">影像</div>
     </div>
     <div class="row-line values">
-      <div class="col">${g.REC || ''}</div>
-      <div class="col">${g.TRAINEE || ''}</div>
-      <div class="col">${g.VIDEO || ''}</div>
+      ${recordFields.map(n => `<div class="col">${n || ''}</div>`).join('')}
     </div>
   `;
 
@@ -286,7 +292,7 @@ function renderGameCard(g){
   <div class="weekly-card">
 
     <div class="schedule-line-1">
-      ${dateText} ${g.game_code}
+      ${g.date} ${g.game_code}
     </div>
 
     <div class="schedule-line-2">
@@ -299,18 +305,17 @@ function renderGameCard(g){
 
     <div class="section">
       <div class="label">裁判</div>
-      ${judgeRow}
+      ${judgeHTML}
     </div>
 
     <div class="section">
       <div class="label">紀錄</div>
-      ${recordRow}
+      ${recordHTML}
     </div>
 
   </div>
   `;
 }
-
 
 /*********************************************************
  * ✅ ✅ ✅ 我的班表（補回你功能）
