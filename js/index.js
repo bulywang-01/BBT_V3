@@ -1,8 +1,7 @@
 /*********************************************************
- * ✅ Index Page（最終穩定版）
+ * ✅ Index Page（最終整合版）
  *********************************************************/
 
-// ✅ ✅ ✅ 全域只宣告一次（修掉你原本的錯）
 let session = null;
 
 
@@ -11,41 +10,87 @@ let session = null;
  *********************************************************/
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ✅ 確保 config.js 有載入
+  // ✅ API 檢查
   if (typeof API_BASE === 'undefined'){
-    console.error('❌ API_BASE is not defined（config.js 沒載入）');
     alert('系統錯誤：API設定未載入');
     return;
   }
 
-  // ✅ ✅ ✅ 統一登入入口
+  // ✅ 登入
   session = initAuth();
   if (!session) return;
 
-  // ✅ Header 初始化
+  // ✅ Header
   if (window.initHeader){
     initHeader();
   }
 
-  // ✅ 載入首頁資料
+  // ✅ Welcome（你原本的）
+  renderWelcome();
+
+  // ✅ 綁按鈕（🔥 修你紅框沒反應）
+  bindButtons();
+
+  // ✅ 載入統計
   loadDashboard();
 });
 
 
 /*********************************************************
- * ✅ Dashboard 主流程
+ * ✅ Welcome（保留你原本）
+ *********************************************************/
+function renderWelcome(){
+
+  const roleMap = {
+    admin:'系統管理員',
+    chief_judge:'裁判長',
+    record_chief:'紀錄長',
+    judge:'裁判員',
+    record:'紀錄員'
+  };
+
+  const nameEl = document.getElementById('welcome-name');
+  const roleEl = document.getElementById('welcome-role');
+
+  if (nameEl){
+    nameEl.textContent =
+      session.name + ' 您好，歡迎使用出勤管理系統';
+  }
+
+  if (roleEl){
+    roleEl.textContent =
+      (session.role || '')
+        .split(',')
+        .map(r => roleMap[r])
+        .filter(Boolean)
+        .join('／');
+  }
+}
+
+
+/*********************************************************
+ * ✅ 綁按鈕（🔥 你壞掉的關鍵）
+ *********************************************************/
+function bindButtons(){
+
+  document.getElementById('open-schedule')?.addEventListener('click', openMySchedule);
+  document.getElementById('open-weekly')?.addEventListener('click', openWeeklySchedule);
+
+  document.getElementById('open-league')?.addEventListener('click', () => {
+    document.getElementById('league-overlay').style.display = 'flex';
+  });
+
+  document.getElementById('open-rules')?.addEventListener('click', () => {
+    document.getElementById('rules-overlay').style.display = 'flex';
+  });
+}
+
+
+/*********************************************************
+ * ✅ Dashboard
  *********************************************************/
 function loadDashboard(){
 
-  if (!session || !session.user_id){
-    console.warn('❌ session 不存在');
-    return;
-  }
-
-  // ✅ 預設顯示
-  setCounts('--','--','--');
-
-  // ✅ 同時載入
   loadJudgeCount();
   loadRecordCount();
   loadYearStats();
@@ -53,49 +98,51 @@ function loadDashboard(){
 
 
 /*********************************************************
- * ✅ 裁判場次
+ * ✅ 裁判統計
  *********************************************************/
 function loadJudgeCount(){
 
-  callApiSafe({
+  callApi({
     action: 'getJudgeGamesByMonth',
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     user_id: session.user_id
   }, res => {
 
+    console.log('裁判API:', res);   // ✅ debug
+
+    const el = document.getElementById('stat-judge');
+
     if (!res || res.result !== 'ok'){
-      setJudgeCount('--');
+      el.textContent = '--';
       return;
     }
 
-    const games = res.games || [];
-
-    setJudgeCount(games.length);
+    el.textContent = (res.games || []).length;
   });
 }
 
 
 /*********************************************************
- * ✅ 紀錄場次
+ * ✅ 紀錄統計
  *********************************************************/
 function loadRecordCount(){
 
-  callApiSafe({
+  callApi({
     action: 'getRecordGamesByMonth',
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     user_id: session.user_id
   }, res => {
 
+    const el = document.getElementById('stat-record');
+
     if (!res || res.result !== 'ok'){
-      setRecordCount('--');
+      el.textContent = '--';
       return;
     }
 
-    const games = res.games || [];
-
-    setRecordCount(games.length);
+    el.textContent = (res.games || []).length;
   });
 }
 
@@ -105,62 +152,95 @@ function loadRecordCount(){
  *********************************************************/
 function loadYearStats(){
 
-  callApiSafe({
+  callApi({
     action: 'getSignableGames',
     user_id: session.user_id
   }, res => {
 
+    const el = document.getElementById('stat-total');
+
     if (!res || res.result !== 'ok'){
-      setYearCount('--');
+      el.textContent = '--';
       return;
     }
 
-    const games = res.games || [];
-
     let count = 0;
 
-    games.forEach(g=>{
+    (res.games || []).forEach(g=>{
       if (g.my_position) count++;
     });
 
-    setYearCount(count);
+    el.textContent = count;
   });
 }
 
 
 /*********************************************************
- * ✅ UI 更新
+ * ✅ ✅ ✅ 我的班表（補回你功能）
  *********************************************************/
-function setCounts(judge, record, year){
-  if (judge !== undefined) setJudgeCount(judge);
-  if (record !== undefined) setRecordCount(record);
-  if (year !== undefined) setYearCount(year);
-}
+function openMySchedule(){
 
-function setJudgeCount(v){
-  const el = document.getElementById('judge-count');
-  if (el) el.textContent = v;
-}
+  const overlay = document.getElementById('schedule-overlay');
+  const list = document.getElementById('my-schedule-list');
 
-function setRecordCount(v){
-  const el = document.getElementById('record-count');
-  if (el) el.textContent = v;
-}
+  overlay.style.display = 'flex';
+  list.innerHTML = '載入中...';
 
-function setYearCount(v){
-  const el = document.getElementById('year-count');
-  if (el) el.textContent = v;
+  callApi({
+    action:'getJudgeGamesByMonth',
+    year:new Date().getFullYear(),
+    month:new Date().getMonth()+1,
+    user_id: session.user_id
+  }, res => {
+
+    if (!res || res.result !== 'ok'){
+      list.innerHTML = '載入失敗';
+      return;
+    }
+
+    const games = res.games || [];
+
+    if (!games.length){
+      list.innerHTML = '本月無賽事';
+      return;
+    }
+
+    list.innerHTML = games.map(g=>{
+      return `<div>${g.game_code || ''}</div>`;
+    }).join('');
+  });
 }
 
 
 /*********************************************************
- * ✅ 安全版 API 呼叫（防 crash）
+ * ✅ ✅ ✅ 本週聯盟班表（補回你功能）
  *********************************************************/
-function callApiSafe(params, callback){
+function openWeeklySchedule(){
 
-  try{
-    callApi(params, callback);
-  }catch(e){
-    console.error('❌ API 呼叫失敗', e);
-  }
+  const overlay = document.getElementById('weekly-overlay');
+  const content = document.getElementById('weeklyContent');
+
+  overlay.style.display = 'flex';
+  content.innerHTML = '載入中...';
+
+  callApi({
+    action:'getSignableGames'
+  }, res => {
+
+    if (!res || res.result !== 'ok'){
+      content.innerHTML = '載入失敗';
+      return;
+    }
+
+    const games = res.games || [];
+
+    if (!games.length){
+      content.innerHTML = '本週無賽事';
+      return;
+    }
+
+    content.innerHTML = games.map(g=>{
+      return `<div>${g.game_code || ''}</div>`;
+    }).join('');
+  });
 }
