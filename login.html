@@ -155,13 +155,22 @@ function login() {
     password: password
   }, res => {
 
+    console.log('login res:', res); // ✅ debug（先留著）
+
+    // ❌ 登入失敗
     if (!res || res.result !== 'ok') {
       msg.textContent = res?.message || '登入失敗';
       return;
     }
 
-    localStorage.setItem('session_user', JSON.stringify(res));
+    // ✅ ✅ ✅ ✅ ✅ ✅ ✅
+    // ✅ 正確存 session（只存 user）
+    localStorage.setItem(
+      'session_user',
+      JSON.stringify(res.user)
+    );
 
+    // ✅ 檢查是否要改密碼
     if (res.must_change_pwd === 'Y') {
       location.href = 'change_password.html';
     } else {
