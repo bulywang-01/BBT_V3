@@ -1,5 +1,6 @@
 // header.js
-window.initHeader = function () {
+
+window.initHeader = function () ｛
   const session = JSON.parse(localStorage.getItem('session_user') || '{}');
   if (!session || !session.role) return;
 
