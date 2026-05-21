@@ -245,55 +245,97 @@ function renderGameCard(g){
   ">
 
     <!-- ✅ 第一層 -->
-    <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+    <div style="
+      display:flex;
+      align-items:center;
+      font-size:13px;
+      margin-bottom:6px;
+    ">
 
+      <!-- 左：日期 -->
       <div style="color:#2563eb;font-weight:700;">
         ${g.date.slice(5)}（${weekday}）
       </div>
 
-      <div style="color:#555;">
+      <!-- 中：場地 -->
+      <div style="
+        flex:1;
+        text-align:center;
+        color:#444;
+      ">
         ${g.field || ''}
       </div>
 
-      <div style="color:#2563eb;font-weight:700;margin-left:8px;">
-        ${g.game_code || ''}
-      </div>
-
-      <div style="margin-left:auto;color:#444;">
+      <!-- 右：組別 -->
+      <div style="color:#666;">
         ${g.category || ''}
       </div>
 
     </div>
 
-    <!-- ✅ 第二層 -->
-    <div style="margin-top:8px;text-align:center;">
+    <!-- ✅ 第二層（隊伍） -->
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin:10px 0;
+    ">
 
+      <!-- 主隊 -->
       <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
+        flex:1;
+        text-align:center;
+        padding:10px 0;
+        border-radius:10px;
+        background:#f5f7fb;
+        font-size:16px;
+        font-weight:600;
+      ">
+        ${g.home_team || ''}
+      </div>
+
+      <!-- 中間 -->
+      <div style="
+        flex:0 0 80px;
+        text-align:center;
       ">
 
-        <div style="background:#000;color:#fff;padding:6px 10px;border-radius:6px;">
-          ${g.home_team || ''}
+        <!-- ✅ 場次代替 VS -->
+        <div style="
+          color:#2563eb;
+          font-weight:700;
+        ">
+          ${g.game_code || ''}
         </div>
 
-        <div style="font-weight:700;">
-          VS
-        </div>
-
-        <div style="background:#000;color:#fff;padding:6px 10px;border-radius:6px;">
-          ${g.away_team || ''}
+        <!-- ✅ 時間（放大+紅色） -->
+        <div style="
+          margin-top:4px;
+          color:#dc2626;
+          font-size:18px;
+          font-weight:700;
+        ">
+          ${g.time || ''}
         </div>
 
       </div>
 
-      <div style="margin-top:6px;font-weight:700;">
-        ${g.time || ''}
+      <!-- 客隊 -->
+      <div style="
+        flex:1;
+        text-align:center;
+        padding:10px 0;
+        border-radius:10px;
+        background:#f5f7fb;
+        font-size:16px;
+        font-weight:600;
+      ">
+        ${g.away_team || ''}
       </div>
+
     </div>
 
-    <!-- ✅ 第三層 -->
+    <!-- ✅ 第三層（裁判 + 紀錄） -->
     <div style="
       margin-top:10px;
       border-top:1px dashed #ccc;
@@ -301,7 +343,7 @@ function renderGameCard(g){
       font-size:13px;
     ">
 
-      <!-- ✅ 標題 -->
+      <!-- 標題 -->
       <div style="display:flex;text-align:center;color:#666;">
         <div style="flex:1;">主審</div>
         <div style="flex:1;">一壘</div>
@@ -311,17 +353,14 @@ function renderGameCard(g){
         <div style="flex:1;">影像</div>
       </div>
 
-      <!-- ✅ 值 -->
+      <!-- 值 -->
       <div style="display:flex;text-align:center;margin-top:4px;font-weight:500;">
-
         <div style="flex:1;">${g.judges.PU || ''}</div>
         <div style="flex:1;">${g.judges.U1 || ''}</div>
         <div style="flex:1;">${g.judges.U3 || ''}</div>
-
         <div style="flex:1;">${g.records.REC_MAIN || ''}</div>
         <div style="flex:1;">${g.records.REC_TRAINEE || ''}</div>
         <div style="flex:1;">${g.records.REC_VIDEO || ''}</div>
-
       </div>
 
     </div>
