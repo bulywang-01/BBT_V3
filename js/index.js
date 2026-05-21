@@ -164,39 +164,3 @@ function callApiSafe(params, callback){
     console.error('❌ API 呼叫失敗', e);
   }
 }
-
-
-/*********************************************************
- * ✅ JSONP API（修過穩定版）
- *********************************************************/
-function callApi(params, callback){
-
-  const query = Object.keys(params)
-    .map(k => k + '=' + encodeURIComponent(params[k]))
-    .join('&');
-
-  const cbName = 'cb_' + Date.now();
-
-  const url = `${API_BASE}?${query}&callback=${cbName}`;
-
-  const script = document.createElement('script');
-
-  // ✅ 回應函式（避免衝突）
-  window[cbName] = function(res){
-    try{
-      callback(res);
-    }finally{
-      delete window[cbName];
-      document.body.removeChild(script);
-    }
-  };
-
-  script.onerror = function(){
-    console.error('❌ JSONP 載入失敗');
-    delete window[cbName];
-    document.body.removeChild(script);
-  };
-
-  script.src = url;
-  document.body.appendChild(script);
-}
