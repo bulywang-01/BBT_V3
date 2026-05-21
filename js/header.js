@@ -1,31 +1,38 @@
-// header.js
+// ✅ header.js（產品級乾淨版）
 
-window.initHeader = function () ｛
-  const session = JSON.parse(localStorage.getItem('session_user') || '{}');
-  if (!session || !session.role) return;
+window.initHeader = function () {
 
-  const roles = session.role.split(',').map(r => r.trim());
-  const header = document.getElementById('app-header');
-  if (!header) return;
+  // ✅ 用統一入口（你剛修好的）
+  const session = (typeof ensureLogin === 'function')
+    ? ensureLogin()
+    : null;
 
-  const isAdmin = roles.includes('admin');
+  if (!session) return;
 
-  if (isAdmin) {
-    header.querySelectorAll('.item').forEach(el => {
-      el.style.display = 'flex';
-    });
-    return;
+  // ✅ body role 控制（跟 header.html CSS 配合）
+  document.body.classList.remove(
+    'role-admin',
+    'role-judge',
+    'role-record'
+  );
+
+  const roles = (session.role || '').split(',').map(r => r.trim());
+
+  if (roles.includes('admin')) {
+    document.body.classList.add('role-admin');
   }
 
   if (roles.includes('judge') || roles.includes('chief_judge')) {
-    header.querySelectorAll('.item.judge').forEach(el => {
-      el.style.display = 'flex';
-    });
+    document.body.classList.add('role-judge');
   }
 
   if (roles.includes('record') || roles.includes('record_chief')) {
-    header.querySelectorAll('.item.record').forEach(el => {
-      el.style.display = 'flex';
-    });
+    document.body.classList.add('role-record');
+  }
+
+  // ✅ ✅ ✅ 顯示名字（修 undefined）
+  const nameEl = document.getElementById('header-username');
+  if (nameEl){
+    nameEl.textContent = session.name || '';
   }
 };
