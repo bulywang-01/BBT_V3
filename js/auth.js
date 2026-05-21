@@ -1,14 +1,33 @@
 // js/auth.js
 
-function getSession() {
-  const raw = localStorage.getItem('session_user');
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch (e) {
+function getSession(){
+
+  try{
+    const raw = localStorage.getItem('session_user');
+    const session = getSession();
+    
+    if (!session){
+      alert('登入狀態已失效，請重新登入');
+      location.replace('login.html');
+    }
+
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+
+    // ✅ 防呆（避免 undefined）
+    if (!s.user_id){
+      localStorage.removeItem('session_user');
+      return null;
+    }
+    return s;
+  }
+    
+  catch(e){
+    localStorage.removeItem('session_user');
     return null;
   }
 }
+
 
 function getRoles(session) {
   if (!session || !session.role) return [];
