@@ -873,46 +873,67 @@
     </div>
   </div>
   
-  <script>
-    const session = getSession?.();
-    if (session) {
-      document.getElementById('welcome-name').textContent =
-        session.name + ' 您好，歡迎使用出勤管理系統';
+ 
+<!-- ✅ ✅ ✅ ✅ ✅ 核心修正區（不要再亂動） -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-      const roleMap = {
-        admin: '系統管理員',
-        chief_judge: '裁判長',
-        record_chief: '紀錄長',
-        judge: '裁判員',
-        record: '紀錄員'
-      };
+  // ✅ ✅ ✅ 統一登入檢查（唯一入口）
+  if (typeof initAuth === 'function') {
+    const session = initAuth();
+    if (!session) return;
 
-      document.getElementById('welcome-role').textContent =
+    // ✅ ✅ ✅ Welcome 顯示（保留你原邏輯但修安全）
+    const roleMap = {
+      admin: '系統管理員',
+      chief_judge: '裁判長',
+      record_chief: '紀錄長',
+      judge: '裁判員',
+      record: '紀錄員'
+    };
+
+    const nameEl = document.getElementById('welcome-name');
+    const roleEl = document.getElementById('welcome-role');
+
+    if (nameEl) {
+      nameEl.textContent = session.name + ' 您好，歡迎使用出勤管理系統';
+    }
+
+    if (roleEl) {
+      roleEl.textContent =
         (session.role || '')
           .split(',')
           .map(r => roleMap[r])
           .filter(Boolean)
           .join('／');
     }
+  }
 
-    function hideOverlay(id) {
-      document.getElementById(id).style.display = 'none';
-    }
+  // ✅ Button 綁定（避免 null 爆）
+  document.getElementById('open-rules')?.addEventListener('click', () => {
+    document.getElementById('rules-overlay').style.display = 'flex';
+  });
 
-    document.getElementById('open-rules').onclick = () =>
-      document.getElementById('rules-overlay').style.display = 'flex';
+  document.getElementById('open-league')?.addEventListener('click', () => {
+    document.getElementById('league-overlay').style.display = 'flex';
+  });
 
-    document.getElementById('open-league').onclick = () =>
-      document.getElementById('league-overlay').style.display = 'flex';
+  document.getElementById('open-schedule')?.addEventListener('click', () => {
+    document.getElementById('schedule-overlay').style.display = 'flex';
+  });
 
-    document.getElementById('open-schedule').onclick = () =>
-      document.getElementById('schedule-overlay').style.display = 'flex';
-
-    document.getElementById('open-weekly').onclick = () => {
+  document.getElementById('open-weekly')?.addEventListener('click', () => {
+    if (typeof openWeeklySchedule === 'function'){
       openWeeklySchedule();
-};
-      
-  </script>
+    }
+  });
+});
+
+function hideOverlay(id) {
+  document.getElementById(id).style.display = 'none';
+}
+</script>
+
 
 </body>
 </html>
