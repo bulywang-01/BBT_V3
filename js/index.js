@@ -187,8 +187,7 @@ function openMySchedule(){
   list.innerHTML = '載入中...';
 
   callApi({
-    action:'getSignableGames',
-    user_id: session.user_id
+    action:'getSignableGames'
   }, res => {
 
     if (!res || res.result !== 'ok'){
@@ -197,27 +196,23 @@ function openMySchedule(){
     }
 
     const games = res.games || [];
+    const today = new Date();
 
-    // ✅ ✅ ✅ 只留我的
-    const myGames = games.filter(g => g.my_position);
+    // ✅ ✅ ✅ 我的 + 未來
+    const myGames = games.filter(g => {
+      if (!g.my_position) return false;
+
+      const d = new Date(g.date);
+      return d >= today;
+    });
 
     if (!myGames.length){
-      list.innerHTML = '沒有班表';
+      list.innerHTML = '目前沒有未來班表';
       return;
     }
 
-    let completed = 0;
-    let upcoming = 0;
-    const today = new Date();
-
-    // ✅ ✅ ✅ 排序（最新在上）
+    // ✅ 排序（最近的在前）
     myGames.sort((a,b)=> new Date(a.date) - new Date(b.date));
-
-    myGames.forEach(g=>{
-      const d = new Date(g.date);
-      if (d < today) completed++;
-      else upcoming++;
-    });
 
     list.innerHTML = myGames.map(g => {
 
@@ -233,8 +228,8 @@ function openMySchedule(){
       <div class="weekly-card">
 
         <div class="game-line-1">
-          <span class="date">${g.date || ''}</span>
-          <span class="code">${g.game_code || ''}</span>
+          <span class="date">${g.date}</span>
+          <span class="code">${g.game_code}</span>
         </div>
 
         <div class="game-line-2">
@@ -245,19 +240,13 @@ function openMySchedule(){
           📍 ${g.field || ''}
         </div>
 
-        <div style="margin-top:6px;color:#2563eb;font-size:13px;font-weight:700;">
+        <div style="margin-top:6px;color:#2563eb;font-weight:700;">
           👉 ${roleMap[g.my_position] || g.my_position}
         </div>
 
       </div>
       `;
-    }).join('') +
-
-    `
-    <div style="text-align:center;margin-top:10px;font-weight:700;">
-      生涯 ${completed}　預計 ${upcoming}
-    </div>
-    `;
+    }).join('');
   });
 }
 
@@ -284,12 +273,77 @@ function openWeeklySchedule(){
 
     const games = res.games || [];
 
-    if (!games.length){
+    /************* ✅ 本週（星期一～星期日） *************/
+    const now = new Date();
+    const day = now.getDay() === 0 ? 7 : now.getDay();
+
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (day - 1));
+    monday.setHours(0,0,0,0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23,59,59,999);
+
+    const weekGames = games.filter(g=>{
+      const d = new Date(g.date);
+      return d >= monday && d <= sunday;
+    });
+
+    if (!weekGames.length){
       content.innerHTML = '本週無賽事';
       return;
     }
 
-    content.innerHTML = games.map(g => {
+    /************* ✅ render *************/
+    content.innerHTML = weekGames.map(g => {
+
+      // ✅ 裁判（依人數決定）
+      const judges = [
+        g.PU,
+        g.U1,
+        g.U2,
+        g.U3
+      ].filter(Boolean);
+
+      let judgeText = '';
+
+      if (judges.length === 0){
+        judgeText = '<div class="no-judge">本場不需要裁判</div>';
+      }else{
+
+        const orderMap = {
+          1: ['PU'],
+          2: ['PU','U1'],
+          3: ['PU','U1','U3'],
+          4: ['PU','U1','U2','U3']
+        };
+
+        const order = orderMap[judges.length];
+
+        judgeText = `
+          <div class="row-line header">
+            ${order.map(r=>`<div class="col">${r}</div>`).join('')}
+          </div>
+          <div class="row-line values">
+            ${order.map(r=>`<div class="col">${g[r] || ''}</div>`).join('')}
+          </div>
+        `;
+      }
+
+      // ✅ 紀錄（固定3格）
+      const recordText = `
+        <div class="row-line header">
+          <div class="col">記錄</div>
+          <div class="col">見習</div>
+          <div class="col">影像</div>
+        </div>
+        <div class="row-line values">
+          <div class="col">${g.REC || ''}</div>
+          <div class="col">${g.TRAINEE || ''}</div>
+          <div class="col">${g.VIDEO || ''}</div>
+        </div>
+      `;
 
       return `
       <div class="weekly-card">
@@ -297,7 +351,6 @@ function openWeeklySchedule(){
         <div class="game-line-1">
           <span class="date">${g.date}</span>
           <span class="code">${g.game_code}</span>
-          <span class="group">${g.group || ''}</span>
         </div>
 
         <div class="game-line-2">
@@ -308,29 +361,14 @@ function openWeeklySchedule(){
           📍 ${g.field || ''}
         </div>
 
-        <!-- ✅ ✅ ✅ 六格 -->
-        <div class="row-all">
-          <div class="row-inner">
+        <div class="section">
+          <div class="label">裁判</div>
+          ${judgeText}
+        </div>
 
-            <div class="row-line header">
-              <div class="col">主審</div>
-              <div class="col">一壘</div>
-              <div class="col">三壘</div>
-              <div class="col">記錄</div>
-              <div class="col">見習</div>
-              <div class="col">影像</div>
-            </div>
-
-            <div class="row-line values">
-              <div class="col">${g.PU || ''}</div>
-              <div class="col">${g.U1 || ''}</div>
-              <div class="col">${g.U3 || ''}</div>
-              <div class="col">${g.REC || ''}</div>
-              <div class="col">${g.TRAINEE || ''}</div>
-              <div class="col">${g.VIDEO || ''}</div>
-            </div>
-
-          </div>
+        <div class="section">
+          <div class="label">紀錄</div>
+          ${recordText}
         </div>
 
       </div>
@@ -338,4 +376,3 @@ function openWeeklySchedule(){
     }).join('');
   });
 }
-
