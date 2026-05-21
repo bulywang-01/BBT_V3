@@ -234,49 +234,21 @@ function loadYearStats(){
  *********************************************************/
 function renderGameCard(g){
 
-  // ✅ ✅ ✅ 這裡才是關鍵（不要再用 PU / U1）
-  const judgeFields = [
-    g.judge1,
-    g.judge2,
-    g.judge3,
-    g.judge4
-  ].filter(Boolean);
+  const judgeRoles = ['PU','U1','U2','U3'];
 
-  const recordFields = [
-    g.recorder,
-    g.recorder2,
-    g.recorder3
-  ];
+  const judgeExists = judgeRoles.some(r => g.judges?.[r]);
 
-  /*********** 裁判顯示 ***********/
-  let judgeHTML = '';
-
-  if (judgeFields.length === 0){
-
-    judgeHTML = `<div style="padding:6px 0;">本場不需要裁判</div>`;
-
-  } else {
-
-    const roleMap = [
-      ['PU'],
-      ['PU','U1'],
-      ['PU','U1','U3'],
-      ['PU','U1','U2','U3']
-    ];
-
-    const roles = roleMap[judgeFields.length - 1];
-
-    judgeHTML = `
+  const judgeHTML = judgeExists
+    ? `
       <div class="row-line header">
-        ${roles.map(r => `<div class="col">${r}</div>`).join('')}
+        ${judgeRoles.map(r=>`<div class="col">${r}</div>`).join('')}
       </div>
       <div class="row-line values">
-        ${judgeFields.map(n => `<div class="col">${n}</div>`).join('')}
+        ${judgeRoles.map(r=>`<div class="col">${g.judges[r] || ''}</div>`).join('')}
       </div>
-    `;
-  }
+    `
+    : `<div style="padding:6px 0;">本場不需要裁判</div>`;
 
-  /*********** 紀錄顯示 ***********/
   const recordHTML = `
     <div class="row-line header">
       <div class="col">記錄</div>
@@ -284,7 +256,9 @@ function renderGameCard(g){
       <div class="col">影像</div>
     </div>
     <div class="row-line values">
-      ${recordFields.map(n => `<div class="col">${n || ''}</div>`).join('')}
+      <div class="col">${g.records?.REC_MAIN || ''}</div>
+      <div class="col">${g.records?.REC_TRAINEE || ''}</div>
+      <div class="col">${g.records?.REC_VIDEO || ''}</div>
     </div>
   `;
 
@@ -292,11 +266,11 @@ function renderGameCard(g){
   <div class="weekly-card">
 
     <div class="schedule-line-1">
-      ${g.date} ${g.game_code}
+      ${g.date}（日） ${g.game_code}
     </div>
 
     <div class="schedule-line-2">
-      ${g.home || ''} <span>vs</span> ${g.away || ''}
+      ${g.home_team || ''} <span>vs</span> ${g.away_team || ''}
     </div>
 
     <div class="game-field">
@@ -316,6 +290,7 @@ function renderGameCard(g){
   </div>
   `;
 }
+
 
 /*********************************************************
  * ✅ ✅ ✅ 我的班表（補回你功能）
