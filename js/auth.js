@@ -1,16 +1,18 @@
-// =============================
-// ✅ Session 取得（純 function，不做跳轉）
-// =============================
+/*********************************************************
+ * ✅ 取得 Session（純讀取，不做任何跳轉）
+ *********************************************************/
 function getSession(){
 
   try{
+    // 從 localStorage 抓登入資訊
     const raw = localStorage.getItem('session_user');
 
+    // 沒資料 → 未登入
     if (!raw) return null;
 
     const s = JSON.parse(raw);
 
-    // ✅ user_id 不存在 → 當作無效
+    // 防呆：如果沒有 user_id → 視為壞掉
     if (!s || !s.user_id){
       localStorage.removeItem('session_user');
       return null;
@@ -19,26 +21,29 @@ function getSession(){
     return s;
 
   }catch(e){
+    // JSON parse 壞掉 → 清掉
     localStorage.removeItem('session_user');
     return null;
   }
 }
 
 
-// =============================
-// ✅ 安全檢查（只會跳一次）
-// =============================
+/*********************************************************
+ * ✅ 強制登入檢查（只會執行一次，不會狂跳）
+ *********************************************************/
 function ensureLogin(){
 
   const session = getSession();
 
   if (!session){
 
-    if (!window.__LOGIN_ALERT_SHOWN){
-      window.__LOGIN_ALERT_SHOWN = true;
+    // ✅ 防止無限 alert
+    if (!window.__LOGIN_REDIRECT){
+      window.__LOGIN_REDIRECT = true;
 
       alert('登入狀態已失效，請重新登入');
 
+      // ✅ 強制跳登入頁
       location.replace('login.html');
     }
 
@@ -49,91 +54,56 @@ function ensureLogin(){
 }
 
 
-// =============================
-// ✅ 角色解析
-// =============================
-function getRoles(session){
-  if (!session || !session.role) return [];
-  return session.role.split(',').map(r => r.trim());
-}
-
-
-// =============================
-// ✅ 管理頁門禁
-// =============================
-function guardAdminPage(){
+/*********************************************************
+ * ✅ 初始化整個系統（核心入口）
+ * 👉 所有頁面都要走這個
+ *********************************************************/
+function initAuth(){
 
   const session = ensureLogin();
-  if (!session) return;
+  if (!session) return null;
 
-  const roles = getRoles(session);
+  /*************** ✅ 設定角色 class（給 header 用） ***************/
+  document.body.classList.remove(
+    'role-admin',
+    'role-judge',
+    'role-record'
+  );
 
-  const allowed =
-    roles.includes('admin') ||
-    roles.includes('chief_judge') ||
-    roles.includes('record_chief');
+  const roles = (session.role || '').split(',').map(r => r.trim());
 
-  if (!allowed){
-    alert('您沒有管理權限');
-    location.replace('index.html');
+  if (roles.includes('admin')){
+    document.body.classList.add('role-admin');
   }
-}
 
+  if (roles.includes('judge') || roles.includes('chief_judge')){
+    document.body.classList.add('role-judge');
+  }
 
-// =============================
-// ✅ Header 初始化（顯示名字＋功能）
-// =============================
-function initHeaderVisibility(){
+  if (roles.includes('record') || roles.includes('record_chief')){
+    document.body.classList.add('role-record');
+  }
 
-  const session = ensureLogin();
-  if (!session) return;
-
-  const roles = getRoles(session);
-
-  // ✅ 顯示名字（修掉 undefined）
-  const nameEl = document.getElementById('u_name');
+  /*************** ✅ 塞使用者名字（修 undefined） ***************/
+  const nameEl = document.getElementById('header-username');
   if (nameEl){
     nameEl.textContent = session.name || '';
   }
 
-  // ✅ 裁判
-  if (
-    roles.includes('admin') ||
-    roles.includes('judge') ||
-    roles.includes('chief_judge')
-  ){
-    document.querySelectorAll('.nav-judge')
-      .forEach(el => el.style.display = 'inline-flex');
-  }
-
-  // ✅ 紀錄
-  if (
-    roles.includes('admin') ||
-    roles.includes('record') ||
-    roles.includes('record_chief')
-  ){
-    document.querySelectorAll('.nav-record')
-      .forEach(el => el.style.display = 'inline-flex');
-  }
-
-  // ✅ 管理
-  if (
-    roles.includes('admin') ||
-    roles.includes('chief_judge') ||
-    roles.includes('record_chief')
-  ){
-    document.querySelectorAll('.nav-admin')
-      .forEach(el => el.style.display = 'inline-flex');
-  }
+  return session;
 }
 
 
-// =============================
-// ✅ 登出
-// =============================
+/*********************************************************
+ * ✅ 登出
+ *********************************************************/
 function logout(){
+
   if (!confirm('確定要登出？')) return;
 
-  localStorage.removeItem('session_user'); // ✅ 精準清掉
+  // 清掉 session
+  localStorage.removeItem('session_user');
+
+  // 回登入頁
   location.replace('login.html');
 }
