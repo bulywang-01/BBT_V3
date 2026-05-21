@@ -91,9 +91,64 @@ function bindButtons(){
  *********************************************************/
 function loadDashboard(){
 
-  loadJudgeCount();
-  loadRecordCount();
-  loadYearStats();
+  callApi({ action:'getSignableGames' }, res => {
+
+    if (!res || res.result !== 'ok') return;
+
+    const games = res.games || [];
+    const today = new Date();
+
+    let judgeDone = 0;
+    let judgeFuture = 0;
+
+    let recordDone = 0;
+    let recordFuture = 0;
+
+    games.forEach(g => {
+
+      if (!g.my_position) return;
+
+      const d = parseDate(g.date);
+      if (!d) return;
+
+      const isRecord = ['REC','TRAINEE','VIDEO'].includes(g.my_position);
+
+      if (d < today){
+        isRecord ? recordDone++ : judgeDone++;
+      } else {
+        isRecord ? recordFuture++ : judgeFuture++;
+      }
+    });
+
+    // ✅ 更新 UI
+    document.getElementById('stat-judge').textContent = judgeDone + judgeFuture;
+    document.getElementById('stat-record').textContent = recordDone + recordFuture;
+    document.getElementById('stat-total').textContent =
+      judgeDone + judgeFuture + recordDone + recordFuture;
+
+    // ✅ ✅ ✅ 子文字（你要的 生涯 / 預計）
+    document.getElementById('stat-judge-sub').innerHTML =
+      `生涯 ${judgeDone}　預計 ${judgeFuture}`;
+
+    document.getElementById('stat-record-sub').innerHTML =
+      `生涯 ${recordDone}　預計 ${recordFuture}`;
+
+    document.getElementById('stat-total-sub').innerHTML =
+      `生涯 ${judgeDone+recordDone}　預計 ${judgeFuture+recordFuture}`;
+  });
+}
+
+/*********************************************************
+ * ✅ 時間格式
+ *********************************************************/
+function parseDate(str){
+  if (!str) return null;
+
+  // ✅ 統一 yyyy/mm/dd
+  const s = str.replace(/-/g,'/');
+  const d = new Date(s);
+
+  return isNaN(d) ? null : d;
 }
 
 
@@ -262,10 +317,18 @@ function renderGameCard(g){
  *********************************************************/
 function openMySchedule(){
 
+  const overlay = document.getElementById('schedule-overlay');
   const list = document.getElementById('my-schedule-list');
+
+  overlay.style.display = 'flex';
   list.innerHTML = '載入中...';
 
   callApi({ action:'getSignableGames' }, res => {
+
+    if (!res || res.result !== 'ok'){
+      list.innerHTML = '載入失敗';
+      return;
+    }
 
     const today = new Date();
 
@@ -274,38 +337,58 @@ function openMySchedule(){
       if (!g.my_position) return false;
 
       const d = parseDate(g.date);
-      return d >= today;
+      if (!d) return false;
 
+      return d >= today;   // ✅ 未來
     });
+
+    if (!myGames.length){
+      list.innerHTML = '目前沒有未來班表';
+      return;
+    }
+
+    myGames.sort((a,b)=> parseDate(a.date) - parseDate(b.date));
 
     list.innerHTML = myGames.map(renderGameCard).join('');
   });
 }
+
 
 /*********************************************************
  * ✅ ✅ ✅ 本週聯盟班表（補回你功能）
  *********************************************************/
 function openWeeklySchedule(){
 
+  const overlay = document.getElementById('weekly-overlay');
   const content = document.getElementById('weeklyContent');
+
+  overlay.style.display = 'flex';
   content.innerHTML = '載入中...';
 
   callApi({ action:'getSignableGames' }, res => {
+
+    if (!res || res.result !== 'ok'){
+      content.innerHTML = '載入失敗';
+      return;
+    }
 
     const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
     const monday = new Date(now);
     monday.setDate(now.getDate() - (day - 1));
+    monday.setHours(0,0,0,0);
 
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23,59,59,999);
 
     const weekGames = (res.games || []).filter(g => {
       const d = parseDate(g.date);
-      return d >= monday && d <= sunday;
+      return d && d >= monday && d <= sunday;
     });
 
     content.innerHTML = weekGames.map(renderGameCard).join('');
   });
 }
+
