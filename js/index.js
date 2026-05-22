@@ -411,7 +411,15 @@ function renderGameCard(g){
         align-items:center;
         justify-content:center;
       ">
-        ${renderTeamName(g.home_team)}
+        <span style="
+          font-size:clamp(14px, 1.8vw, 18px);
+          font-weight:700;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        ">
+          ${g.home_team}
+        </span>
       </div>
 
       <div style="flex:0 0 110px;text-align:center;">
@@ -445,7 +453,15 @@ function renderGameCard(g){
         align-items:center;
         justify-content:center;
       ">
-        ${renderTeamName(g.away_team)}
+        <span style="
+          font-size:clamp(14px, 1.8vw, 18px);
+          font-weight:700;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        ">
+          ${g.away_team}
+        </span>
       </div>
 
     </div>
