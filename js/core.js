@@ -16,153 +16,43 @@ function renderGameCard(g){
     box-shadow:0 3px 10px rgba(0,0,0,0.08);
   ">
 
-    <!-- ✅ 第一區 -->
-    <div style="
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      align-items:center;
-      font-weight:700;
-      margin-bottom:8px;
-    ">
-      <div style="color:#2563eb;text-align:left;">
-        ${g.date.slice(5)}（${w}）
-      </div>
-
-      <div style="text-align:center;font-size:16px;">
-        ${g.category || ''}
-      </div>
-
-      <div style="text-align:right;">
-        ${g.field || ''}
-      </div>
+    <!-- 第一區 -->
+    <div style="display:flex;justify-content:space-between;font-weight:700;">
+      <div style="color:#2563eb;">${g.date.slice(5)}（${w}）</div>
+      <div>${g.category || ''}</div>
+      <div>${g.field || ''}</div>
     </div>
 
-    <!-- ✅ 第二區（完全維持你原規格） -->
-    <div style="
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:12px;
-      margin:12px 0;
-    ">
-
-      <div style="
-        flex:1;
-        background:#f0f2f6;
-        border-radius:12px;
-        padding:12px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      ">
-        <span style="font-size:16px;font-weight:700;">
-          ${g.home_team}
-        </span>
+    <!-- 第二區 -->
+    <div style="display:flex;gap:10px;margin:10px 0;">
+      <div style="flex:1;text-align:center;">${g.home_team}</div>
+      <div style="width:100px;text-align:center;">
+        <div style="color:#2563eb;">${g.game_code}</div>
+        <div style="color:#dc2626;font-weight:800;">${g.time}</div>
       </div>
-
-      <div style="flex:0 0 110px;text-align:center;">
-        <div style="
-          display:inline-block;
-          padding:3px 12px;
-          background:#e8f0ff;
-          color:#2563eb;
-          border-radius:999px;
-          font-weight:700;
-        ">
-          ${g.game_code}
-        </div>
-
-        <div style="
-          margin-top:6px;
-          color:#dc2626;
-          font-size:20px;
-          font-weight:800;
-        ">
-          ${g.time}
-        </div>
-      </div>
-
-      <div style="
-        flex:1;
-        background:#f0f2f6;
-        border-radius:12px;
-        padding:12px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      ">
-        <span style="font-size:16px;font-weight:700;">
-          ${g.away_team}
-        </span>
-      </div>
-
+      <div style="flex:1;text-align:center;">${g.away_team}</div>
     </div>
 
-    <!-- ✅ ✅ ✅ 第三區（升級重點） -->
-    <div style="
-      border-top:1px dashed #ccc;
-      padding-top:10px;
-    ">
-      <div style="
-        display:flex;
-        gap:6px;
-        text-align:center;
-      ">
+    <!-- 第三區（純顯示） -->
+    <div style="border-top:1px dashed #ccc;padding-top:8px;">
+      <div style="display:flex;gap:4px;text-align:center;">
         ${
           [
-            ...['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>({
-              role:r,
-              name:g.judges?.[r]
-            })),
-            ...['REC_MAIN','REC_TRAINEE','REC_VIDEO'].map(r=>({
-              role:r,
-              name:g.records?.[r]
-            }))
-          ].map(s=>{
-
-            const isMe = s.name === session.name;
-            const isEmpty = !s.name;
-
-            let bg = '#f8fafc';
-            let color = '#333';
-            let border = '1px solid #e5e7eb';
-            let cursor = 'pointer';
-
-            // ✅ 已有人
-            if (!isEmpty){
-              bg = '#f1f5f9';
-              cursor = isMe ? 'pointer' : 'default';
-            }
-
-            // ✅ 自己（強調）
-            if (isMe){
-              bg = '#dbeafe';
-              color = '#1d4ed8';
-              border = '1px solid #93c5fd';
-            }
-
-            return `
-              <div
-                onclick="handleSlotClick('${g.game_id}', '${s.role}')"
-                style="
-                  flex:1;
-                  padding:6px 4px;
-                  border-radius:8px;
-                  background:${bg};
-                  border:${border};
-                  color:${color};
-                  cursor:${cursor};
-                  font-size:13px;
-                  font-weight:${isMe ? '700' : '500'};
-                  transition:.15s;
-                "
-                onmouseover="if('${cursor}'==='pointer'){this.style.transform='scale(1.05)'}"
-                onmouseout="this.style.transform='scale(1)'"
-              >
-                ${highlight(s.name) || '＋'}
-              </div>
-            `;
-          }).join('')
+            ...['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>g.judges?.[r]),
+            g.records?.REC_MAIN,
+            g.records?.REC_TRAINEE,
+            g.records?.REC_VIDEO
+          ].map(name=>`
+            <div style="
+              flex:1;
+              padding:6px;
+              border-radius:6px;
+              background:${name ? '#f1f5f9' : '#f8fafc'};
+              font-size:13px;
+            ">
+              ${name || '—'}
+            </div>
+          `).join('')
         }
       </div>
     </div>
@@ -170,6 +60,7 @@ function renderGameCard(g){
   </div>
   `;
 }
+
 
 
 /*********************************************************
