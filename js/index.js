@@ -317,48 +317,6 @@ function renderGameCard(g){
     return `<span style="white-space:nowrap;">${name}</span>`;
   }
 
-  /************* ✅ ✅ ✅ 隊名處理（核心） *************/
-  function renderTeamName(name){
-
-    if (!name) return '';
-
-    const len = name.length;
-
-    // ✅ CASE 1：<=5字（大字）
-    if (len <= 5){
-      let fontSize = '20px';
-      if (len <= 3) fontSize = '22px';
-      if (len <= 2) fontSize = '24px';
-
-      return `
-        <div style="
-          font-size:${fontSize};
-          font-weight:700;
-          text-align:center;
-          white-space:nowrap;
-        ">
-          ${name}
-        </div>
-      `;
-    }
-
-    // ✅ CASE 2：>5字（自動兩行）
-    const top = name.slice(0, Math.ceil(len/2));
-    const bottom = name.slice(Math.ceil(len/2));
-
-    return `
-      <div style="
-        font-size:16px;
-        font-weight:700;
-        text-align:center;
-        line-height:1.2;
-      ">
-        <div>${top}</div>
-        <div>${bottom}</div>
-      </div>
-    `;
-  }
-
   /************* ✅ 裁判角色 *************/
   const roleMap = {
     1: ['PU'],
@@ -368,8 +326,32 @@ function renderGameCard(g){
   };
 
   const roles = roleMap[g.need_count || 0] || [];
+
   const hasJudge = roles.some(r => g.judges?.[r]);
   const hasRecord = Object.values(g.records || {}).some(v => v);
+
+  /************* ✅ 組合項目 *************/
+  const items = [];
+
+  roles.forEach(r=>{
+    const label =
+      r === 'PU' ? '主審' :
+      r === 'U1' ? '一壘' :
+      r === 'U2' ? '二壘' : '三壘';
+
+    items.push({
+      label,
+      value: highlight(g.judges?.[r])
+    });
+  });
+
+  if (hasRecord){
+    items.push(
+      { label:'記錄', value:highlight(g.records.REC_MAIN) },
+      { label:'見習', value:highlight(g.records.REC_TRAINEE) },
+      { label:'影像', value:highlight(g.records.REC_VIDEO) }
+    );
+  }
 
   return `
   <div style="
@@ -391,17 +373,20 @@ function renderGameCard(g){
       <div style="color:#2563eb;text-align:left;">
         ${g.date.slice(5)}（${w}）
       </div>
+
       <div style="text-align:center;font-size:14px;">
         ${g.category || ''}
       </div>
+
       <div style="text-align:right;">
         ${g.field || ''}
       </div>
     </div>
 
-    <!-- ✅ ✅ ✅ 第二區（隊名已升級） -->
+    <!-- ✅ 第二區 -->
     <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
-      
+
+      <!-- 主隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
@@ -422,6 +407,7 @@ function renderGameCard(g){
         </span>
       </div>
 
+      <!-- 中間 -->
       <div style="flex:0 0 110px;text-align:center;">
         <div style="
           display:inline-block;
@@ -444,6 +430,7 @@ function renderGameCard(g){
         </div>
       </div>
 
+      <!-- 客隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
@@ -466,51 +453,41 @@ function renderGameCard(g){
 
     </div>
 
-    <!-- ✅ 第三區（維持你目前版本） -->
+    <!-- ✅ 第三區（✅ 完整修正：無 scroll） -->
     ${
       (hasJudge || hasRecord) ? `
-      <div style="border-top:1px dashed #ccc;padding-top:10px;font-size:13px;">
+      <div style="
+        border-top:1px dashed #ccc;
+        padding-top:10px;
+        font-size:13px;
+      ">
 
-        <div style="
-          display:flex;
-          text-align:center;
-          overflow-x:auto;
-        ">
+        <!-- 標題 -->
+        <div style="display:flex;text-align:center;color:#777;">
           ${
-            [...roles.map(r=>{
-              const label =
-                r === 'PU' ? '主審' :
-                r === 'U1' ? '一壘' :
-                r === 'U2' ? '二壘' : '三壘';
-
-              return { label, value:highlight(g.judges?.[r]) };
-            }),
-            ...(hasRecord ? [
-              { label:'記錄', value:highlight(g.records.REC_MAIN) },
-              { label:'見習', value:highlight(g.records.REC_TRAINEE) },
-              { label:'影像', value:highlight(g.records.REC_VIDEO) }
-            ] : [])
-            ].map(i=>`
-              <div style="flex:1;min-width:70px;">${i.label}</div>
+            items.map(i => `
+              <div style="flex:1;font-size:12px;">
+                ${i.label}
+              </div>
             `).join('')
           }
         </div>
 
+        <!-- 名字 -->
         <div style="
           display:flex;
           text-align:center;
           margin-top:4px;
-          overflow-x:auto;
         ">
           ${
-            [...roles.map(r=>highlight(g.judges?.[r])),
-             ...(hasRecord ? [
-               highlight(g.records.REC_MAIN),
-               highlight(g.records.REC_TRAINEE),
-               highlight(g.records.REC_VIDEO)
-             ] : [])
-            ].map(v=>`
-              <div style="flex:1;min-width:70px;">${v || ''}</div>
+            items.map(i => `
+              <div style="
+                flex:1;
+                font-size:clamp(12px, 1.6vw, 15px);
+                white-space:nowrap;
+              ">
+                ${i.value || ''}
+              </div>
             `).join('')
           }
         </div>
@@ -522,7 +499,6 @@ function renderGameCard(g){
   </div>
   `;
 }
-
 
 /*********************************************************
  * ✅ ✅ ✅ 我的班表（補回你功能）
