@@ -384,14 +384,14 @@ function renderGameCard(g){
     </div>
 
     <!-- ✅ 第二區 -->
-    <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:12px 0;">
 
       <!-- 主隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
         border-radius:12px;
-        padding:14px;
+        padding:12px;
         display:flex;
         align-items:center;
         justify-content:center;
@@ -435,7 +435,7 @@ function renderGameCard(g){
         flex:1;
         background:#f0f2f6;
         border-radius:12px;
-        padding:14px;
+        padding:12px;
         display:flex;
         align-items:center;
         justify-content:center;
@@ -460,6 +460,7 @@ function renderGameCard(g){
         border-top:1px dashed #ccc;
         padding-top:10px;
         font-size:13px;
+        text-align:center;
       ">
 
         <!-- 標題 -->
