@@ -295,9 +295,28 @@ function openMySchedule(){
   const list = document.getElementById('my-schedule-list');
 
   if (overlay) overlay.style.display = 'flex';
-  if (!list) return;
 
-  list.innerHTML = '載入中...';
+  if (!list) return;
+  
+  list.innerHTML = `
+    <div style="
+      text-align:center;
+      padding:20px;
+      color:#6b7280;
+      font-size:14px;
+    ">
+      <span id="loading-dot">⏳ 載入中</span>
+    </div>
+  `;
+  
+  let i = 0;
+  setInterval(()=>{
+    const el = document.getElementById('loading-dot');
+    if (!el) return;
+    el.innerText = '⏳ 載入中' + '.'.repeat(i % 4);
+    i++;
+  }, 400);
+  
 
   callApi({
     action:'getSignableGames',
@@ -335,7 +354,7 @@ function openMySchedule(){
       return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
     });
 
-    list.innerHTML = myGames.map(renderGameCard).join('');.
+    list.innerHTML = myGames.map(renderGameCard).join('');
     setGameCache(myGames);
   });
 }
@@ -349,9 +368,28 @@ function openWeeklySchedule(){
   const content = document.getElementById('weeklyContent');
 
   if (overlay) overlay.style.display = 'flex';
-  if (!content) return;
 
-  content.innerHTML = '載入中...';
+  if (!content) return;
+  
+  list.innerHTML = `
+    <div style="
+      text-align:center;
+      padding:20px;
+      color:#6b7280;
+      font-size:14px;
+    ">
+      <span id="loading-dot">⏳ 載入中</span>
+    </div>
+  `;
+  
+  let i = 0;
+  setInterval(()=>{
+    const el = document.getElementById('loading-dot');
+    if (!el) return;
+    el.innerText = '⏳ 載入中' + '.'.repeat(i % 4);
+    i++;
+  }, 400);
+
 
   callApi({
     action:'getSignableGames',
