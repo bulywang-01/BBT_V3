@@ -244,7 +244,7 @@ function renderGameCard(g){
     box-shadow:0 2px 6px rgba(0,0,0,0.08);
   ">
 
-    <!-- ✅ 第一列：日期 / 組別 / 場地 -->
+    <!-- ✅ ✅ ✅ 第一區 -->
     <div style="
       display:flex;
       align-items:center;
@@ -252,12 +252,12 @@ function renderGameCard(g){
       margin-bottom:6px;
     ">
 
-      <!-- 日期（左） -->
+      <!-- 日期 -->
       <div style="color:#2563eb;">
         ${g.date.slice(5)}（${w}）
       </div>
 
-      <!-- 組別（中） -->
+      <!-- 組別 -->
       <div style="
         flex:1;
         text-align:center;
@@ -267,7 +267,7 @@ function renderGameCard(g){
         ${g.category || ''}
       </div>
 
-      <!-- 場地（右） -->
+      <!-- 場地 -->
       <div style="text-align:right;">
         ${g.field}
       </div>
@@ -275,41 +275,15 @@ function renderGameCard(g){
     </div>
 
 
-    <!-- ✅ 中央：時間 + 場次 -->
-    <div style="text-align:center;margin-bottom:10px;">
-
-      <!-- ✅ 時間 -->
-      <div style="
-        font-size:22px;
-        color:#dc2626;
-        font-weight:800;
-      ">
-        ${g.time}
-      </div>
-
-      <!-- ✅ 場次（badge） -->
-      <div style="
-        display:inline-block;
-        margin-top:4px;
-        padding:2px 12px;
-        background:#e8f0ff;
-        color:#2563eb;
-        border-radius:999px;
-        font-weight:700;
-      ">
-        ${g.game_code}
-      </div>
-
-    </div>
-
-
-    <!-- ✅ 對戰 -->
+    <!-- ✅ ✅ ✅ 第二區 -->
     <div style="
       display:flex;
+      align-items:center;
       gap:10px;
-      margin-bottom:10px;
+      margin:10px 0;
     ">
 
+      <!-- 主隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
@@ -322,6 +296,37 @@ function renderGameCard(g){
         ${g.home_team}
       </div>
 
+      <!-- 中間 -->
+      <div style="
+        flex:0 0 90px;
+        text-align:center;
+      ">
+
+        <!-- ✅ 時間 -->
+        <div style="
+          color:#dc2626;
+          font-size:20px;
+          font-weight:800;
+        ">
+          ${g.time}
+        </div>
+
+        <!-- ✅ 場次 -->
+        <div style="
+          margin-top:4px;
+          display:inline-block;
+          padding:2px 10px;
+          background:#e8f0ff;
+          color:#2563eb;
+          border-radius:999px;
+          font-weight:700;
+        ">
+          ${g.game_code}
+        </div>
+
+      </div>
+
+      <!-- 客隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
@@ -335,6 +340,11 @@ function renderGameCard(g){
       </div>
 
     </div>
+
+    <!-- ✅ ✅ ✅ 第三區（維持你原本） -->
+    ${renderJudgeRecordSection(g)}
+
+  </div>
   `;
 }
 
@@ -412,10 +422,8 @@ function openWeeklySchedule(){
 
   callApi({
     action:'getSignableGames',
-    user_id: session.user_id   // ✅ 讓 my_position 正常
+    user_id: session.user_id
   }, res => {
-
-    console.log('本週班表 API:', res);
 
     if (!res || res.result !== 'ok'){
       content.innerHTML = '載入失敗';
@@ -424,66 +432,28 @@ function openWeeklySchedule(){
 
     const games = res.games || [];
 
-    /************* ✅ 本週（星期一～星期日） *************/
+    /************* ✅ 本週 *************/
     const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
     const monday = new Date(now);
     monday.setDate(now.getDate() - (day - 1));
-    monday.setHours(0,0,0,0);
 
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23,59,59,999);
 
     const weekGames = games.filter(g => {
       const d = new Date(g.date);
       return d >= monday && d <= sunday;
     });
 
-    if (!weekGames.length){
-      content.innerHTML = '本週無賽事';
-      return;
-    }
-
-    /************* ✅ 依組別 grouping *************/
-    const grouped = {};
-
-    weekGames.forEach(g => {
-      const key = g.category || '未分類';
-
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(g);
+    /************* ✅ 排序 *************/
+    weekGames.sort((a,b)=>{
+      return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
     });
 
-    /************* ✅ render *************/
-    content.innerHTML = Object.entries(grouped).map(([group, list]) => {
-
-      // ✅ 每組內再排序
-      list.sort((a,b)=>{
-        return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
-      });
-
-      return `
-        <div style="margin-bottom:18px;">
-
-          <!-- ✅ 組別標題 -->
-          <div style="
-            font-weight:800;
-            font-size:16px;
-            margin:10px 4px;
-            color:#111;
-          ">
-            ${group}
-          </div>
-
-          <!-- ✅ 卡片 -->
-          ${list.map(g => renderGameCard(g)).join('')}
-
-        </div>
-      `;
-    }).join('');
+    /************* ✅ ✅ ✅ 直接 render（❗關鍵❗） *************/
+    content.innerHTML = weekGames.map(g => renderGameCard(g)).join('');
 
   });
-
 }
