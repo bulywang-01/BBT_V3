@@ -23,8 +23,6 @@ function renderGameCard(g){
   const hasRecord = Object.values(g.records || {}).some(v => v);
 
   /************* ✅ 組合項目 *************/
-  const items = [];
-
   roles.forEach(r=>{
     const label =
       r === 'PU' ? '主審' :
@@ -145,77 +143,90 @@ function renderGameCard(g){
 
     </div>
 
-    <!-- ✅ 第三區（✅ 完整修正：無 scroll） -->
-    ${
-      (hasJudge || hasRecord) ? `
-      <div style="
-        border-top:1px dashed #ccc;
-        padding-top:10px;
-        font-size:14px;
-        text-align:center;
-      ">
+<!-- ✅ 第三區（最終版） -->
+${
+  (g.need_count || Object.values(g.records || {}).some(v => v)) ? `
+  <div style="
+    border-top:1px dashed #ccc;
+    padding-top:10px;
+    font-size:14px;
+    text-align:center;
+  ">
 
-        <!-- 標題 -->
-        <div style="display:flex;text-align:center;color:#777;">
-          ${
-            ${[
-              ...['PU','U1','U2','U3'].map(r=>({
-                role:r,
-                name:g.judges?.[r]
-              })),
-              ...['REC_MAIN','REC_TRAINEE','REC_VIDEO'].map(r=>({
-                role:r,
-                name:g.records?.[r]
-              }))
-            ].map(s=>`
-              <div
-                onclick="handleSlotClick(${encodeURIComponent(JSON.stringify(g))}, '${s.role}')"
-                style="
-                  flex:1;
-                  cursor:pointer;
-                  font-size:clamp(12px,1.6vw,15px);
-                  white-space:nowrap;
-                "
-              >
-                ${highlight(s.name) || '＋'}
-              </div>
-            `).join('')}
-          }
-        </div>
+    <!-- ✅ 標題 -->
+    <div style="
+      display:flex;
+      text-align:center;
+      color:#777;
+    ">
+      ${
+        [
+          // ✅ 裁判（依 need_count）
+          ...(['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>{
+            const label =
+              r === 'PU' ? '主審' :
+              r === 'U1' ? '一壘' :
+              r === 'U2' ? '二壘' : '三壘';
+            return label;
+          })),
 
-        <!-- 名字 -->
-        <div style="
-          display:flex;
-          text-align:center;
-          margin-top:6px;
-        ">
-          ${
-            items.map(i => `
-              <div style="
-                flex:1;
-                font-size:clamp(12px, 1.6vw, 15px);
-                white-space:nowrap;
-              ">
-                ${i.value || ''}
-              </div>
-            `).join('')
-          }
-        </div>
+          // ✅ 紀錄（固定3格）
+          '記錄','見習','影像'
+        ].map(label=>`
+          <div style="flex:1;font-size:12px;">
+            ${label}
+          </div>
+        `).join('')
+      }
+    </div>
 
-      </div>
-      ` : ''
-    }
+    <!-- ✅ 名字 / 報名 -->
+    <div style="
+      display:flex;
+      text-align:center;
+      margin-top:6px;
+    ">
+      ${
+        [
+          // ✅ 裁判
+          ...(['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>({
+            role:r,
+            name:g.judges?.[r]
+          }))),
+
+          // ✅ 紀錄
+          ...['REC_MAIN','REC_TRAINEE','REC_VIDEO'].map(r=>({
+            role:r,
+            name:g.records?.[r]
+          }))
+        ].map(s=>`
+          <div
+            onclick="handleSlotClick('${g.game_id}', '${s.role}')"
+            style="
+              flex:1;
+              cursor:${s.name ? 'default' : 'pointer'};
+              font-size:clamp(12px,1.6vw,15px);
+              white-space:nowrap;
+            "
+          >
+            ${highlight(s.name) || '＋'}
+          </div>
+        `).join('')
+      }
+    </div>
 
   </div>
-  `;
+  ` : ''
 }
 
 /*********************************************************
  * ✅ ✅ ✅ 班表名字高亮
 *********************************************************/
 function highlight(name){
+
   if (!name) return '';
-   if (name === myName){
+
+  if (name === session.name){
     return `
       <span style="
         background:#dbeafe;
@@ -228,17 +239,22 @@ function highlight(name){
       </span>
     `;
   }
-   return `<span style="white-space:nowrap;">${name}</span>`;
+
+  return `<span style="white-space:nowrap;">${name}</span>`;
 }
+
 
 /*********************************************************
  * ✅ 報名系統完整版本 - slot 點擊判斷（核心）
 *********************************************************/
-function handleSlotClick(g, role){
+function handleSlotClick(gid, role){
+
+  const g = __GAME_CACHE.find(x => x.game_id === gid);
+  if (!g) return;
 
   const isRecord = role.startsWith('REC');
 
-  // ✅ 是否為自己 → 取消
+  // ✅ 自己 → 取消
   if (g.my_position === role){
 
     if (isRecord){
@@ -246,27 +262,22 @@ function handleSlotClick(g, role){
     } else {
       cancelJudge(g, role);
     }
-
     return;
   }
 
-  // ✅ 已經有別的職位（防衝堂）
+  // ✅ 防衝堂
   if (g.my_position){
-    alert('❌ 已有報名場次，請先取消');
+    alert('❌ 已有其他場次');
     return;
   }
 
-  // ✅ 空位才能報名
-  const occupied =
-    g.judges?.[role] ||
-    g.records?.[role];
-
-  if (occupied){
-    alert('❌ 此位置已有人');
+  // ✅ 已滿
+  if (g.judges?.[role] || g.records?.[role]){
+    alert('❌ 已有人');
     return;
   }
 
-  // ✅ 執行報名
+  // ✅ 報名
   if (isRecord){
     signupRecord(g, role);
   } else {
@@ -288,8 +299,12 @@ function signupJudge(g, role){
   }, res => {
 
     if (res.result === 'ok'){
-      alert('✅ 報名成功');
-      reloadGames();
+
+      // ✅ ✅ ✅ 不 reload → 直接改資料
+      g.judges[role] = session.name;
+      g.my_position = role;
+
+      renderFromCache();
     }
   });
 }
@@ -305,8 +320,11 @@ function signupRecord(g, role){
   }, res => {
 
     if (res.result === 'ok'){
-      alert('✅ 報名成功');
-      reloadGames();
+
+      g.records[role] = session.name;
+      g.my_position = role;
+
+      renderFromCache();
     }
   });
 }
@@ -320,11 +338,15 @@ function cancelJudge(g, role){
   }, res => {
 
     if (res.result === 'ok'){
-      alert('✅ 已取消');
-      reloadGames();
+
+      g.judges[role] = '';
+      g.my_position = '';
+
+      renderFromCache();
     }
   });
 }
+
 
 //✅ 取消（紀錄）
 function cancelRecord(g, role){
@@ -337,11 +359,15 @@ function cancelRecord(g, role){
   }, res => {
 
     if (res.result === 'ok'){
-      alert('✅ 已取消');
-      reloadGames();
+
+      g.records[role] = '';
+      g.my_position = '';
+
+      renderFromCache();
     }
   });
 }
+
 
 //✅ 共用刷新
 function reloadGames(){
@@ -358,4 +384,35 @@ function reloadGames(){
   if (typeof loadDashboard === 'function'){
     loadDashboard();
   }
+}
+
+// ✅ 👉 重畫畫面
+function renderFromCache(){
+
+  // ✅ 我的班表
+  const my = __GAME_CACHE.filter(g => g.my_position);
+  const list = document.getElementById('my-schedule-list');
+
+  if (list){
+    list.innerHTML = my.map(renderGameCard).join('');
+  }
+
+  // ✅ 本週班表
+  const weekly = document.getElementById('weeklyContent');
+
+  if (weekly){
+    weekly.innerHTML = __GAME_CACHE.map(renderGameCard).join('');
+  }
+}
+
+/*********************************************************
+ * ✅ 全域資料（給 UI 用）
+ *********************************************************/
+let __GAME_CACHE = [];
+
+/*********************************************************
+ * ✅ 設定資料（由 index.js 呼叫）
+ *********************************************************/
+function setGameCache(list){
+  __GAME_CACHE = list;
 }
