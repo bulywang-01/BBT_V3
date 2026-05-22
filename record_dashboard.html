@@ -613,6 +613,7 @@ td:nth-child(5) {
   
 <script src="js/auth.js"></script>
 <script src="js/config.js"></script>
+<script src="js/core.js"></script>
   
 <script>
   function loadHeader() {
@@ -1040,7 +1041,17 @@ function renderSignupCell(g, role) {
 }
 
 /* ===== Actions ===== */
-function signup(gameId, role) {
+function signup(gameId, role){
+
+  const g = games.find(x => x.game_id == gameId);
+  if (!g) return;
+
+  // ✅ 共用規則
+  const err = validateSignup(g, role);
+  if (err){
+    showToast(err, 'error');
+    return;
+  }
 
   showToast('報名中...');
 
@@ -1051,27 +1062,33 @@ function signup(gameId, role) {
     record_role: role
   }, res => {
 
-    console.log('signup res:', res);  // ✅ debug
-
-    if (!res) {
+    if (!res){
       showToast('系統無回應', 'error');
       return;
     }
 
-    if (res.result === 'ok') {
+    if (res.result === 'ok'){
 
-      showToast('報名成功');
+      // ✅ ✅ ✅ 無刷新（核心升級）
+      g.record_slots = g.record_slots || {};
+      g.record_slots[role] = {
+        user_id: session.user_id,
+        name: session.name
+      };
 
-      // ✅ ✅ ✅ 🔥 強制 reload（重點）
-      reloadCurrentView();
+      // ✅ ⚠️ 紀錄允許多個，但仍標記 my_position
+      g.my_position = role;
+
+      renderRecordDashboard(games);
+      renderMobileRecord(games);
+
+      showToast('✅ 報名成功');
 
     } else {
       showToast(res.message || '報名失敗', 'error');
     }
   });
 }
-
-
 
 function cancelSignup(gameId, role) {
 
