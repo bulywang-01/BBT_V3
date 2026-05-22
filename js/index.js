@@ -309,15 +309,14 @@ function openMySchedule(){
       return;
     }
 
-    let games = res.games || [];
-
-    /************* ✅ ✅ ✅ 關鍵：合併 指派 + 報名 *************/
-    games = mergeAssignments(games);
+    const games = res.games || [];
 
     const now = new Date();
     now.setHours(23,59,59,999);
 
+    // ✅ ✅ ✅ 只做過濾（完全不碰資料結構）
     const myGames = games.filter(g => {
+
       if (!g.my_position) return false;
 
       const d = new Date(g.date + ' ' + g.time);
@@ -329,9 +328,9 @@ function openMySchedule(){
       return;
     }
 
-    myGames.sort((a,b)=>{
-      return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
-    });
+    myGames.sort((a,b)=>
+      new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
+    );
 
     list.innerHTML = myGames.map(renderGameCard).join('');
     setGameCache(myGames);
@@ -361,12 +360,8 @@ function openWeeklySchedule(){
       return;
     }
 
-    let games = res.games || [];
+    const games = res.games || [];
 
-    /************* ✅ ✅ ✅ 合併 指派 + 報名 *************/
-    games = mergeAssignments(games);
-
-    /************* ✅ 本週 *************/
     const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
@@ -386,26 +381,12 @@ function openWeeklySchedule(){
       return;
     }
 
-    /************* ✅ 分組（維持你邏輯） *************/
-    const grouped = {};
+    weekGames.sort((a,b)=>
+      new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
+    );
 
-    weekGames.forEach(g=>{
-      const key = g.category || '未分類';
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(g);
-    });
-
-    const finalList = [];
-
-    Object.values(grouped).forEach(list=>{
-      list.sort((a,b)=>
-        new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
-      );
-      finalList.push(...list);
-    });
-
-    content.innerHTML = finalList.map(renderGameCard).join('');
-    setGameCache(finalList);
+    content.innerHTML = weekGames.map(renderGameCard).join('');
+    setGameCache(weekGames);
   });
 }
 
