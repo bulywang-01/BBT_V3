@@ -85,6 +85,58 @@ function bindButtons(){
   });
 }
 
+/*********************************************************
+ * ✅ 首頁歡迎及出勤提示
+ *********************************************************/
+function loadWeeklyReminder(){
+
+  const el = document.getElementById('welcome-text');
+
+  callApi({
+    action:'getSignableGames',
+    user_id: session.user_id
+  }, res => {
+
+    if (!res || res.result !== 'ok') return;
+
+    const games = res.games || [];
+    const now = new Date();
+
+    // ✅ 本週
+    const day = now.getDay() === 0 ? 7 : now.getDay();
+
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (day - 1));
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    // ✅ 找本週我的班
+    const hasThisWeek = games.some(g => {
+
+      if (!g.my_position) return false;
+
+      const d = new Date(g.date);
+      return d >= monday && d <= sunday;
+    });
+
+    // ✅ 組文字
+    let html = `
+      王韶文 您好，歡迎使用出勤管理系統
+    `;
+
+    // ✅ ✅ ✅ 有本週班 → 加提醒
+    if (hasThisWeek){
+      html += `
+        <div class="week-alert">
+          您本週有出勤哦，詳見我的班表
+        </div>
+      `;
+    }
+
+    el.innerHTML = html;
+  });
+}
 
 /*********************************************************
  * ✅ Dashboard
