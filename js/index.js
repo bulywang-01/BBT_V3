@@ -287,7 +287,7 @@ function loadYearStats(){
 
 
 /*********************************************************
- * ✅ ✅ ✅ 我的班表（無報名、純顯示）
+ * ✅ ✅ ✅ 我的班表（純顯示）
  *********************************************************/
 function openMySchedule(){
 
@@ -309,18 +309,14 @@ function openMySchedule(){
       return;
     }
 
-    const games = res.games || [];
+    const games = (res.games || []).map(safeMerge);
 
     const now = new Date();
     now.setHours(23,59,59,999);
 
-    // ✅ ✅ ✅ 只做過濾（完全不碰資料結構）
-    const myGames = games.filter(g => {
-
+    const myGames = games.filter(g=>{
       if (!g.my_position) return false;
-
-      const d = new Date(g.date + ' ' + g.time);
-      return d > now;
+      return new Date(g.date + ' ' + g.time) > now;
     });
 
     if (!myGames.length){
@@ -329,7 +325,8 @@ function openMySchedule(){
     }
 
     myGames.sort((a,b)=>
-      new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
+      new Date(a.date + ' ' + a.time) -
+      new Date(b.date + ' ' + b.time)
     );
 
     list.innerHTML = myGames.map(renderGameCard).join('');
@@ -338,7 +335,7 @@ function openMySchedule(){
 }
 
 /*********************************************************
- * ✅ ✅ ✅ 本週班表（無報名）
+ * ✅ ✅ ✅ 本週班表（純顯示）
  *********************************************************/
 function openWeeklySchedule(){
 
@@ -360,7 +357,7 @@ function openWeeklySchedule(){
       return;
     }
 
-    const games = res.games || [];
+    const games = (res.games || []).map(safeMerge);
 
     const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
@@ -382,7 +379,8 @@ function openWeeklySchedule(){
     }
 
     weekGames.sort((a,b)=>
-      new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
+      new Date(a.date + ' ' + a.time) -
+      new Date(b.date + ' ' + b.time)
     );
 
     content.innerHTML = weekGames.map(renderGameCard).join('');
@@ -427,8 +425,9 @@ function mergeAssignments(games){
   });
 }
 
+
 /*********************************************************
- * ✅ 共用：Loading UI
+ * ✅ Loading UI（共用）
  *********************************************************/
 function renderLoading(target){
   target.innerHTML = `
@@ -441,4 +440,37 @@ function renderLoading(target){
       ⏳ 載入中...
     </div>
   `;
+}
+
+/*********************************************************
+ * ✅ ✅ ✅ 防呆合併（最關鍵）
+ *********************************************************/
+function safeMerge(g){
+
+  // ✅ 如果後端已經有 judges → 直接用
+  if (g.judges && Object.keys(g.judges).some(v => g.judges[v])){
+    return g;
+  }
+
+  // ✅ 防呆初始化
+  g.judges = {};
+  g.records = {};
+
+  // ✅ 裁判
+  ['PU','U1','U2','U3'].forEach(r=>{
+    g.judges[r] =
+      g.assignment_judges?.[r] ||
+      g.signup_judges?.[r] ||
+      '';
+  });
+
+  // ✅ 紀錄
+  ['REC_MAIN','REC_TRAINEE','REC_VIDEO'].forEach(r=>{
+    g.records[r] =
+      g.assignment_records?.[r] ||
+      g.signup_records?.[r] ||
+      '';
+  });
+
+  return g;
 }
