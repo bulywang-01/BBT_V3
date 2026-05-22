@@ -296,25 +296,28 @@ function renderGameCard(g){
   const isMine = g.my_position && g.my_position !== '';
   const myName = session.name;
 
+  /************* ✅ 名字高亮（不粗體） *************/
   function highlight(name){
     if (!name) return '';
-  
-    if (name === session.name){
+
+    if (name === myName){
       return `
         <span style="
           background:#dbeafe;
           color:#1d4ed8;
-          padding:3px 8px;
+          padding:3px 6px;
           border-radius:6px;
+          white-space:nowrap;
         ">
           ${name}
         </span>
       `;
     }
-  
-    return name;
+
+    return `<span style="white-space:nowrap;">${name}</span>`;
   }
 
+  /************* ✅ 裁判角色 *************/
   const roleMap = {
     1: ['PU'],
     2: ['PU','U1'],
@@ -330,10 +333,10 @@ function renderGameCard(g){
   return `
   <div style="
     background:${isMine ? '#eef6ff' : '#fff'};
-    border-radius:12px;
-    padding:14px;
-    margin-bottom:12px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    border-radius:14px;
+    padding:16px; /* ✅ 卡片變大 */
+    margin-bottom:14px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
   ">
 
     <!-- ✅ 第一區 -->
@@ -342,7 +345,7 @@ function renderGameCard(g){
       grid-template-columns:1fr 1fr 1fr;
       align-items:center;
       font-weight:700;
-      margin-bottom:6px;
+      margin-bottom:8px;
     ">
       <div style="color:#2563eb;text-align:left;">
         ${g.date.slice(5)}（${w}）
@@ -356,15 +359,25 @@ function renderGameCard(g){
     </div>
 
     <!-- ✅ 第二區 -->
-    <div style="display:flex;align-items:center;gap:10px;margin:10px 0;">
-      <div style="flex:1;background:#f0f2f6;border-radius:10px;padding:12px;text-align:center;font-size:18px;font-weight:700;">
+    <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
+      
+      <div style="
+        flex:1;
+        background:#f0f2f6;
+        border-radius:12px;
+        padding:14px;
+        text-align:center;
+        font-size:18px;
+        font-weight:700;
+      ">
         ${g.home_team}
       </div>
 
-      <div style="flex:0 0 90px;text-align:center;">
+      <div style="flex:0 0 110px;text-align:center;"> <!-- ✅ 放大 -->
+        
         <div style="
           display:inline-block;
-          padding:2px 10px;
+          padding:3px 12px;
           background:#e8f0ff;
           color:#2563eb;
           border-radius:999px;
@@ -374,29 +387,38 @@ function renderGameCard(g){
         </div>
 
         <div style="
-          margin-top:4px;
+          margin-top:6px;
           color:#dc2626;
           font-size:20px;
           font-weight:800;
         ">
           ${g.time}
         </div>
+
       </div>
 
-      <div style="flex:1;background:#f0f2f6;border-radius:10px;padding:12px;text-align:center;font-size:18px;font-weight:700;">
+      <div style="
+        flex:1;
+        background:#f0f2f6;
+        border-radius:12px;
+        padding:14px;
+        text-align:center;
+        font-size:18px;
+        font-weight:700;
+      ">
         ${g.away_team}
       </div>
+
     </div>
 
-    <!-- ✅ ✅ ✅ 第三區（最終邏輯） -->
+    <!-- ✅ ✅ ✅ 第三區（完全修正版） -->
     ${
       (hasJudge || hasRecord) ? (()=>{
 
-        /******** ✅ CASE 1：裁判=4 → 上下兩列 ********/
+        /******** ✅ CASE 1：4人 → 上下兩列 ********/
         if ((g.need_count || 0) === 4){
-
           return `
-          <div style="border-top:1px dashed #ccc;padding-top:8px;font-size:13px;">
+          <div style="border-top:1px dashed #ccc;padding-top:10px;font-size:13px;">
 
             <!-- 裁判 -->
             <div style="display:flex;text-align:center;color:#777;">
@@ -406,14 +428,17 @@ function renderGameCard(g){
               <div style="flex:1;">三壘</div>
             </div>
 
-            <div style="display:flex;text-align:center;margin-top:4px;">
+            <div style="
+              display:flex;
+              text-align:center;
+              margin-top:4px;
+            ">
               <div style="flex:1;">${highlight(g.judges.PU)}</div>
               <div style="flex:1;">${highlight(g.judges.U1)}</div>
               <div style="flex:1;">${highlight(g.judges.U2)}</div>
               <div style="flex:1;">${highlight(g.judges.U3)}</div>
             </div>
 
-            <!-- 紀錄 -->
             ${
               hasRecord ? `
               <div style="
@@ -441,7 +466,7 @@ function renderGameCard(g){
           `;
         }
 
-        /******** ✅ CASE 2：0~3 → 單列 ********/
+        /******** ✅ CASE 2：0~3 → 單列（關鍵修這） ********/
         const items = [];
 
         roles.forEach(r=>{
@@ -465,14 +490,38 @@ function renderGameCard(g){
         }
 
         return `
-        <div style="border-top:1px dashed #ccc;padding-top:8px;font-size:13px;">
+        <div style="border-top:1px dashed #ccc;padding-top:10px;font-size:13px;">
 
-          <div style="display:flex;text-align:center;color:#777;">
-            ${items.map(i=>`<div style="flex:1;">${i.label}</div>`).join('')}
+          <div style="
+            display:flex;
+            text-align:center;
+            color:#777;
+            overflow-x:auto;
+          ">
+            ${items.map(i=>`
+              <div style="
+                flex:1;
+                min-width:70px;
+              ">
+                ${i.label}
+              </div>
+            `).join('')}
           </div>
 
-          <div style="display:flex;text-align:center;margin-top:4px;">
-            ${items.map(i=>`<div style="flex:1;">${i.value || ''}</div>`).join('')}
+          <div style="
+            display:flex;
+            text-align:center;
+            margin-top:4px;
+            overflow-x:auto;
+          ">
+            ${items.map(i=>`
+              <div style="
+                flex:1;
+                min-width:70px;
+              ">
+                ${i.value || ''}
+              </div>
+            `).join('')}
           </div>
 
         </div>
@@ -483,6 +532,7 @@ function renderGameCard(g){
   </div>
   `;
 }
+
 
 /*********************************************************
  * ✅ ✅ ✅ 我的班表（補回你功能）
