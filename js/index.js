@@ -287,7 +287,7 @@ function loadYearStats(){
 
 
 /*********************************************************
- * ✅ ✅ ✅ 我的班表（補回你功能）
+ * ✅ ✅ ✅ 我的班表（無報名、純顯示）
  *********************************************************/
 function openMySchedule(){
 
@@ -295,28 +295,9 @@ function openMySchedule(){
   const list = document.getElementById('my-schedule-list');
 
   if (overlay) overlay.style.display = 'flex';
-
   if (!list) return;
-  
-  list.innerHTML = `
-    <div style="
-      text-align:center;
-      padding:20px;
-      color:#6b7280;
-      font-size:14px;
-    ">
-      <span id="loading-dot">⏳ 載入中</span>
-    </div>
-  `;
-  
-  let i = 0;
-  setInterval(()=>{
-    const el = document.getElementById('loading-dot');
-    if (!el) return;
-    el.innerText = '⏳ 載入中' + '.'.repeat(i % 4);
-    i++;
-  }, 400);
-  
+
+  renderLoading(list);
 
   callApi({
     action:'getSignableGames',
@@ -328,18 +309,17 @@ function openMySchedule(){
       return;
     }
 
-    const games = res.games || [];
+    let games = res.games || [];
+
+    /************* ✅ ✅ ✅ 關鍵：合併 指派 + 報名 *************/
+    games = mergeAssignments(games);
 
     const now = new Date();
-    now.setHours(23,59,59,999);  
-    // ✅ 今天結束前都算未來（避免誤判）
+    now.setHours(23,59,59,999);
 
     const myGames = games.filter(g => {
-
-      // ✅ 必須是我的場
       if (!g.my_position) return false;
 
-      // ✅ 只取未來
       const d = new Date(g.date + ' ' + g.time);
       return d > now;
     });
@@ -349,7 +329,6 @@ function openMySchedule(){
       return;
     }
 
-    // ✅ 排序
     myGames.sort((a,b)=>{
       return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
     });
@@ -360,7 +339,7 @@ function openMySchedule(){
 }
 
 /*********************************************************
- * ✅ ✅ ✅ 本週聯盟班表（補回你功能）
+ * ✅ ✅ ✅ 本週班表（無報名）
  *********************************************************/
 function openWeeklySchedule(){
 
@@ -368,28 +347,9 @@ function openWeeklySchedule(){
   const content = document.getElementById('weeklyContent');
 
   if (overlay) overlay.style.display = 'flex';
-
   if (!content) return;
-  
-  list.innerHTML = `
-    <div style="
-      text-align:center;
-      padding:20px;
-      color:#6b7280;
-      font-size:14px;
-    ">
-      <span id="loading-dot">⏳ 載入中</span>
-    </div>
-  `;
-  
-  let i = 0;
-  setInterval(()=>{
-    const el = document.getElementById('loading-dot');
-    if (!el) return;
-    el.innerText = '⏳ 載入中' + '.'.repeat(i % 4);
-    i++;
-  }, 400);
 
+  renderLoading(content);
 
   callApi({
     action:'getSignableGames',
@@ -401,7 +361,10 @@ function openWeeklySchedule(){
       return;
     }
 
-    const games = res.games || [];
+    let games = res.games || [];
+
+    /************* ✅ ✅ ✅ 合併 指派 + 報名 *************/
+    games = mergeAssignments(games);
 
     /************* ✅ 本週 *************/
     const now = new Date();
@@ -413,12 +376,17 @@ function openWeeklySchedule(){
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    const weekGames = games.filter(g => {
+    const weekGames = games.filter(g=>{
       const d = new Date(g.date);
       return d >= monday && d <= sunday;
     });
 
-    /************* ✅ ✅ ✅ 關鍵：先 group 再攤平 *************/
+    if (!weekGames.length){
+      content.innerHTML = '本週沒有賽事';
+      return;
+    }
+
+    /************* ✅ 分組（維持你邏輯） *************/
     const grouped = {};
 
     weekGames.forEach(g=>{
@@ -427,18 +395,69 @@ function openWeeklySchedule(){
       grouped[key].push(g);
     });
 
-    // ✅ 👉 重點：攤平成「一排卡片」，但順序維持 group
     const finalList = [];
 
     Object.values(grouped).forEach(list=>{
-      list.sort((a,b)=>{
-        return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
-      });
+      list.sort((a,b)=>
+        new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time)
+      );
       finalList.push(...list);
     });
 
-    /************* ✅ render *************/
-    content.innerHTML = finalList.map(g => renderGameCard(g)).join('');
+    content.innerHTML = finalList.map(renderGameCard).join('');
     setGameCache(finalList);
   });
+}
+
+/*********************************************************
+ * ✅ ✅ ✅ 核心：指派 + 報名合併（前端保險版）
+ *********************************************************/
+function mergeAssignments(games){
+
+  return games.map(g=>{
+
+    g.judges = g.judges || {};
+    g.records = g.records || {};
+
+    // ✅ 防 undefined
+    g.assignment_judges = g.assignment_judges || {};
+    g.signup_judges = g.signup_judges || {};
+
+    g.assignment_records = g.assignment_records || {};
+    g.signup_records = g.signup_records || {};
+
+    /** ✅ 裁判：指派優先 **/
+    ['PU','U1','U2','U3'].forEach(r=>{
+      g.judges[r] =
+        g.assignment_judges[r] ||
+        g.signup_judges[r] ||
+        '';
+    });
+
+    /** ✅ 紀錄 **/
+    ['REC_MAIN','REC_TRAINEE','REC_VIDEO'].forEach(r=>{
+      g.records[r] =
+        g.assignment_records[r] ||
+        g.signup_records[r] ||
+        '';
+    });
+
+    return g;
+  });
+}
+
+/*********************************************************
+ * ✅ 共用：Loading UI
+ *********************************************************/
+function renderLoading(target){
+  target.innerHTML = `
+    <div style="
+      text-align:center;
+      padding:20px;
+      color:#6b7280;
+      font-size:14px;
+    ">
+      ⏳ 載入中...
+    </div>
+  `;
 }
