@@ -235,139 +235,87 @@ function renderGameCard(g){
   const d = new Date(g.date);
   const weekday = ['日','一','二','三','四','五','六'][d.getDay()];
 
+  /************* ✅ 裁判（指派 + 報名） *************/
+  const judgeList = [
+    g.judges.PU,
+    g.judges.U1,
+    g.judges.U2,
+    g.judges.U3
+  ].filter(v => v && v !== '');
+
+  /************* ✅ 紀錄（指派 + 報名） *************/
+  const recordList = [
+    g.records.REC_MAIN,
+    g.records.REC_TRAINEE,
+    g.records.REC_VIDEO
+  ].filter(v => v && v !== '');
+
   return `
-  <div style="
-    background:#fff;
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:12px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-  ">
+  <div class="card">
 
-    <!-- ✅ 第一層 -->
-    <div style="
-      display:flex;
-      align-items:center;
-      font-size:13px;
-      margin-bottom:6px;
-    ">
-
-      <!-- 左：日期 -->
-      <div style="color:#2563eb;font-weight:700;">
+    <!-- ✅ 上層 -->
+    <div class="top-bar">
+      <div class="top-left">
         ${g.date.slice(5)}（${weekday}）
       </div>
-
-      <!-- 中：場地 -->
-      <div style="
-        flex:1;
-        text-align:center;
-        color:#444;
-      ">
+      <div class="top-right">
         ${g.field || ''}
       </div>
-
-      <!-- 右：組別 -->
-      <div style="color:#666;">
-        ${g.category || ''}
-      </div>
-
     </div>
 
-    <!-- ✅ 第二層（隊伍） -->
-    <div style="
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin:10px 0;
-    ">
-
-      <!-- 主隊 -->
-      <div style="
-        flex:1;
-        text-align:center;
-        padding:10px 0;
-        border-radius:10px;
-        background:#f5f7fb;
-        font-size:16px;
-        font-weight:600;
-      ">
-        ${g.home_team || ''}
-      </div>
-
-      <!-- 中間 -->
-      <div style="
-        flex:0 0 80px;
-        text-align:center;
-      ">
-
-        <!-- ✅ 場次代替 VS -->
-        <div style="
-          color:#2563eb;
-          font-weight:700;
-        ">
-          ${g.game_code || ''}
-        </div>
-
-        <!-- ✅ 時間（放大+紅色） -->
-        <div style="
-          margin-top:4px;
-          color:#dc2626;
-          font-size:18px;
-          font-weight:700;
-        ">
-          ${g.time || ''}
-        </div>
-
-      </div>
-
-      <!-- 客隊 -->
-      <div style="
-        flex:1;
-        text-align:center;
-        padding:10px 0;
-        border-radius:10px;
-        background:#f5f7fb;
-        font-size:16px;
-        font-weight:600;
-      ">
-        ${g.away_team || ''}
-      </div>
-
+    <!-- ✅ 中央 -->
+    <div class="center-info">
+      <div class="game-time">${g.time}</div>
+      <div class="game-code">${g.game_code}</div>
+      <div class="game-category">${g.category || ''}</div>
     </div>
 
-    <!-- ✅ 第三層（裁判 + 紀錄） -->
-    <div style="
-      margin-top:10px;
-      border-top:1px dashed #ccc;
-      padding-top:8px;
-      font-size:13px;
-    ">
-
-      <!-- 標題 -->
-      <div style="display:flex;text-align:center;color:#666;">
-        <div style="flex:1;">主審</div>
-        <div style="flex:1;">一壘</div>
-        <div style="flex:1;">三壘</div>
-        <div style="flex:1;">記錄</div>
-        <div style="flex:1;">見習</div>
-        <div style="flex:1;">影像</div>
-      </div>
-
-      <!-- 值 -->
-      <div style="display:flex;text-align:center;margin-top:4px;font-weight:500;">
-        <div style="flex:1;">${g.judges.PU || ''}</div>
-        <div style="flex:1;">${g.judges.U1 || ''}</div>
-        <div style="flex:1;">${g.judges.U3 || ''}</div>
-        <div style="flex:1;">${g.records.REC_MAIN || ''}</div>
-        <div style="flex:1;">${g.records.REC_TRAINEE || ''}</div>
-        <div style="flex:1;">${g.records.REC_VIDEO || ''}</div>
-      </div>
-
+    <!-- ✅ 對戰 -->
+    <div class="match-row">
+      <div class="team-box">${g.home_team}</div>
+      <div class="team-box">${g.away_team}</div>
     </div>
+
+    <!-- ✅ 裁判（有才顯示） -->
+    ${
+      judgeList.length
+      ? `
+      <div class="line-header">
+        <div>主審</div>
+        <div>一壘</div>
+        <div>三壘</div>
+      </div>
+      <div class="line-values">
+        <div>${g.judges.PU || ''}</div>
+        <div>${g.judges.U1 || ''}</div>
+        <div>${g.judges.U3 || ''}</div>
+      </div>
+      `
+      : ''
+    }
+
+    <!-- ✅ 紀錄 -->
+    ${
+      recordList.length
+      ? `
+      <div class="line-header">
+        <div>記錄</div>
+        <div>見習</div>
+        <div>影像</div>
+      </div>
+      <div class="line-values">
+        <div>${g.records.REC_MAIN || ''}</div>
+        <div>${g.records.REC_TRAINEE || ''}</div>
+        <div>${g.records.REC_VIDEO || ''}</div>
+      </div>
+      `
+      : ''
+    }
 
   </div>
   `;
 }
+
 
 /*********************************************************
  * ✅ ✅ ✅ 我的班表（補回你功能）
