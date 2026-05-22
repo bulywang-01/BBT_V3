@@ -233,14 +233,21 @@ function loadYearStats(){
 function renderGameCard(g){
 
   const d = new Date(g.date);
-  const weekday = ['日','一','二','三','四','五','六'][d.getDay()];
+  const w = ['日','一','二','三','四','五','六'][d.getDay()];
 
-  const judges = [g.judges.PU, g.judges.U1, g.judges.U3].filter(Boolean);
-  const records = [
-    g.records.REC_MAIN,
-    g.records.REC_TRAINEE,
-    g.records.REC_VIDEO
-  ].filter(Boolean);
+  // ✅ 裁判顯示規則（依人數）
+  const roleMap = {
+    1: ['PU'],
+    2: ['PU','U1'],
+    3: ['PU','U1','U3'],
+    4: ['PU','U1','U2','U3']
+  };
+
+  const judgeCount = g.need_count || 0;
+  const judgeRoles = roleMap[judgeCount] || [];
+
+  const hasJudge = judgeRoles.some(r => g.judges[r]);
+  const hasRecord = Object.values(g.records || {}).some(v => v);
 
   return `
   <div style="
@@ -251,117 +258,75 @@ function renderGameCard(g){
     box-shadow:0 2px 6px rgba(0,0,0,0.08);
   ">
 
-    <!-- ✅ 上層 -->
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      font-size:16px;
-      font-weight:700;
-    ">
-
-      <!-- 日期（跟時間一樣尺寸） -->
-      <div style="color:#2563eb;">
-        ${g.date.slice(5)}（${weekday}）
+    <!-- ✅ 上 -->
+    <div style="display:flex;justify-content:space-between;font-weight:700;">
+      <div style="color:#2563eb;font-size:16px;">
+        ${g.date.slice(5)}（${w}）
       </div>
-
-      <!-- 場地 -->
-      <div style="color:#333;">
+      <div style="font-size:16px;">
         ${g.field}
       </div>
     </div>
 
-    <!-- ✅ 中央（時間 → 場次 → 組別） -->
-    <div style="
-      text-align:center;
-      margin:6px 0 10px;
-    ">
+    <!-- ✅ 中央 -->
+    <div style="text-align:center;margin:6px 0 10px;">
 
-      <!-- 時間 -->
-      <div style="
-        font-size:20px;
-        font-weight:800;
-        color:#dc2626;
-      ">
+      <!-- ✅ 時間 -->
+      <div style="font-size:20px;color:#dc2626;font-weight:800;">
         ${g.time}
       </div>
 
-      <!-- 場次 -->
+      <!-- ✅ 場次（有造型） -->
       <div style="
-        font-size:16px;
-        font-weight:700;
+        display:inline-block;
+        padding:2px 10px;
+        background:#e8f0ff;
         color:#2563eb;
-        margin-top:2px;
+        border-radius:999px;
+        font-weight:700;
+        margin-top:4px;
       ">
         ${g.game_code}
       </div>
 
-      <!-- 組別 -->
-      <div style="
-        font-size:20px;
-        font-weight:700;
-        margin-top:2px;
-      ">
+      <!-- ✅ 組別 -->
+      <div style="font-size:20px;font-weight:700;margin-top:4px;">
         ${g.category || ''}
       </div>
-
     </div>
 
     <!-- ✅ 對戰 -->
-    <div style="
-      display:flex;
-      gap:10px;
-      margin-bottom:10px;
-    ">
-
-      <div style="
-        flex:1;
-        background:#f0f2f6;
-        border-radius:10px;
-        padding:12px;
-        text-align:center;
-        font-size:18px;
-        font-weight:700;
-      ">
+    <div style="display:flex;gap:10px;margin-bottom:10px;">
+      <div style="flex:1;background:#f0f2f6;border-radius:10px;padding:12px;text-align:center;font-size:18px;font-weight:700;">
         ${g.home_team}
       </div>
-
-      <div style="
-        flex:1;
-        background:#f0f2f6;
-        border-radius:10px;
-        padding:12px;
-        text-align:center;
-        font-size:18px;
-        font-weight:700;
-      ">
+      <div style="flex:1;background:#f0f2f6;border-radius:10px;padding:12px;text-align:center;font-size:18px;font-weight:700;">
         ${g.away_team}
       </div>
-
     </div>
 
-    <!-- ✅ 人員 -->
+    <!-- ✅ 名單 -->
     ${
-      (judges.length || records.length) ? `
-      <div style="
-        border-top:1px dashed #ccc;
-        padding-top:8px;
-        font-size:13px;
-      ">
+      (hasJudge || hasRecord) ? `
+      <div style="border-top:1px dashed #ccc;padding-top:8px;font-size:13px;">
 
         <div style="display:flex;text-align:center;color:#777;">
-          ${judges.length ? '<div style="flex:1;">主審</div><div style="flex:1;">一壘</div><div style="flex:1;">三壘</div>' : ''}
-          ${records.length ? '<div style="flex:1;">記錄</div><div style="flex:1;">見習</div><div style="flex:1;">影像</div>' : ''}
+          ${judgeRoles.map(r=>{
+            const label = r==='PU'?'主審':r==='U1'?'一壘':r==='U2'?'二壘':'三壘';
+            return `<div style="flex:1;">${label}</div>`;
+          }).join('')}
+          
+          ${hasRecord ? `
+            <div style="flex:1;">記錄</div>
+            <div style="flex:1;">見習</div>
+            <div style="flex:1;">影像</div>
+          ` : ''}
         </div>
 
         <div style="display:flex;text-align:center;margin-top:4px;">
-          ${judges.length ? `
-            <div style="flex:1;">${g.judges.PU || ''}</div>
-            <div style="flex:1;">${g.judges.U1 || ''}</div>
-            <div style="flex:1;">${g.judges.U3 || ''}</div>
-          ` : ''}
+          ${judgeRoles.map(r=>`<div style="flex:1;">${g.judges[r]||''}</div>`).join('')}
 
-          ${records.length ? `
+          ${hasRecord ? `
             <div style="flex:1;">${g.records.REC_MAIN || ''}</div>
             <div style="flex:1;">${g.records.REC_TRAINEE || ''}</div>
             <div style="flex:1;">${g.records.REC_VIDEO || ''}</div>
@@ -375,6 +340,7 @@ function renderGameCard(g){
   </div>
   `;
 }
+
 /*********************************************************
  * ✅ ✅ ✅ 我的班表（補回你功能）
  *********************************************************/
