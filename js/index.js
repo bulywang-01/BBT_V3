@@ -235,41 +235,77 @@ function renderGameCard(g){
   const d = new Date(g.date);
   const w = ['日','一','二','三','四','五','六'][d.getDay()];
 
+  const isMine = g.my_position && g.my_position !== '';
+  const myName = session.name;
+
+  /************* ✅ 高亮（名字） *************/
+  function highlight(name){
+    if (!name) return '';
+
+    if (name === myName){
+      return `
+        <span style="
+          background:#dbeafe;
+          color:#1d4ed8;
+          padding:3px 8px;
+          border-radius:6px;
+          font-weight:700;
+          display:inline-block;
+        ">
+          ${name}
+        </span>
+      `;
+    }
+
+    return name;
+  }
+
+  /************* ✅ 裁判角色依人數 *************/
+  const roleMap = {
+    1: ['PU'],
+    2: ['PU','U1'],
+    3: ['PU','U1','U3'],
+    4: ['PU','U1','U2','U3']
+  };
+
+  const roles = roleMap[g.need_count || 0] || [];
+
+  const hasJudge = roles.some(r => g.judges?.[r]);
+  const hasRecord = Object.values(g.records || {}).some(v => v);
+
   return `
   <div style="
-    background:#fff;
+    background:${isMine ? '#eef6ff' : '#fff'};
     border-radius:12px;
     padding:14px;
     margin-bottom:12px;
     box-shadow:0 2px 6px rgba(0,0,0,0.08);
   ">
 
-    <!-- ✅ 第一區 -->
+    <!-- ✅ ✅ ✅ 第一區 -->
     <div style="
-      display:flex;
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
       align-items:center;
       font-weight:700;
       margin-bottom:6px;
     ">
-      <div style="color:#2563eb;">
+
+      <div style="color:#2563eb;text-align:left;">
         ${g.date.slice(5)}（${w}）
       </div>
 
-      <div style="
-        flex:1;
-        text-align:center;
-        font-size:14px;
-      ">
+      <div style="text-align:center;font-size:14px;">
         ${g.category || ''}
       </div>
 
       <div style="text-align:right;">
-        ${g.field}
+        ${g.field || ''}
       </div>
+
     </div>
 
-
-    <!-- ✅ ✅ ✅ 第二區（已對調） -->
+    <!-- ✅ ✅ ✅ 第二區 -->
     <div style="
       display:flex;
       align-items:center;
@@ -335,16 +371,81 @@ function renderGameCard(g){
 
     </div>
 
-    ${renderJudgeRecordSection(g)}
+    <!-- ✅ ✅ ✅ 第三區 -->
+    ${
+      (hasJudge || hasRecord) ? `
+      <div style="
+        border-top:1px dashed #ccc;
+        padding-top:8px;
+        font-size:13px;
+      ">
+
+        <!-- ✅ 裁判 -->
+        ${
+          hasJudge ? `
+          <div style="display:flex;text-align:center;color:#777;">
+            ${
+              roles.map(r=>{
+                const label =
+                  r === 'PU' ? '主審' :
+                  r === 'U1' ? '一壘' :
+                  r === 'U2' ? '二壘' : '三壘';
+                return `<div style="flex:1;">${label}</div>`;
+              }).join('')
+            }
+          </div>
+
+          <div style="display:flex;text-align:center;margin-top:4px;">
+            ${
+              roles.map(r =>
+                `<div style="flex:1;">${highlight(g.judges?.[r])}</div>`
+              ).join('')
+            }
+          </div>
+          ` : ''
+        }
+
+        <!-- ✅ 紀錄（淡底） -->
+        ${
+          hasRecord ? `
+          <div style="
+            margin-top:8px;
+            background:#f5f7fb;
+            border-radius:8px;
+            padding:6px 0;
+          ">
+
+            <div style="display:flex;text-align:center;color:#777;">
+              <div style="flex:1;">記錄</div>
+              <div style="flex:1;">見習</div>
+              <div style="flex:1;">影像</div>
+            </div>
+
+            <div style="display:flex;text-align:center;margin-top:4px;">
+              <div style="flex:1;">${highlight(g.records?.REC_MAIN)}</div>
+              <div style="flex:1;">${highlight(g.records?.REC_TRAINEE)}</div>
+              <div style="flex:1;">${highlight(g.records?.REC_VIDEO)}</div>
+            </div>
+
+          </div>
+          ` : ''
+        }
+
+      </div>
+      ` : ''
+    }
 
   </div>
   `;
 }
 
+
 /*********************************************************
  * ✅ ✅ ✅ 班表（第三區 - 裁判及紀錄名單）
  *********************************************************/
 function renderJudgeRecordSection(g){
+
+  const myName = session.name;
 
   const roleMap = {
     1: ['PU'],
@@ -360,6 +461,29 @@ function renderJudgeRecordSection(g){
 
   if (!hasJudge && !hasRecord) return '';
 
+  /************* ✅ 高亮樣式（進階版） *************/
+  function highlight(name){
+
+    if (!name) return '';
+
+    if (name === myName){
+      return `
+        <span style="
+          background:#dbeafe;
+          color:#1d4ed8;
+          padding:3px 8px;
+          border-radius:6px;
+          font-weight:700;
+          display:inline-block;
+        ">
+          ${name}
+        </span>
+      `;
+    }
+
+    return name;
+  }
+
   return `
   <div style="
     border-top:1px dashed #ccc;
@@ -367,40 +491,57 @@ function renderJudgeRecordSection(g){
     font-size:13px;
   ">
 
-    <div style="display:flex;text-align:center;color:#777;">
-      ${
-        roles.map(r => {
-          const name =
-            r === 'PU' ? '主審' :
-            r === 'U1' ? '一壘' :
-            r === 'U2' ? '二壘' :
-            '三壘';
-          return `<div style="flex:1;">${name}</div>`;
-        }).join('')
-      }
+    <!-- ✅ 裁判 -->
+    ${
+      hasJudge ? `
+      <div style="display:flex;text-align:center;color:#777;">
+        ${
+          roles.map(r => {
+            const label =
+              r === 'PU' ? '主審' :
+              r === 'U1' ? '一壘' :
+              r === 'U2' ? '二壘' :
+              '三壘';
+            return `<div style="flex:1;">${label}</div>`;
+          }).join('')
+        }
+      </div>
 
-      ${
-        hasRecord ? `
+      <div style="display:flex;text-align:center;margin-top:4px;">
+        ${
+          roles.map(r =>
+            `<div style="flex:1;">${highlight(g.judges?.[r])}</div>`
+          ).join('')
+        }
+      </div>
+      ` : ''
+    }
+
+    <!-- ✅ 紀錄（淡底 + 高亮） -->
+    ${
+      hasRecord ? `
+      <div style="
+        margin-top:8px;
+        background:#f5f7fb;
+        border-radius:8px;
+        padding:6px 0;
+      ">
+
+        <div style="display:flex;text-align:center;color:#777;">
           <div style="flex:1;">記錄</div>
           <div style="flex:1;">見習</div>
           <div style="flex:1;">影像</div>
-        ` : ''
-      }
-    </div>
+        </div>
 
-    <div style="display:flex;text-align:center;margin-top:4px;">
-      ${
-        roles.map(r => `<div style="flex:1;">${g.judges?.[r] || ''}</div>`).join('')
-      }
+        <div style="display:flex;text-align:center;margin-top:4px;">
+          <div style="flex:1;">${highlight(g.records?.REC_MAIN)}</div>
+          <div style="flex:1;">${highlight(g.records?.REC_TRAINEE)}</div>
+          <div style="flex:1;">${highlight(g.records?.REC_VIDEO)}</div>
+        </div>
 
-      ${
-        hasRecord ? `
-          <div style="flex:1;">${g.records?.REC_MAIN || ''}</div>
-          <div style="flex:1;">${g.records?.REC_TRAINEE || ''}</div>
-          <div style="flex:1;">${g.records?.REC_VIDEO || ''}</div>
-        ` : ''
-      }
-    </div>
+      </div>
+      ` : ''
+    }
 
   </div>
   `;
