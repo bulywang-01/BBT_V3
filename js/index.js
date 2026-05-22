@@ -96,6 +96,8 @@ function loadDashboard(){
     user_id: session.user_id
   }, res => {
 
+    if (!res || res.result !== 'ok') return;
+
     const games = res.games || [];
     const today = new Date();
 
@@ -119,21 +121,26 @@ function loadDashboard(){
       }
     });
 
-    document.getElementById('stat-judge').textContent = judgeDone + judgeFuture;
-    document.getElementById('stat-record').textContent = recordDone + recordFuture;
-    document.getElementById('stat-total').textContent =
-      judgeDone + judgeFuture + recordDone + recordFuture;
+    /************* ✅ ✅ ✅ 核心修正 *************/
+    // 👉 主數字 = 已完成（不是總數）
 
+    document.getElementById('stat-judge').textContent = judgeDone;
+    document.getElementById('stat-record').textContent = recordDone;
+    document.getElementById('stat-total').textContent =
+      judgeDone + recordDone;
+
+    /************* ✅ 子數據 *************/
     document.getElementById('stat-judge-sub').textContent =
-      `生涯 ${judgeDone}　預計 ${judgeFuture}`;
+      `生 ${judgeDone}　預 ${judgeFuture}`;
 
     document.getElementById('stat-record-sub').textContent =
-      `生涯 ${recordDone}　預計 ${recordFuture}`;
+      `生 ${recordDone}　預 ${recordFuture}`;
 
     document.getElementById('stat-total-sub').textContent =
-      `生涯 ${judgeDone + recordDone}　預計 ${judgeFuture + recordFuture}`;
+      `生 ${judgeDone + recordDone}　預 ${judgeFuture + recordFuture}`;
   });
 }
+
 
 
 /*********************************************************
