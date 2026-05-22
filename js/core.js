@@ -254,7 +254,7 @@ function handleSlotClick(gid, role){
 
   const isRecord = role.startsWith('REC');
 
-  /** ✅ 1. 點自己 → 取消 **/
+  /** ✅ 點自己 → 取消 **/
   if (g.my_position === role){
 
     if (isRecord){
@@ -265,35 +265,14 @@ function handleSlotClick(gid, role){
     return;
   }
 
-  /** ✅ 2. 同一場限制 **/
-  if (g.my_position){
-
-    // ✅ 已經是裁判 → 不可再選其他裁判 or 紀錄
-    if (!isRecord){
-      alert('❌ 同一場裁判只能選一個');
-      return;
-    }
-
-    // ✅ 已是裁判 → 不可再選紀錄
-    if (isRecord){
-      alert('❌ 已是裁判，不能同時擔任紀錄');
-      return;
-    }
-  }
-
-  /** ✅ 3. 空位檢查 **/
-  if (g.judges?.[role] || g.records?.[role]){
-    alert('❌ 該位置已有人');
+  /** ✅ 驗證（核心） **/
+  const err = validateSignup(g, role);
+  if (err){
+    alert(err);
     return;
   }
 
-  /** ✅ 4. 跨場時間衝堂 **/
-  if (isTimeConflict(g)){
-    alert('❌ 時間衝突（已有其他場次）');
-    return;
-  }
-
-  /** ✅ 5. 報名 **/
+  /** ✅ 執行 **/
   if (isRecord){
     signupRecord(g, role);
   } else {
@@ -454,4 +433,50 @@ function isTimeConflict(targetGame){
     // ✅ 重疊條件
     return (tStart < gEnd && tEnd > gStart);
   });
+}
+
+/*********************************************************
+ * ✅ 聯盟級報名規則引擎（唯一核心）
+ *********************************************************/
+function validateSignup(targetGame, role){
+
+  const isRecord = role.startsWith('REC');
+
+  /************* ✅ 同場限制 *************/
+  if (targetGame.my_position){
+
+    // ✅ 已是裁判 → 不可再報任何
+    if (!targetGame.my_position.startsWith('REC')){
+      return '❌ 同一場裁判只能一個角色，且不能兼紀錄';
+    }
+
+    // ✅ 已是紀錄
+    if (!isRecord){
+      return '❌ 已報名紀錄，不可再擔任裁判';
+    }
+  }
+
+  /************* ✅ 欄位是否已滿 *************/
+  if (targetGame.judges?.[role] || targetGame.records?.[role]){
+    return '❌ 該位置已有人';
+  }
+
+  /************* ✅ 跨場時間衝堂（核心） *************/
+  const tStart = new Date(targetGame.date + ' ' + targetGame.time).getTime();
+  const tEnd   = tStart + (targetGame.duration || 120) * 60000;
+
+  for (let g of __GAME_CACHE){
+
+    if (!g.my_position) continue;
+    if (g.game_id === targetGame.game_id) continue;
+
+    const gStart = new Date(g.date + ' ' + g.time).getTime();
+    const gEnd   = gStart + (g.duration || 120) * 60000;
+
+    if (tStart < gEnd && tEnd > gStart){
+      return '❌ 時間衝突（已有其他場次）';
+    }
+  }
+
+  return '';
 }
