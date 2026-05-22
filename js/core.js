@@ -5,43 +5,7 @@ function renderGameCard(g){
 
   const d = new Date(g.date);
   const w = ['日','一','二','三','四','五','六'][d.getDay()];
-
   const isMine = g.my_position && g.my_position !== '';
-  const myName = session.name;
-
-  /************* ✅ 裁判角色 *************/
-  const roleMap = {
-    1: ['PU'],
-    2: ['PU','U1'],
-    3: ['PU','U1','U3'],
-    4: ['PU','U1','U2','U3']
-  };
-
-  const roles = roleMap[g.need_count || 0] || [];
-
-  const hasJudge = roles.some(r => g.judges?.[r]);
-  const hasRecord = Object.values(g.records || {}).some(v => v);
-
-  /************* ✅ 組合項目 *************/
-  roles.forEach(r=>{
-    const label =
-      r === 'PU' ? '主審' :
-      r === 'U1' ? '一壘' :
-      r === 'U2' ? '二壘' : '三壘';
-
-    items.push({
-      label,
-      value: highlight(g.judges?.[r])
-    });
-  });
-
-  if (hasRecord){
-    items.push(
-      { label:'記錄', value:highlight(g.records.REC_MAIN) },
-      { label:'見習', value:highlight(g.records.REC_TRAINEE) },
-      { label:'影像', value:highlight(g.records.REC_VIDEO) }
-    );
-  }
 
   return `
   <div style="
@@ -73,10 +37,15 @@ function renderGameCard(g){
       </div>
     </div>
 
-    <!-- ✅ 第二區 -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin:12px 0;">
+    <!-- ✅ 第二區（完全維持你原規格） -->
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      margin:12px 0;
+    ">
 
-      <!-- 主隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
@@ -86,18 +55,11 @@ function renderGameCard(g){
         align-items:center;
         justify-content:center;
       ">
-        <span style="
-          font-size:clamp(14px, 1.8vw, 18px);
-          font-weight:700;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        ">
+        <span style="font-size:16px;font-weight:700;">
           ${g.home_team}
         </span>
       </div>
 
-      <!-- 中間 -->
       <div style="flex:0 0 110px;text-align:center;">
         <div style="
           display:inline-block;
@@ -120,7 +82,6 @@ function renderGameCard(g){
         </div>
       </div>
 
-      <!-- 客隊 -->
       <div style="
         flex:1;
         background:#f0f2f6;
@@ -130,94 +91,86 @@ function renderGameCard(g){
         align-items:center;
         justify-content:center;
       ">
-        <span style="
-          font-size:clamp(14px, 1.8vw, 18px);
-          font-weight:700;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        ">
+        <span style="font-size:16px;font-weight:700;">
           ${g.away_team}
         </span>
       </div>
 
     </div>
 
-<!-- ✅ 第三區（最終版） -->
-${
-  (g.need_count || Object.values(g.records || {}).some(v => v)) ? `
-  <div style="
-    border-top:1px dashed #ccc;
-    padding-top:10px;
-    font-size:14px;
-    text-align:center;
-  ">
-
-    <!-- ✅ 標題 -->
+    <!-- ✅ ✅ ✅ 第三區（升級重點） -->
     <div style="
-      display:flex;
-      text-align:center;
-      color:#777;
+      border-top:1px dashed #ccc;
+      padding-top:10px;
     ">
-      ${
-        [
-          // ✅ 裁判（依 need_count）
-          ...(['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>{
-            const label =
-              r === 'PU' ? '主審' :
-              r === 'U1' ? '一壘' :
-              r === 'U2' ? '二壘' : '三壘';
-            return label;
-          })),
+      <div style="
+        display:flex;
+        gap:6px;
+        text-align:center;
+      ">
+        ${
+          [
+            ...['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>({
+              role:r,
+              name:g.judges?.[r]
+            })),
+            ...['REC_MAIN','REC_TRAINEE','REC_VIDEO'].map(r=>({
+              role:r,
+              name:g.records?.[r]
+            }))
+          ].map(s=>{
 
-          // ✅ 紀錄（固定3格）
-          '記錄','見習','影像'
-        ].map(label=>`
-          <div style="flex:1;font-size:12px;">
-            ${label}
-          </div>
-        `).join('')
-      }
-    </div>
+            const isMe = s.name === session.name;
+            const isEmpty = !s.name;
 
-    <!-- ✅ 名字 / 報名 -->
-    <div style="
-      display:flex;
-      text-align:center;
-      margin-top:6px;
-    ">
-      ${
-        [
-          // ✅ 裁判
-          ...(['PU','U1','U2','U3'].slice(0, g.need_count || 0).map(r=>({
-            role:r,
-            name:g.judges?.[r]
-          }))),
+            let bg = '#f8fafc';
+            let color = '#333';
+            let border = '1px solid #e5e7eb';
+            let cursor = 'pointer';
 
-          // ✅ 紀錄
-          ...['REC_MAIN','REC_TRAINEE','REC_VIDEO'].map(r=>({
-            role:r,
-            name:g.records?.[r]
-          }))
-        ].map(s=>`
-          <div
-            onclick="handleSlotClick('${g.game_id}', '${s.role}')"
-            style="
-              flex:1;
-              cursor:${s.name ? 'default' : 'pointer'};
-              font-size:clamp(12px,1.6vw,15px);
-              white-space:nowrap;
-            "
-          >
-            ${highlight(s.name) || '＋'}
-          </div>
-        `).join('')
-      }
+            // ✅ 已有人
+            if (!isEmpty){
+              bg = '#f1f5f9';
+              cursor = isMe ? 'pointer' : 'default';
+            }
+
+            // ✅ 自己（強調）
+            if (isMe){
+              bg = '#dbeafe';
+              color = '#1d4ed8';
+              border = '1px solid #93c5fd';
+            }
+
+            return `
+              <div
+                onclick="handleSlotClick('${g.game_id}', '${s.role}')"
+                style="
+                  flex:1;
+                  padding:6px 4px;
+                  border-radius:8px;
+                  background:${bg};
+                  border:${border};
+                  color:${color};
+                  cursor:${cursor};
+                  font-size:13px;
+                  font-weight:${isMe ? '700' : '500'};
+                  transition:.15s;
+                "
+                onmouseover="if('${cursor}'==='pointer'){this.style.transform='scale(1.05)'}"
+                onmouseout="this.style.transform='scale(1)'"
+              >
+                ${highlight(s.name) || '＋'}
+              </div>
+            `;
+          }).join('')
+        }
+      </div>
     </div>
 
   </div>
-  ` : ''
+  `;
 }
+
 
 /*********************************************************
  * ✅ ✅ ✅ 班表名字高亮
@@ -268,7 +221,7 @@ function handleSlotClick(gid, role){
   /** ✅ 驗證（核心） **/
   const err = validateSignup(g, role);
   if (err){
-    alert(err);
+    showToast(err);
     return;
   }
 
@@ -480,3 +433,43 @@ function validateSignup(targetGame, role){
 
   return '';
 }
+
+/*********************************************************
+ * ✅ Toast 系統（取代 alert）
+ *********************************************************/
+function showToast(msg, type='normal'){
+
+  let el = document.getElementById('_toast');
+
+  if (!el){
+    el = document.createElement('div');
+    el.id = '_toast';
+    document.body.appendChild(el);
+  }
+
+  let bg = '#374151';
+
+  if (type === 'error') bg = '#dc2626';
+  if (type === 'success') bg = '#16a34a';
+
+  el.innerHTML = msg;
+
+  el.style.cssText = `
+    position:fixed;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:${bg};
+    color:#fff;
+    padding:10px 16px;
+    border-radius:8px;
+    font-size:14px;
+    z-index:9999;
+    opacity:0;
+    transition:.25s;
+  `;
+
+  setTimeout(()=> el.style.opacity = 1, 10);
+  setTimeout(()=> el.style.opacity = 0, 2200);
+}
+
