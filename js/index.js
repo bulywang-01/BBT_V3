@@ -335,7 +335,8 @@ function openMySchedule(){
       return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
     });
 
-    list.innerHTML = myGames.map(renderGameCard).join('');
+    list.innerHTML = myGames.map(renderGameCard).join('');.
+    setGameCache(myGames);
   });
 }
 
@@ -400,5 +401,6 @@ function openWeeklySchedule(){
 
     /************* ✅ render *************/
     content.innerHTML = finalList.map(g => renderGameCard(g)).join('');
+    setGameCache(finalList);
   });
 }
