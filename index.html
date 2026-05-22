@@ -576,6 +576,19 @@
       display: block !important;
     }
 
+    /* 本週出勤提醒 */
+    .week-alert{
+      margin-top:6px;
+      color:#dc2626;
+      font-weight:600;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%   { opacity:1; }
+      50%  { opacity:0.3; }
+      100% { opacity:1; }
+    }
   </style>
 
 </head>
@@ -626,7 +639,8 @@
     <div class="panel welcome-box">
       <div class="welcome-role" id="welcome-role"></div>
       <div class="welcome-name" id="welcome-name"></div>
-      <!-- <div class="welcome-name">歡迎使用BBT出勤管理系統</div> -->
+      <!-- ✅ 本週提醒 -->
+      <div id="welcome-alert"></div>
       <div class="user-stats">
       
         <div class="stat-card">
