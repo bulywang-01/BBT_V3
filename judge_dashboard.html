@@ -637,6 +637,7 @@ tr.full {
 
 <script src="js/auth.js"></script>
 <script src="js/config.js"></script>
+<script src="js/core.js"></script>
 
 
 <!-- 畫面中間呈現訊息 -->
@@ -1470,30 +1471,46 @@ function cancelMySignup(signupId) {
 }
 
 // 按了就直接送出，不用再按鍵了
-function signupJudgeInstant(gameId, position) {
-  const session = ensureLogin();
-  if (!session) return;
+function signupJudgeInstant(gameId, role){
+
+  const g = allGames.find(x => x.game_id == gameId);
+  if (!g) return;
+
+  const err = validateSignup(g, role);
+  if (err){
+    showMessage(err);
+    return;
+  }
 
   showLoading('報名中...');
 
-  callApi(
-    {
-      action: 'judgeSignupByGames',
-      user_id: session.user_id,
-      games_with_position: `${gameId}:${position}`
-    },
-    res => {
-      if (res && res.result === 'ok') {
-        showMessage('✅ 報名成功');
-        setTimeout(() => {
-          reloadCurrentView();
-        }, 600);
-      } else {
-        showMessage(res?.message || '❌ 報名失敗');
-      }
+  const session = JSON.parse(localStorage.getItem('session_user') || '{}');
+
+  callApi({
+    action: 'judgeSignupByGames',
+    user_id: session.user_id,
+    games_with_position: `${gameId}:${role}`
+  }, res => {
+
+    if (res && res.result === 'ok'){
+
+      // ✅ ✅ ✅ 無刷新（關鍵）
+      g.occupied_positions = g.occupied_positions || {};
+      g.occupied_positions[role] = session.name;
+
+      g.my_position = role;
+
+      render();
+      renderMobile();
+
+      showMessage('✅ 報名成功');
+
+    } else {
+      showMessage(res?.message || '❌ 報名失敗');
     }
-  );
+  });
 }
+
 
 // 初始化月份
 let currentMonth = null;
