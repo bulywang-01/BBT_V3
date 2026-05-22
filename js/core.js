@@ -254,7 +254,7 @@ function handleSlotClick(gid, role){
 
   const isRecord = role.startsWith('REC');
 
-  // ✅ 自己 → 取消
+  /** ✅ 1. 點自己 → 取消 **/
   if (g.my_position === role){
 
     if (isRecord){
@@ -265,19 +265,35 @@ function handleSlotClick(gid, role){
     return;
   }
 
-  // ✅ 防衝堂
+  /** ✅ 2. 同一場限制 **/
   if (g.my_position){
-    alert('❌ 已有其他場次');
-    return;
+
+    // ✅ 已經是裁判 → 不可再選其他裁判 or 紀錄
+    if (!isRecord){
+      alert('❌ 同一場裁判只能選一個');
+      return;
+    }
+
+    // ✅ 已是裁判 → 不可再選紀錄
+    if (isRecord){
+      alert('❌ 已是裁判，不能同時擔任紀錄');
+      return;
+    }
   }
 
-  // ✅ 已滿
+  /** ✅ 3. 空位檢查 **/
   if (g.judges?.[role] || g.records?.[role]){
-    alert('❌ 已有人');
+    alert('❌ 該位置已有人');
     return;
   }
 
-  // ✅ 報名
+  /** ✅ 4. 跨場時間衝堂 **/
+  if (isTimeConflict(g)){
+    alert('❌ 時間衝突（已有其他場次）');
+    return;
+  }
+
+  /** ✅ 5. 報名 **/
   if (isRecord){
     signupRecord(g, role);
   } else {
@@ -415,4 +431,27 @@ let __GAME_CACHE = [];
  *********************************************************/
 function setGameCache(list){
   __GAME_CACHE = list;
+}
+
+/*********************************************************
+ * ✅ 報名系統 - 時間衝堂判斷（核心）
+ *********************************************************/
+function isTimeConflict(targetGame){
+
+  const tStart = new Date(targetGame.date + ' ' + targetGame.time).getTime();
+  const tEnd   = tStart + (targetGame.duration || 120) * 60000;
+
+  return __GAME_CACHE.some(g => {
+
+    if (!g.my_position) return false;
+
+    const gStart = new Date(g.date + ' ' + g.time).getTime();
+    const gEnd   = gStart + (g.duration || 120) * 60000;
+
+    // ✅ 同一場不用比
+    if (g.game_id === targetGame.game_id) return false;
+
+    // ✅ 重疊條件
+    return (tStart < gEnd && tEnd > gStart);
+  });
 }
