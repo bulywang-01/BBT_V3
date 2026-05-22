@@ -374,7 +374,7 @@ function renderGameCard(g){
         ${g.date.slice(5)}（${w}）
       </div>
 
-      <div style="text-align:center;font-size:14px;">
+      <div style="text-align:center;font-size:16px;">
         ${g.category || ''}
       </div>
 
@@ -459,7 +459,7 @@ function renderGameCard(g){
       <div style="
         border-top:1px dashed #ccc;
         padding-top:10px;
-        font-size:13px;
+        font-size:14px;
         text-align:center;
       ">
 
