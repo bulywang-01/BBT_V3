@@ -478,7 +478,7 @@ function renderGameCard(g){
         <div style="
           display:flex;
           text-align:center;
-          margin-top:4px;
+          margin-top:6px;
         ">
           ${
             items.map(i => `
