@@ -992,7 +992,7 @@ function render() {
 
         /* ✅ 5️⃣ render 每場比賽 */
         categoryGroups[category]
-          .sort((a,b)=>timeToMinutes(a.time_range)-timeToMinutes(b.time_range))
+          .sort((a,b)=>timeToMinutes(a.time)-timeToMinutes(b.time_range))
           .forEach(g => {
 
             const tr = renderGameRow(g, today);
@@ -1018,7 +1018,7 @@ function renderGameRow(g, today) {
   if (isPast) tr.classList.add('expired');
 
   /* ✅ ✅ ✅ 正確計算人數（關鍵修正） */
-  const occupied = g.occupied_positions || {};
+  const occupied = g.judges || {};
   const assigned = Object.values(occupied).filter(v => v && v !== '').length;
 
   const need = Number(g.need_count) || 0;
@@ -1036,7 +1036,7 @@ function renderGameRow(g, today) {
 
   tr.innerHTML = `
     <td><span class="game-badge ${isPast ? 'expired' : ''}">${g.game_code}</span></td>
-    <td>${formatTime(g.time_range)}</td>
+    <td>${g.time}</td>
     <td>${g.category || ''}</td>
     <td>${g.away_team || ''}</td>
     <td>${g.home_team || ''}</td>
@@ -1067,7 +1067,7 @@ function renderPos(g, role, isPast) {
     return '<span class="pos-na">不需要</span>';
   }
 
-  const occupied = g.occupied_positions || {};
+  const occupied = g.judges || {};
   const name = getName(occupied[role]);
 
   /* ✅ ✅ ✅ 過期 → 只顯示人名（關鍵） */
@@ -1183,7 +1183,7 @@ function renderMobile() {
             <div class="game-card ${isPastGameRow ? 'expired-card' : ''}">
               
               <div class="mobile-time-row">
-                <div class="time">⏰ ${formatTime(g.time_range)}</div>
+                <div class="time">⏰ ${g.time}</div>
 
                 <div class="game-code badge ${isPastGameRow ? 'expired' : ''}"
                   data-category="${g.category || ''}">
@@ -1268,7 +1268,7 @@ function renderMobilePosGrid(g) {
   const isPast = new Date(g.date.replace(/\//g,'-')) < today;
 
 
-  const occupied = g.occupied_positions || {};
+  const occupied = g.judges || {};
 
   function needNA(role) {
     return (
@@ -1495,8 +1495,9 @@ function signupJudgeInstant(gameId, role){
     if (res && res.result === 'ok'){
 
       // ✅ ✅ ✅ 無刷新（關鍵）
-      g.occupied_positions = g.occupied_positions || {};
-      g.occupied_positions[role] = session.name;
+
+      g.judges = g.judges || {};
+      g.judges[role] = session.name;
 
       g.my_position = role;
 
