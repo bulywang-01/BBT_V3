@@ -247,17 +247,20 @@ function renderGameCard(g){
 
   function highlight(name){
     if (!name) return '';
-    if (name === myName){
+  
+    if (name === session.name){
       return `
         <span style="
           background:#dbeafe;
           color:#1d4ed8;
           padding:3px 8px;
           border-radius:6px;
-          font-weight:700;
-          display:inline-block;
-        ">${name}</span>`;
+        ">
+          ${name}
+        </span>
+      `;
     }
+  
     return name;
   }
 
@@ -448,46 +451,40 @@ function openMySchedule(){
     user_id: session.user_id
   }, res => {
 
-    console.log('我的班表 API:', res);
-
     if (!res || res.result !== 'ok'){
       list.innerHTML = '載入失敗';
       return;
     }
 
     const games = res.games || [];
-    const myName = session.name;
 
-    /************* ✅ 真正安全的「我的班表」判斷 *************/
+    const now = new Date();
+    now.setHours(23,59,59,999);  
+    // ✅ 今天結束前都算未來（避免誤判）
+
     const myGames = games.filter(g => {
 
-      // ✅ 用 my_position（主判斷）
-      if (g.my_position) return true;
+      // ✅ 必須是我的場
+      if (!g.my_position) return false;
 
-      // ✅ fallback：看名字（避免漏資料）
-      const judges = Object.values(g.judges || {});
-      const records = Object.values(g.records || {});
-
-      return [...judges, ...records].includes(myName);
+      // ✅ 只取未來
+      const d = new Date(g.date + ' ' + g.time);
+      return d > now;
     });
 
     if (!myGames.length){
-      list.innerHTML = '目前沒有班表';
+      list.innerHTML = '目前沒有未來班表';
       return;
     }
 
-    /************* ✅ 排序（時間） *************/
+    // ✅ 排序
     myGames.sort((a,b)=>{
       return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
     });
 
-    /************* ✅ render *************/
-    list.innerHTML = myGames.map(g => renderGameCard(g)).join('');
+    list.innerHTML = myGames.map(renderGameCard).join('');
   });
-
 }
-
-
 
 /*********************************************************
  * ✅ ✅ ✅ 本週聯盟班表（補回你功能）
