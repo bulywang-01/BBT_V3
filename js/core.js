@@ -9,27 +9,6 @@ function renderGameCard(g){
   const isMine = g.my_position && g.my_position !== '';
   const myName = session.name;
 
-  /************* ✅ 名字高亮 *************/
-  function highlight(name){
-    if (!name) return '';
-
-    if (name === myName){
-      return `
-        <span style="
-          background:#dbeafe;
-          color:#1d4ed8;
-          padding:3px 6px;
-          border-radius:6px;
-          white-space:nowrap;
-        ">
-          ${name}
-        </span>
-      `;
-    }
-
-    return `<span style="white-space:nowrap;">${name}</span>`;
-  }
-
   /************* ✅ 裁判角色 *************/
   const roleMap = {
     1: ['PU'],
@@ -179,11 +158,28 @@ function renderGameCard(g){
         <!-- 標題 -->
         <div style="display:flex;text-align:center;color:#777;">
           ${
-            items.map(i => `
-              <div style="flex:1;font-size:12px;">
-                ${i.label}
+            ${[
+              ...['PU','U1','U2','U3'].map(r=>({
+                role:r,
+                name:g.judges?.[r]
+              })),
+              ...['REC_MAIN','REC_TRAINEE','REC_VIDEO'].map(r=>({
+                role:r,
+                name:g.records?.[r]
+              }))
+            ].map(s=>`
+              <div
+                onclick="handleSlotClick(${encodeURIComponent(JSON.stringify(g))}, '${s.role}')"
+                style="
+                  flex:1;
+                  cursor:pointer;
+                  font-size:clamp(12px,1.6vw,15px);
+                  white-space:nowrap;
+                "
+              >
+                ${highlight(s.name) || '＋'}
               </div>
-            `).join('')
+            `).join('')}
           }
         </div>
 
@@ -214,3 +210,152 @@ function renderGameCard(g){
   `;
 }
 
+/*********************************************************
+ * ✅ ✅ ✅ 班表名字高亮
+*********************************************************/
+function highlight(name){
+  if (!name) return '';
+   if (name === myName){
+    return `
+      <span style="
+        background:#dbeafe;
+        color:#1d4ed8;
+        padding:3px 6px;
+        border-radius:6px;
+        white-space:nowrap;
+      ">
+        ${name}
+      </span>
+    `;
+  }
+   return `<span style="white-space:nowrap;">${name}</span>`;
+}
+
+/*********************************************************
+ * ✅ 報名系統完整版本 - slot 點擊判斷（核心）
+*********************************************************/
+function handleSlotClick(g, role){
+
+  const isRecord = role.startsWith('REC');
+
+  // ✅ 是否為自己 → 取消
+  if (g.my_position === role){
+
+    if (isRecord){
+      cancelRecord(g, role);
+    } else {
+      cancelJudge(g, role);
+    }
+
+    return;
+  }
+
+  // ✅ 已經有別的職位（防衝堂）
+  if (g.my_position){
+    alert('❌ 已有報名場次，請先取消');
+    return;
+  }
+
+  // ✅ 空位才能報名
+  const occupied =
+    g.judges?.[role] ||
+    g.records?.[role];
+
+  if (occupied){
+    alert('❌ 此位置已有人');
+    return;
+  }
+
+  // ✅ 執行報名
+  if (isRecord){
+    signupRecord(g, role);
+  } else {
+    signupJudge(g, role);
+  }
+}
+
+/*********************************************************
+ * ✅ 報名系統完整版本 - 報名功能
+*********************************************************/
+
+// ✅ 報名（裁判）
+function signupJudge(g, role){
+
+  callApi({
+    action:'judgeSignupByGames',
+    user_id: session.user_id,
+    games_with_position: `${g.game_id}:${role}`
+  }, res => {
+
+    if (res.result === 'ok'){
+      alert('✅ 報名成功');
+      reloadGames();
+    }
+  });
+}
+
+// ✅ 報名（紀錄）
+function signupRecord(g, role){
+
+  callApi({
+    action:'recordSignup',
+    game_id: g.game_id,
+    user_id: session.user_id,
+    record_role: role
+  }, res => {
+
+    if (res.result === 'ok'){
+      alert('✅ 報名成功');
+      reloadGames();
+    }
+  });
+}
+
+//✅ 取消（裁判）
+function cancelJudge(g, role){
+
+  callApi({
+    action:'cancelJudgeSignup',
+    signup_id: g.my_signup_id
+  }, res => {
+
+    if (res.result === 'ok'){
+      alert('✅ 已取消');
+      reloadGames();
+    }
+  });
+}
+
+//✅ 取消（紀錄）
+function cancelRecord(g, role){
+
+  callApi({
+    action:'cancelRecordSignup',
+    game_id: g.game_id,
+    user_id: session.user_id,
+    record_role: role
+  }, res => {
+
+    if (res.result === 'ok'){
+      alert('✅ 已取消');
+      reloadGames();
+    }
+  });
+}
+
+//✅ 共用刷新
+function reloadGames(){
+
+  // 👉 直接重叫你現有方法（不用改）
+  if (typeof openMySchedule === 'function'){
+    openMySchedule();
+  }
+
+  if (typeof openWeeklySchedule === 'function'){
+    openWeeklySchedule();
+  }
+
+  if (typeof loadDashboard === 'function'){
+    loadDashboard();
+  }
+}
