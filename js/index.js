@@ -457,3 +457,68 @@ function openWeeklySchedule(){
 
   });
 }
+
+/*********************************************************
+ * ✅ ✅ ✅ 班表（第三區 - 裁判及紀錄名單）
+ *********************************************************/
+function renderJudgeRecordSection(g){
+
+  const roleMap = {
+    1: ['PU'],
+    2: ['PU','U1'],
+    3: ['PU','U1','U3'],
+    4: ['PU','U1','U2','U3']
+  };
+
+  const roles = roleMap[g.need_count || 0] || [];
+
+  const hasJudge = roles.some(r => g.judges?.[r]);
+  const hasRecord = Object.values(g.records || {}).some(v => v);
+
+  if (!hasJudge && !hasRecord) return '';
+
+  return `
+  <div style="
+    border-top:1px dashed #ccc;
+    padding-top:8px;
+    font-size:13px;
+  ">
+
+    <div style="display:flex;text-align:center;color:#777;">
+      ${
+        roles.map(r => {
+          const name =
+            r === 'PU' ? '主審' :
+            r === 'U1' ? '一壘' :
+            r === 'U2' ? '二壘' :
+            '三壘';
+          return `<div style="flex:1;">${name}</div>`;
+        }).join('')
+      }
+
+      ${
+        hasRecord ? `
+          <div style="flex:1;">記錄</div>
+          <div style="flex:1;">見習</div>
+          <div style="flex:1;">影像</div>
+        ` : ''
+      }
+    </div>
+
+    <div style="display:flex;text-align:center;margin-top:4px;">
+      ${
+        roles.map(r => `<div style="flex:1;">${g.judges?.[r] || ''}</div>`).join('')
+      }
+
+      ${
+        hasRecord ? `
+          <div style="flex:1;">${g.records?.REC_MAIN || ''}</div>
+          <div style="flex:1;">${g.records?.REC_TRAINEE || ''}</div>
+          <div style="flex:1;">${g.records?.REC_VIDEO || ''}</div>
+        ` : ''
+      }
+    </div>
+
+  </div>
+  `;
+}
