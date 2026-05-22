@@ -33,6 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ✅ 載入統計
   loadDashboard();
+
+  // ✅ 載入本週出勤提醒
+  loadWeeklyReminder();
+
 });
 
 
@@ -90,7 +94,8 @@ function bindButtons(){
  *********************************************************/
 function loadWeeklyReminder(){
 
-  const el = document.getElementById('welcome-text');
+  const el = document.getElementById('welcome-alert');
+  if (!el || !session) return;
 
   callApi({
     action:'getSignableGames',
@@ -102,39 +107,33 @@ function loadWeeklyReminder(){
     const games = res.games || [];
     const now = new Date();
 
-    // ✅ 本週
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
     const monday = new Date(now);
     monday.setDate(now.getDate() - (day - 1));
+    monday.setHours(0,0,0,0);
 
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23,59,59,999);
 
-    // ✅ 找本週我的班
     const hasThisWeek = games.some(g => {
-
       if (!g.my_position) return false;
-
       const d = new Date(g.date);
       return d >= monday && d <= sunday;
     });
 
-    // ✅ 組文字
-    let html = `
-      王韶文 您好，歡迎使用出勤管理系統
-    `;
-
-    // ✅ ✅ ✅ 有本週班 → 加提醒
+    // ✅ 只處理提醒（不碰 welcome）
     if (hasThisWeek){
-      html += `
-        <div class="week-alert">
-          您本週有出勤哦，詳見我的班表
+      el.innerHTML = `
+        <div class="week-alert" onclick="openMySchedule()">
+          🔔 您本週有出勤哦，詳見我的班表
         </div>
       `;
+    } else {
+      el.innerHTML = '';
     }
 
-    el.innerHTML = html;
   });
 }
 
