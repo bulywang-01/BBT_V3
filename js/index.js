@@ -244,38 +244,32 @@ function renderGameCard(g){
     box-shadow:0 2px 6px rgba(0,0,0,0.08);
   ">
 
-    <!-- ✅ ✅ ✅ 第一區 -->
+    <!-- ✅ 第一區 -->
     <div style="
       display:flex;
       align-items:center;
       font-weight:700;
       margin-bottom:6px;
     ">
-
-      <!-- 日期 -->
       <div style="color:#2563eb;">
         ${g.date.slice(5)}（${w}）
       </div>
 
-      <!-- 組別 -->
       <div style="
         flex:1;
         text-align:center;
         font-size:14px;
-        color:#333;
       ">
         ${g.category || ''}
       </div>
 
-      <!-- 場地 -->
       <div style="text-align:right;">
         ${g.field}
       </div>
-
     </div>
 
 
-    <!-- ✅ ✅ ✅ 第二區 -->
+    <!-- ✅ ✅ ✅ 第二區（已對調） -->
     <div style="
       display:flex;
       align-items:center;
@@ -302,18 +296,8 @@ function renderGameCard(g){
         text-align:center;
       ">
 
-        <!-- ✅ 時間 -->
+        <!-- ✅ 場次（上） -->
         <div style="
-          color:#dc2626;
-          font-size:20px;
-          font-weight:800;
-        ">
-          ${g.time}
-        </div>
-
-        <!-- ✅ 場次 -->
-        <div style="
-          margin-top:4px;
           display:inline-block;
           padding:2px 10px;
           background:#e8f0ff;
@@ -322,6 +306,16 @@ function renderGameCard(g){
           font-weight:700;
         ">
           ${g.game_code}
+        </div>
+
+        <!-- ✅ 時間（下） -->
+        <div style="
+          margin-top:4px;
+          color:#dc2626;
+          font-size:20px;
+          font-weight:800;
+        ">
+          ${g.time}
         </div>
 
       </div>
@@ -341,8 +335,72 @@ function renderGameCard(g){
 
     </div>
 
-    <!-- ✅ ✅ ✅ 第三區（維持你原本） -->
     ${renderJudgeRecordSection(g)}
+
+  </div>
+  `;
+}
+
+/*********************************************************
+ * ✅ ✅ ✅ 班表（第三區 - 裁判及紀錄名單）
+ *********************************************************/
+function renderJudgeRecordSection(g){
+
+  const roleMap = {
+    1: ['PU'],
+    2: ['PU','U1'],
+    3: ['PU','U1','U3'],
+    4: ['PU','U1','U2','U3']
+  };
+
+  const roles = roleMap[g.need_count || 0] || [];
+
+  const hasJudge = roles.some(r => g.judges?.[r]);
+  const hasRecord = Object.values(g.records || {}).some(v => v);
+
+  if (!hasJudge && !hasRecord) return '';
+
+  return `
+  <div style="
+    border-top:1px dashed #ccc;
+    padding-top:8px;
+    font-size:13px;
+  ">
+
+    <div style="display:flex;text-align:center;color:#777;">
+      ${
+        roles.map(r => {
+          const name =
+            r === 'PU' ? '主審' :
+            r === 'U1' ? '一壘' :
+            r === 'U2' ? '二壘' :
+            '三壘';
+          return `<div style="flex:1;">${name}</div>`;
+        }).join('')
+      }
+
+      ${
+        hasRecord ? `
+          <div style="flex:1;">記錄</div>
+          <div style="flex:1;">見習</div>
+          <div style="flex:1;">影像</div>
+        ` : ''
+      }
+    </div>
+
+    <div style="display:flex;text-align:center;margin-top:4px;">
+      ${
+        roles.map(r => `<div style="flex:1;">${g.judges?.[r] || ''}</div>`).join('')
+      }
+
+      ${
+        hasRecord ? `
+          <div style="flex:1;">${g.records?.REC_MAIN || ''}</div>
+          <div style="flex:1;">${g.records?.REC_TRAINEE || ''}</div>
+          <div style="flex:1;">${g.records?.REC_VIDEO || ''}</div>
+        ` : ''
+      }
+    </div>
 
   </div>
   `;
@@ -447,78 +505,26 @@ function openWeeklySchedule(){
       return d >= monday && d <= sunday;
     });
 
-    /************* ✅ 排序 *************/
-    weekGames.sort((a,b)=>{
-      return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
+    /************* ✅ ✅ ✅ 關鍵：先 group 再攤平 *************/
+    const grouped = {};
+
+    weekGames.forEach(g=>{
+      const key = g.category || '未分類';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(g);
     });
 
-    /************* ✅ ✅ ✅ 直接 render（❗關鍵❗） *************/
-    content.innerHTML = weekGames.map(g => renderGameCard(g)).join('');
+    // ✅ 👉 重點：攤平成「一排卡片」，但順序維持 group
+    const finalList = [];
 
+    Object.values(grouped).forEach(list=>{
+      list.sort((a,b)=>{
+        return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
+      });
+      finalList.push(...list);
+    });
+
+    /************* ✅ render *************/
+    content.innerHTML = finalList.map(g => renderGameCard(g)).join('');
   });
-}
-
-/*********************************************************
- * ✅ ✅ ✅ 班表（第三區 - 裁判及紀錄名單）
- *********************************************************/
-function renderJudgeRecordSection(g){
-
-  const roleMap = {
-    1: ['PU'],
-    2: ['PU','U1'],
-    3: ['PU','U1','U3'],
-    4: ['PU','U1','U2','U3']
-  };
-
-  const roles = roleMap[g.need_count || 0] || [];
-
-  const hasJudge = roles.some(r => g.judges?.[r]);
-  const hasRecord = Object.values(g.records || {}).some(v => v);
-
-  if (!hasJudge && !hasRecord) return '';
-
-  return `
-  <div style="
-    border-top:1px dashed #ccc;
-    padding-top:8px;
-    font-size:13px;
-  ">
-
-    <div style="display:flex;text-align:center;color:#777;">
-      ${
-        roles.map(r => {
-          const name =
-            r === 'PU' ? '主審' :
-            r === 'U1' ? '一壘' :
-            r === 'U2' ? '二壘' :
-            '三壘';
-          return `<div style="flex:1;">${name}</div>`;
-        }).join('')
-      }
-
-      ${
-        hasRecord ? `
-          <div style="flex:1;">記錄</div>
-          <div style="flex:1;">見習</div>
-          <div style="flex:1;">影像</div>
-        ` : ''
-      }
-    </div>
-
-    <div style="display:flex;text-align:center;margin-top:4px;">
-      ${
-        roles.map(r => `<div style="flex:1;">${g.judges?.[r] || ''}</div>`).join('')
-      }
-
-      ${
-        hasRecord ? `
-          <div style="flex:1;">${g.records?.REC_MAIN || ''}</div>
-          <div style="flex:1;">${g.records?.REC_TRAINEE || ''}</div>
-          <div style="flex:1;">${g.records?.REC_VIDEO || ''}</div>
-        ` : ''
-      }
-    </div>
-
-  </div>
-  `;
 }
