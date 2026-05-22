@@ -235,20 +235,6 @@ function renderGameCard(g){
   const d = new Date(g.date);
   const w = ['日','一','二','三','四','五','六'][d.getDay()];
 
-  // ✅ 裁判顯示規則（依人數）
-  const roleMap = {
-    1: ['PU'],
-    2: ['PU','U1'],
-    3: ['PU','U1','U3'],
-    4: ['PU','U1','U2','U3']
-  };
-
-  const judgeCount = g.need_count || 0;
-  const judgeRoles = roleMap[judgeCount] || [];
-
-  const hasJudge = judgeRoles.some(r => g.judges[r]);
-  const hasRecord = Object.values(g.records || {}).some(v => v);
-
   return `
   <div style="
     background:#fff;
@@ -258,86 +244,97 @@ function renderGameCard(g){
     box-shadow:0 2px 6px rgba(0,0,0,0.08);
   ">
 
-    <!-- ✅ 上 -->
-    <div style="display:flex;justify-content:space-between;font-weight:700;">
-      <div style="color:#2563eb;font-size:16px;">
+    <!-- ✅ 第一列：日期 / 組別 / 場地 -->
+    <div style="
+      display:flex;
+      align-items:center;
+      font-weight:700;
+      margin-bottom:6px;
+    ">
+
+      <!-- 日期（左） -->
+      <div style="color:#2563eb;">
         ${g.date.slice(5)}（${w}）
       </div>
-      <div style="font-size:16px;">
+
+      <!-- 組別（中） -->
+      <div style="
+        flex:1;
+        text-align:center;
+        font-size:14px;
+        color:#333;
+      ">
+        ${g.category || ''}
+      </div>
+
+      <!-- 場地（右） -->
+      <div style="text-align:right;">
         ${g.field}
       </div>
+
     </div>
 
-    <!-- ✅ 中央 -->
-    <div style="text-align:center;margin:6px 0 10px;">
+
+    <!-- ✅ 中央：時間 + 場次 -->
+    <div style="text-align:center;margin-bottom:10px;">
 
       <!-- ✅ 時間 -->
-      <div style="font-size:20px;color:#dc2626;font-weight:800;">
+      <div style="
+        font-size:22px;
+        color:#dc2626;
+        font-weight:800;
+      ">
         ${g.time}
       </div>
 
-      <!-- ✅ 場次（有造型） -->
+      <!-- ✅ 場次（badge） -->
       <div style="
         display:inline-block;
-        padding:2px 10px;
+        margin-top:4px;
+        padding:2px 12px;
         background:#e8f0ff;
         color:#2563eb;
         border-radius:999px;
         font-weight:700;
-        margin-top:4px;
       ">
         ${g.game_code}
       </div>
 
-      <!-- ✅ 組別 -->
-      <div style="font-size:20px;font-weight:700;margin-top:4px;">
-        ${g.category || ''}
-      </div>
     </div>
+
 
     <!-- ✅ 對戰 -->
-    <div style="display:flex;gap:10px;margin-bottom:10px;">
-      <div style="flex:1;background:#f0f2f6;border-radius:10px;padding:12px;text-align:center;font-size:18px;font-weight:700;">
+    <div style="
+      display:flex;
+      gap:10px;
+      margin-bottom:10px;
+    ">
+
+      <div style="
+        flex:1;
+        background:#f0f2f6;
+        border-radius:10px;
+        padding:12px;
+        text-align:center;
+        font-size:18px;
+        font-weight:700;
+      ">
         ${g.home_team}
       </div>
-      <div style="flex:1;background:#f0f2f6;border-radius:10px;padding:12px;text-align:center;font-size:18px;font-weight:700;">
+
+      <div style="
+        flex:1;
+        background:#f0f2f6;
+        border-radius:10px;
+        padding:12px;
+        text-align:center;
+        font-size:18px;
+        font-weight:700;
+      ">
         ${g.away_team}
       </div>
+
     </div>
-
-    <!-- ✅ 名單 -->
-    ${
-      (hasJudge || hasRecord) ? `
-      <div style="border-top:1px dashed #ccc;padding-top:8px;font-size:13px;">
-
-        <div style="display:flex;text-align:center;color:#777;">
-          ${judgeRoles.map(r=>{
-            const label = r==='PU'?'主審':r==='U1'?'一壘':r==='U2'?'二壘':'三壘';
-            return `<div style="flex:1;">${label}</div>`;
-          }).join('')}
-          
-          ${hasRecord ? `
-            <div style="flex:1;">記錄</div>
-            <div style="flex:1;">見習</div>
-            <div style="flex:1;">影像</div>
-          ` : ''}
-        </div>
-
-        <div style="display:flex;text-align:center;margin-top:4px;">
-          ${judgeRoles.map(r=>`<div style="flex:1;">${g.judges[r]||''}</div>`).join('')}
-
-          ${hasRecord ? `
-            <div style="flex:1;">${g.records.REC_MAIN || ''}</div>
-            <div style="flex:1;">${g.records.REC_TRAINEE || ''}</div>
-            <div style="flex:1;">${g.records.REC_VIDEO || ''}</div>
-          ` : ''}
-        </div>
-
-      </div>
-      ` : ''
-    }
-
-  </div>
   `;
 }
 
@@ -408,16 +405,26 @@ function openWeeklySchedule(){
   const overlay = document.getElementById('weekly-overlay');
   const content = document.getElementById('weeklyContent');
 
-  overlay.style.display = 'flex';
+  if (overlay) overlay.style.display = 'flex';
+  if (!content) return;
+
   content.innerHTML = '載入中...';
 
-  callApi({ action:'getSignableGames' }, res => {
+  callApi({
+    action:'getSignableGames',
+    user_id: session.user_id   // ✅ 讓 my_position 正常
+  }, res => {
+
+    console.log('本週班表 API:', res);
 
     if (!res || res.result !== 'ok'){
       content.innerHTML = '載入失敗';
       return;
     }
 
+    const games = res.games || [];
+
+    /************* ✅ 本週（星期一～星期日） *************/
     const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
@@ -429,12 +436,54 @@ function openWeeklySchedule(){
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23,59,59,999);
 
-    const weekGames = (res.games || []).filter(g => {
-      const d = parseDate(g.date);
-      return d && d >= monday && d <= sunday;
+    const weekGames = games.filter(g => {
+      const d = new Date(g.date);
+      return d >= monday && d <= sunday;
     });
 
-    content.innerHTML = weekGames.map(renderGameCard).join('');
-  });
-}
+    if (!weekGames.length){
+      content.innerHTML = '本週無賽事';
+      return;
+    }
 
+    /************* ✅ 依組別 grouping *************/
+    const grouped = {};
+
+    weekGames.forEach(g => {
+      const key = g.category || '未分類';
+
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(g);
+    });
+
+    /************* ✅ render *************/
+    content.innerHTML = Object.entries(grouped).map(([group, list]) => {
+
+      // ✅ 每組內再排序
+      list.sort((a,b)=>{
+        return new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time);
+      });
+
+      return `
+        <div style="margin-bottom:18px;">
+
+          <!-- ✅ 組別標題 -->
+          <div style="
+            font-weight:800;
+            font-size:16px;
+            margin:10px 4px;
+            color:#111;
+          ">
+            ${group}
+          </div>
+
+          <!-- ✅ 卡片 -->
+          ${list.map(g => renderGameCard(g)).join('')}
+
+        </div>
+      `;
+    }).join('');
+
+  });
+
+}
