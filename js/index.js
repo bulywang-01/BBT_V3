@@ -337,6 +337,7 @@ function openMySchedule(){
 /*********************************************************
  * ✅ ✅ ✅ 本週班表（純顯示）
  *********************************************************/
+/* 舊版
 function openWeeklySchedule(){
 
   const overlay = document.getElementById('weekly-overlay');
@@ -384,6 +385,123 @@ function openWeeklySchedule(){
     );
 
     content.innerHTML = weekGames.map(renderGameCard).join('');
+    setGameCache(weekGames);
+  });
+}
+*/
+function openWeeklySchedule(){
+
+  const overlay = document.getElementById('weekly-overlay');
+  const content = document.getElementById('weeklyContent');
+
+  if (overlay) overlay.style.display = 'flex';
+  if (!content) return;
+
+  renderLoading(content);
+
+  callApi({
+    action:'getSignableGames',
+    user_id: session.user_id
+  }, res => {
+
+    if (!res || res.result !== 'ok'){
+      content.innerHTML = '載入失敗';
+      return;
+    }
+
+    const games = res.games || [];
+
+    /************* ✅ 本週範圍 *************/
+    const now = new Date();
+    const day = now.getDay() === 0 ? 7 : now.getDay();
+
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (day - 1));
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const weekGames = games.filter(g=>{
+      const d = new Date(g.date);
+      return d >= monday && d <= sunday;
+    });
+
+    if (!weekGames.length){
+      content.innerHTML = '本週沒有賽事';
+      return;
+    }
+
+    /*********************************************************
+     ✅ ✅ ✅ 核心：日期 → 組別 → 排序
+    *********************************************************/
+
+    const dateGroups = {};
+
+    weekGames.forEach(g=>{
+      if (!dateGroups[g.date]) dateGroups[g.date] = {};
+      const cat = g.category || '未分類';
+
+      if (!dateGroups[g.date][cat]) {
+        dateGroups[g.date][cat] = [];
+      }
+      dateGroups[g.date][cat].push(g);
+    });
+
+    let html = '';
+
+    Object.keys(dateGroups)
+      .sort((a,b)=>new Date(a) - new Date(b)) // ✅ 日期排序
+      .forEach(date => {
+
+        html += `
+          <div style="
+            font-size:18px;
+            font-weight:800;
+            margin:12px 0 6px;
+            color:#1a237e;
+          ">
+            ${date}
+          </div>
+        `;
+
+        Object.keys(dateGroups[date])
+          .sort()
+          .forEach(cat => {
+
+            const list = dateGroups[date][cat];
+
+            // ✅ 同組內依時間排序
+            list.sort((a,b)=>
+              new Date(a.date + ' ' + a.time) -
+              new Date(b.date + ' ' + b.time)
+            );
+
+            // ✅ 組別顏色
+            const color =
+              cat === '大聯盟' ? '#2563eb' :
+              cat === '小聯盟' ? '#16a34a' :
+              '#6b7280';
+
+            html += `
+              <div style="
+                margin:6px 0 4px;
+                font-weight:700;
+                color:${color};
+                border-left:4px solid ${color};
+                padding-left:8px;
+              ">
+                ${cat}
+              </div>
+            `;
+
+            // ✅ render 卡片（關鍵）
+            html += list.map(g => renderGameCard(g)).join('');
+          });
+
+      });
+
+    content.innerHTML = html;
+
     setGameCache(weekGames);
   });
 }
