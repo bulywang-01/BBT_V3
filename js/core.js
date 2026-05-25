@@ -196,7 +196,7 @@ function renderGameCard(g){
             items.map(i => `
               <div style="
                 flex:1;
-                font-size:14px;
+                font-size:clamp(13px, 3.5vw, 16px); /* ✅ 關鍵：自適應 */
                 font-weight:800;
                 white-space:nowrap;
                 overflow:hidden;
