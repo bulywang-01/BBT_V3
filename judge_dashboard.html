@@ -1403,15 +1403,25 @@ function submitSignup(){
   );
 }
 
-function showLoading(msg) {
+function showLoading(msg){
+
   const overlay = document.getElementById('overlay');
-  document.getElementById('overlay-text').textContent = msg;
-  document.getElementById('overlay-ok').style.display = 'none';
+  const text = document.getElementById('overlay-text');
+  const ok = document.getElementById('overlay-ok');
+
+  text.textContent = msg || '處理中...';
+
+  ok.style.display = 'none';
   overlay.classList.add('show');
 }
 
+function hideOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+}
+
+
 // 訊息function
-function showMessage(msg) {
+function showMessage(msg){
 
   const overlay = document.getElementById('overlay');
   const text = document.getElementById('overlay-text');
@@ -1419,15 +1429,12 @@ function showMessage(msg) {
 
   text.textContent = msg;
 
-  // ✅ ✅ ✅ 顯示按鈕（關鍵）
   ok.style.display = 'inline-block';
 
-  // ✅ ✅ ✅ 按鈕負責關閉（穩）
   ok.onclick = () => {
     hideOverlay();
   };
 
-  // ✅ 點背景也能關
   overlay.onclick = (e) => {
     if (e.target === overlay){
       hideOverlay();
@@ -1435,6 +1442,11 @@ function showMessage(msg) {
   };
 
   overlay.classList.add('show');
+
+  // ✅ ✅ ✅ 自動關閉（最重要）
+  setTimeout(()=>{
+    hideOverlay();
+  }, 1200);
 }
 
 
@@ -1498,18 +1510,16 @@ function signupJudgeInstant(gameId, role){
   const session = JSON.parse(localStorage.getItem('session_user') || '{}');
 
   callApi({
-    action: 'judgeSignupByGames',
+    action:'judgeSignupByGames',
     user_id: session.user_id,
     games_with_position: `${gameId}:${role}`
   }, res => {
 
     if (res && res.result === 'ok'){
 
-      // ✅ ✅ ✅ 無刷新（關鍵）
-
+      // ✅ ✅ ✅ 直接更新 UI（不 reload）
       g.judges = g.judges || {};
       g.judges[role] = session.name;
-
       g.my_position = role;
 
       render();
