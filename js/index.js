@@ -433,13 +433,11 @@ function openWeeklySchedule(){
       return;
     }
 
-    /*********************************************************
-     ✅ ✅ ✅ 日期 → 場地 → 排序（最終結構）
-    *********************************************************/
-
+    /***********************
+     ✅ 日期 → 場地 → 排序
+    ************************/
     const dateGroups = {};
 
-    // ✅ 分日期
     weekGames.forEach(g=>{
       if (!dateGroups[g.date]) dateGroups[g.date] = {};
       const field = g.field || '未知場地';
@@ -477,15 +475,13 @@ function openWeeklySchedule(){
 
             const list = fieldGroups[field];
 
-            /***********************
-             ✅ ✅ ✅ 同場地 → 只看時間排序（核心）
-            ************************/
+            // ✅ ✅ ✅ 同場地 → 只看時間
             list.sort((a,b)=>{
               return new Date(a.date + ' ' + a.time)
                    - new Date(b.date + ' ' + b.time);
             });
 
-            /************* 場地標題 *************/
+            /************* 場地 *************/
             html += `
               <div style="
                 margin:8px 0 4px;
@@ -497,33 +493,8 @@ function openWeeklySchedule(){
               </div>
             `;
 
-            /***********************
-             ✅ ✅ ✅ 組別顏色（顯示用）
-            ************************/
-            const getColor = (cat)=>
-              cat === '大聯盟' ? '#2563eb' :
-              cat === '小聯盟' ? '#16a34a' :
-              '#6b7280';
-
-            /************* render 每場 *************/
-            list.forEach(g => {
-
-              const color = getColor(g.category);
-
-              html += `
-                <div style="
-                  margin:6px 0 2px;
-                  font-weight:700;
-                  color:${color};
-                  border-left:4px solid ${color};
-                  padding-left:8px;
-                ">
-                  ${g.category || ''}
-                </div>
-              `;
-
-              html += renderGameCard(g);
-            });
+            /************* ✅ ✅ ✅ 只顯示卡片（組別不再外顯） *************/
+            html += list.map(g => renderGameCard(g)).join('');
 
           });
 
