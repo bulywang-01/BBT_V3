@@ -998,7 +998,6 @@ function renderCell(g,role){
 }
 
 /* ===== render ===== */
-
 function renderRecordDashboard(list){
 
   const root = document.getElementById('recordContainer');
@@ -1038,7 +1037,7 @@ function renderRecordDashboard(list){
             ${
               map[date][cat]
               .sort((a,b)=>getTime(a).localeCompare(getTime(b)))
-              .map(g=>renderRecordRow(g))
+              .map(g=>renderRecordRowFix(g))
               .join('')
             }
           </tbody>
@@ -1048,7 +1047,75 @@ function renderRecordDashboard(list){
 
     root.innerHTML+=`</div>`;
   });
+
 }
+
+/* ✅ row */
+function renderRecordRowFix(g){
+
+  const isPast = isPastGame(g.date);
+
+  return `
+    <tr class="${isPast?'expired':''}">
+      <td>${g.game_code}</td>
+      <td>${getTime(g)}</td>
+      <td>${g.away_team}</td>
+      <td>${g.home_team}</td>
+      <td>${g.field}</td>
+
+      ${renderRecordCellFix(g,'REC_MAIN')}
+      ${renderRecordCellFix(g,'REC_TRAINEE')}
+      ${renderRecordCellFix(g,'REC_VIDEO')}
+    </tr>
+  `;
+}
+
+/* ✅ cell */
+function renderRecordCellFix(g,role){
+
+  const slot = g.record_slots?.[role];
+  const isPast = isPastGame(g.date);
+
+  // ✅ 有人
+  if (slot){
+
+    // ✅ 自己
+    if (String(slot.user_id) === String(session.user_id)){
+
+      if (isPast){
+        return `<td><span style="color:#999">${slot.name}</span></td>`;
+      }
+
+      return `
+        <td>
+          <span style="color:#2e7d32;font-weight:700">
+            ${slot.name}
+            <span style="color:red;cursor:pointer"
+              onclick="cancelSignup('${g.game_id}','${role}')">
+              [取消]
+            </span>
+          </span>
+        </td>`;
+    }
+
+    return `<td>${slot.name}</td>`;
+  }
+
+  // ✅ ✅ ✅ 過期 → 禁止報名
+  if (isPast){
+    return `<td style="color:#999">—</td>`;
+  }
+
+  return `
+    <td>
+      <span style="color:#1976d2;cursor:pointer;font-weight:700"
+        onclick="signup('${g.game_id}','${role}')">
+        ＋報名
+      </span>
+    </td>
+  `;
+}
+
 
 /* =========================
  ✅ row
@@ -1209,32 +1276,55 @@ function renderMobileRecord(list){
   const root=document.getElementById('mobileView');
   root.innerHTML='';
 
-  const grouped=groupGames(list);
+  list.forEach(g=>{
 
-  Object.keys(grouped).forEach(date=>{
+    const isPast = isPastGame(g.date);
 
-    const box=document.createElement('div');
+    root.innerHTML+=`
+      <div class="record-card ${isPast?'expired-card':''}">
 
-    box.innerHTML=`<h3>${date}</h3>`;
+        <div>⏰ ${getTime(g)}</div>
+        <div>${g.game_code}</div>
 
-    Object.values(grouped[date]).forEach(arr=>{
+        <div>
+          ${g.away_team} vs ${g.home_team}
+        </div>
 
-      arr.forEach(g=>{
-        box.innerHTML+=`
-          <div class="record-card">
-            <div>⏰ ${getTime(g)}</div>
-            <div>${g.game_code}</div>
-            <div>${g.away_team} vs ${g.home_team}</div>
-          </div>
-        `;
-      });
+        <div style="display:flex;gap:6px;margin-top:8px">
 
-    });
+          ${['REC_MAIN','REC_TRAINEE','REC_VIDEO']
+            .map(role=>renderMobileRecordCell(g,role))
+            .join('')}
 
-    root.appendChild(box);
+        </div>
 
+      </div>
+    `;
   });
 }
+
+/* ✅ 手機 cell */
+function renderMobileRecordCell(g,role){
+
+  const slot = g.record_slots?.[role];
+  const isPast = isPastGame(g.date);
+
+  if (slot){
+    return `<div style="flex:1;text-align:center">${slot.name}</div>`;
+  }
+
+  if (isPast){
+    return `<div style="flex:1;color:#999">—</div>`;
+  }
+
+  return `
+    <div style="flex:1;text-align:center;color:#1976d2"
+      onclick="signup('${g.game_id}','${role}')">
+      ＋報名
+    </div>
+  `;
+}
+``
 
 
 
@@ -1342,7 +1432,8 @@ function signup(gameId, role){
       renderRecordDashboard(games);
       renderMobileRecord(games);
 
-      showToast('✅ 報名成功');
+      //showToast('✅ 報名成功');
+      showSuccess('✅ 報名成功');
 
     } else {
       showToast(res.message || '報名失敗', 'error');
@@ -1372,7 +1463,8 @@ function cancelSignup(gameId, role) {
 
     if (res.result === 'ok') {
 
-      showToast('已取消');
+      //showToast('已取消');
+      showSuccess('✅ 已取消');
 
       // ✅ ✅ ✅ 🔥 同樣 reload
       reloadCurrentView();
@@ -1560,6 +1652,10 @@ function setActiveTab(el) {
   document.querySelectorAll('.month-tab')
     .forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+}
+
+function showSuccess(msg){
+  showMessage(msg || '✅ 成功');
 }
 
 </script>
