@@ -196,8 +196,11 @@ function renderGameCard(g){
             items.map(i => `
               <div style="
                 flex:1;
-                font-size:clamp(12px, 1.6vw, 15px);
+                font-size:18px;
+                font-weight:800;
                 white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
               ">
                 ${i.value || ''}
               </div>
