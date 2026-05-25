@@ -1265,16 +1265,16 @@ function groupGamesForMobile(games) {
 }
 
 function renderMobilePosGrid(g) {
-  if (isPastGame(g.date)) {
-  return `
-    <div class="mobile-pos-grid">
-      <div class="mobile-pos-na">—</div>
-      <div class="mobile-pos-na">—</div>
-      <div class="mobile-pos-na">—</div>
-      <div class="mobile-pos-na">—</div>
-    </div>
-  `;
+  if (isPastGame(g.date)){
+    return `
+      <div class="mobile-pos-grid">
+        ${['PU','U1','U2','U3'].map(role=>{
+          return `<div>${getName(g.judges[role])}</div>`;
+        }).join('')}
+      </div>
+    `;
   }
+
   
   const ROLE_NAME = {
   PU: '主審',
