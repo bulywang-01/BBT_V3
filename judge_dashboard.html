@@ -899,23 +899,16 @@ function timeToMinutesSafe(t){
 
 /* ✅ ========= 主 render ========= */
 
+
 function render(){
 
   const box = document.getElementById('content');
   box.innerHTML = '';
 
-  if (!allGames || !allGames.length){
-    box.innerHTML = '<div class="panel">沒有賽事</div>';
-    return;
-  }
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
   const dateGroups = {};
 
   allGames.forEach(g=>{
-    if (!dateGroups[g.date]) dateGroups[g.date]=[];
+    if (!dateGroups[g.date]) dateGroups[g.date] = [];
     dateGroups[g.date].push(g);
   });
 
@@ -923,9 +916,7 @@ function render(){
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
 
-      const h3=document.createElement('h3');
-      h3.textContent=date;
-      box.appendChild(h3);
+      box.innerHTML += `<h3>${date}</h3>`;
 
       const categoryGroups={};
 
@@ -937,67 +928,68 @@ function render(){
 
       Object.keys(categoryGroups).forEach(cat=>{
 
-        const panel=document.createElement('div');
-        panel.className='panel';
-
-        panel.innerHTML=`<div>│ ${cat}</div>`;
-
-        const table=document.createElement('table');
-
-        table.innerHTML=`
-          <thead>
-            <tr>
-              <th>場次</th>
-              <th>時間</th>
-              <th>組別</th>
-              <th>客隊</th>
-              <th>主隊</th>
-              <th>場地</th>
-              <th>裁判數</th>
-              <th>PU</th>
-              <th>U1</th>
-              <th>U2</th>
-              <th>U3</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
+        box.innerHTML += `
+          <div class="panel">
+            <div>│ ${cat}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>場次</th>
+                  <th>時間</th>
+                  <th>組別</th>
+                  <th>客隊</th>
+                  <th>主隊</th>
+                  <th>場地</th>
+                  <th>裁判數</th>
+                  <th>PU</th>
+                  <th>U1</th>
+                  <th>U2</th>
+                  <th>U3</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${
+                  categoryGroups[cat]
+                  .sort((a,b)=>timeToMinutes(getTime(a))-timeToMinutes(getTime(b)))
+                  .map(g=>renderRow(g))
+                  .join('')
+                }
+              </tbody>
+            </table>
+          </div>
         `;
-
-        const tbody=table.querySelector('tbody');
-
-        categoryGroups[cat]
-          .sort((a,b)=>timeToMinutes(getTime(a))-timeToMinutes(getTime(b)))
-          .forEach(g=>{
-
-            const tr=document.createElement('tr');
-
-            const occupied=g.judges||{};
-            const assigned=Object.values(occupied).filter(x=>x).length;
-
-            const isPast = new Date(g.date.replace(/\//g,'-')) < today;
-
-            tr.innerHTML=`
-              <td>${g.game_code}</td>
-              <td>${getTime(g)}</td>
-              <td>${g.category}</td>
-              <td>${g.away_team}</td>
-              <td>${g.home_team}</td>
-              <td>${g.field}</td>
-              <td>${assigned}/${g.need_count}</td>
-              ${['PU','U1','U2','U3'].map(role=>{
-                return `<td>${renderPos(g,role,isPast)}</td>`;
-              }).join('')}
-            `;
-
-            tbody.appendChild(tr);
-          });
-
-        panel.appendChild(table);
-        box.appendChild(panel);
-
       });
-
     });
+}
+
+
+/* =========================
+ ✅ 單列
+========================= */
+
+function renderRow(g){
+
+  const isPast = isPastGame(g.date);
+
+  const occupied = g.judges || {};
+  const assigned = Object.values(occupied).filter(x=>x).length;
+
+  return `
+    <tr class="${isPast?'expired':''}">
+      <td>${g.game_code}</td>
+      <td>${getTime(g)}</td>
+      <td>${g.category}</td>
+      <td>${g.away_team}</td>
+      <td>${g.home_team}</td>
+      <td>${g.field}</td>
+      <td>${assigned}/${g.need_count}</td>
+
+      ${['PU','U1','U2','U3'].map(role=>{
+        return `<td>${renderPos(g,role,isPast)}</td>`;
+      }).join('')}
+
+    </tr>
+  `;
 }
 
 
@@ -1099,27 +1091,25 @@ function renderPos(g, role, isPast){
   const need = g.need_count || 0;
 
   if (
-    need === 0 ||
-    (need === 1 && role !== 'PU') ||
-    (need === 2 && ['U2','U3'].includes(role)) ||
-    (need === 3 && role === 'U2')
+    need===0 ||
+    (need===1 && role!=='PU') ||
+    (need===2 && ['U2','U3'].includes(role)) ||
+    (need===3 && role==='U2')
   ){
     return '<span style="color:#999">—</span>';
   }
 
-  const occupied = g.judges || {};
+  const occupied = g.judges||{};
   const name = occupied[role] || '';
 
+  // ✅ 過期鎖死
   if (isPast){
     return name || '';
   }
 
-  // ✅ 有人
   if (name){
 
-    const isMe = g.my_position === role;
-
-    if (isMe){
+    if (g.my_position === role){
       return `
         <span style="color:#2e7d32;font-weight:700">
           ★ ${name}
@@ -1134,12 +1124,10 @@ function renderPos(g, role, isPast){
     return name;
   }
 
-  // ✅ 已報別位置
   if (g.my_position){
     return '<span style="color:#999">待位</span>';
   }
 
-  // ✅ ✅ ✅ 可報名（你剛剛少這個）
   return `
     <span style="color:#1976d2;cursor:pointer;font-weight:700"
       onclick="signupJudgeInstant('${g.game_id}','${role}')">
@@ -1147,6 +1135,7 @@ function renderPos(g, role, isPast){
     </span>
   `;
 }
+
 
   
 // 手機版 ${renderTimeHHmm(g.time_range)}
@@ -1497,6 +1486,8 @@ function cancelMySignup(signupId){
 
   const session = JSON.parse(localStorage.getItem('session_user')||'{}');
 
+  showLoading('取消中...');
+
   callApi({
     action:'cancelJudgeSignup',
     user_id:session.user_id,
@@ -1505,6 +1496,7 @@ function cancelMySignup(signupId){
     showMessage('✅ 已取消');
     reloadCurrentView();
   });
+
 }
 
 
@@ -1512,26 +1504,20 @@ function cancelMySignup(signupId){
 
 function signupJudgeInstant(gameId, role){
 
-  showLoading('報名中...');
-
   const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+
+  showLoading('報名中...');
 
   callApi({
     action:'judgeSignupByGames',
     user_id: session.user_id,
     games_with_position:`${gameId}:${role}`
   },res=>{
-
-    if(res.result==='ok'){
-      showMessage('✅ 成功');
-      reloadCurrentView();
-    }else{
-      showMessage(res.message||'失敗');
-    }
-
+    showMessage(res.result==='ok'?'✅ 成功':res.message||'失敗');
+    reloadCurrentView();
   });
-}
 
+}
 
 
 // 初始化月份
