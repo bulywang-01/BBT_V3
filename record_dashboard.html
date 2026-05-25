@@ -998,24 +998,29 @@ function renderCell(g,role){
 }
 
 /* ===== render ===== */
+
 function renderRecordDashboard(list){
 
-  const root=document.getElementById('recordContainer');
-  root.innerHTML='';
+  const root = document.getElementById('recordContainer');
+  root.innerHTML = '';
 
-  const grouped=groupGames(list);
+  const map={};
 
-  Object.keys(grouped).sort().forEach(date=>{
+  list.forEach(g=>{
+    if(!map[g.date])map[g.date]={};
+    const cat=g.category||'未分類';
+    if(!map[g.date][cat])map[g.date][cat]=[];
+    map[g.date][cat].push(g);
+  });
 
-    const div=document.createElement('div');
+  Object.keys(map).sort().forEach(date=>{
 
-    div.innerHTML=`<h3>${date}</h3>`;
+    root.innerHTML+=`<div class="panel"><h3>${date}</h3>`;
 
-    Object.keys(grouped[date]).forEach(cat=>{
+    Object.keys(map[date]).forEach(cat=>{
 
-      div.innerHTML+=`<div>│ ${cat}</div>`;
-
-      div.innerHTML+=`
+      root.innerHTML+=`
+        <div>│ ${cat}</div>
         <table class="record-table">
           <thead>
             <tr>
@@ -1030,15 +1035,82 @@ function renderRecordDashboard(list){
             </tr>
           </thead>
           <tbody>
-            ${grouped[date][cat].map(buildRow).join('')}
+            ${
+              map[date][cat]
+              .sort((a,b)=>getTime(a).localeCompare(getTime(b)))
+              .map(g=>renderRecordRow(g))
+              .join('')
+            }
           </tbody>
         </table>
       `;
     });
 
-    root.appendChild(div);
-
+    root.innerHTML+=`</div>`;
   });
+}
+
+/* =========================
+ ✅ row
+========================= */
+
+function renderRecordRow(g){
+
+  return `
+    <tr class="${isPastGame(g.date)?'expired':''}">
+      <td>${g.game_code}</td>
+      <td>${getTime(g)}</td>
+      <td>${g.away_team}</td>
+      <td>${g.home_team}</td>
+      <td>${g.field}</td>
+
+      ${renderRecordCell(g,'REC_MAIN')}
+      ${renderRecordCell(g,'REC_TRAINEE')}
+      ${renderRecordCell(g,'REC_VIDEO')}
+    </tr>
+  `;
+}
+
+/* =========================
+ ✅ cell（核心）
+========================= */
+
+function renderRecordCell(g,role){
+
+  const slot = g.record_slots?.[role];
+  const isPast = isPastGame(g.date);
+
+  if (slot){
+
+    if (String(slot.user_id) === String(session.user_id)){
+      return `
+        <td>
+          <span style="color:#2e7d32;font-weight:700">
+            ${slot.name}
+            <span style="color:red;cursor:pointer"
+              onclick="cancelSignup('${g.game_id}','${role}')">
+              [取消]
+            </span>
+          </span>
+        </td>`;
+    }
+
+    return `<td>${slot.name}</td>`;
+  }
+
+  // ✅ 過期鎖死（你之前少這段）
+  if (isPast){
+    return `<td style="color:#999">—</td>`;
+  }
+
+  return `
+    <td>
+      <span style="color:#1976d2;cursor:pointer;font-weight:700"
+        onclick="signup('${g.game_id}','${role}')">
+        ＋報名
+      </span>
+    </td>
+  `;
 }
 
 /* ===== 手機版 render（完整）===== */
