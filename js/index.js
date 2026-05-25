@@ -434,12 +434,12 @@ function openWeeklySchedule(){
     }
 
     /*********************************************************
-     ✅ ✅ ✅ 核心：日期 →（全部排序）→ 分組顯示
+     ✅ ✅ ✅ 核心：日期 →（時間優先排序 + 場地輔助）→ 分組顯示
     *********************************************************/
 
     const dateGroups = {};
 
-    // ✅ ✅ ✅ 只用 array（修正關鍵）
+    // ✅ 每天一個 Array（關鍵）
     weekGames.forEach(g=>{
       if (!dateGroups[g.date]) dateGroups[g.date] = [];
       dateGroups[g.date].push(g);
@@ -464,13 +464,31 @@ function openWeeklySchedule(){
 
         const list = dateGroups[date];
 
-        // ✅ ✅ ✅ 🔥 先整體排序（解決同場地問題）
+        /***********************
+         ✅ ✅ ✅ 🔥 排序邏輯（最終版）
+        ************************/
         list.sort((a,b)=>{
-          return new Date(a.date + ' ' + a.time)
-               - new Date(b.date + ' ' + b.time);
+
+          const t1 = new Date(a.date + ' ' + a.time);
+          const t2 = new Date(b.date + ' ' + b.time);
+
+          // ✅ 1️⃣ 先比時間
+          if (t1 - t2 !== 0){
+            return t1 - t2;
+          }
+
+          // ✅ 2️⃣ 同時間 → 再比場地（避免亂跳）
+          if (a.field !== b.field){
+            return (a.field || '').localeCompare(b.field || '');
+          }
+
+          // ✅ 3️⃣ 同場地同時間 → 才比組別（最後）
+          return (a.category || '').localeCompare(b.category || '');
         });
 
-        // ✅ 再分組（顯示用，不影響排序）
+        /***********************
+         ✅ ✅ ✅ 分組（只為顯示）
+        ************************/
         const catMap = {};
 
         list.forEach(g=>{
@@ -479,7 +497,6 @@ function openWeeklySchedule(){
           catMap[cat].push(g);
         });
 
-        // ✅ 組別顏色
         const getColor = (cat)=>
           cat === '大聯盟' ? '#2563eb' :
           cat === '小聯盟' ? '#16a34a' :
@@ -511,6 +528,7 @@ function openWeeklySchedule(){
     content.innerHTML = html;
 
     setGameCache(weekGames);
+
   });
 }
 
