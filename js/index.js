@@ -417,9 +417,11 @@ function openWeeklySchedule(){
 
     const monday = new Date(now);
     monday.setDate(now.getDate() - (day - 1));
+    monday.setHours(0,0,0,0);
 
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23,59,59,999);
 
     const weekGames = games.filter(g=>{
       const d = new Date(g.date);
@@ -432,25 +434,21 @@ function openWeeklySchedule(){
     }
 
     /*********************************************************
-     ✅ ✅ ✅ 核心：日期 → 組別 → 排序
+     ✅ ✅ ✅ 核心：日期 →（全部排序）→ 分組顯示
     *********************************************************/
 
     const dateGroups = {};
 
+    // ✅ ✅ ✅ 只用 array（修正關鍵）
     weekGames.forEach(g=>{
-      if (!dateGroups[g.date]) dateGroups[g.date] = {};
-      const cat = g.category || '未分類';
-
-      if (!dateGroups[g.date][cat]) {
-        dateGroups[g.date][cat] = [];
-      }
-      dateGroups[g.date][cat].push(g);
+      if (!dateGroups[g.date]) dateGroups[g.date] = [];
+      dateGroups[g.date].push(g);
     });
 
     let html = '';
 
     Object.keys(dateGroups)
-      .sort((a,b)=>new Date(a) - new Date(b)) // ✅ 日期排序
+      .sort((a,b)=>new Date(a) - new Date(b))
       .forEach(date => {
 
         html += `
@@ -464,63 +462,48 @@ function openWeeklySchedule(){
           </div>
         `;
 
-        Object.keys(dateGroups)
-          .sort((a,b)=>new Date(a)-new Date(b))
-          .forEach(date => {
-        
+        const list = dateGroups[date];
+
+        // ✅ ✅ ✅ 🔥 先整體排序（解決同場地問題）
+        list.sort((a,b)=>{
+          return new Date(a.date + ' ' + a.time)
+               - new Date(b.date + ' ' + b.time);
+        });
+
+        // ✅ 再分組（顯示用，不影響排序）
+        const catMap = {};
+
+        list.forEach(g=>{
+          const cat = g.category || '未分類';
+          if (!catMap[cat]) catMap[cat] = [];
+          catMap[cat].push(g);
+        });
+
+        // ✅ 組別顏色
+        const getColor = (cat)=>
+          cat === '大聯盟' ? '#2563eb' :
+          cat === '小聯盟' ? '#16a34a' :
+          '#6b7280';
+
+        Object.keys(catMap)
+          .sort()
+          .forEach(cat => {
+
             html += `
               <div style="
-                font-size:18px;
-                font-weight:800;
-                margin:12px 0 6px;
-                color:#1a237e;
+                margin:6px 0 4px;
+                font-weight:700;
+                color:${getColor(cat)};
+                border-left:4px solid ${getColor(cat)};
+                padding-left:8px;
               ">
-                ${date}
+                ${cat}
               </div>
             `;
-        
-            const list = dateGroups[date];
-        
-            // ✅ ✅ ✅ 🔥 先整體排序（關鍵）
-            list.sort((a,b)=>{
-              return new Date(a.date + ' ' + a.time) -
-                     new Date(b.date + ' ' + b.time);
-            });
-        
-            // ✅ ✅ ✅ 再分組（只是顯示用途）
-            const catMap = {};
-        
-            list.forEach(g=>{
-              const cat = g.category || '未分類';
-              if (!catMap[cat]) catMap[cat] = [];
-              catMap[cat].push(g);
-            });
-        
-            // ✅ 顏色
-            const getColor = (cat)=>
-              cat === '大聯盟' ? '#2563eb' :
-              cat === '小聯盟' ? '#16a34a' :
-              '#6b7280';
-        
-            Object.keys(catMap).forEach(cat=>{
-        
-              html += `
-                <div style="
-                  margin:6px 0 4px;
-                  font-weight:700;
-                  color:${getColor(cat)};
-                  border-left:4px solid ${getColor(cat)};
-                  padding-left:8px;
-                ">
-                  ${cat}
-                </div>
-              `;
-        
-              html += catMap[cat]
-                .map(g => renderGameCard(g))
-                .join('');
-            });
-        
+
+            html += catMap[cat]
+              .map(g => renderGameCard(g))
+              .join('');
           });
 
       });
