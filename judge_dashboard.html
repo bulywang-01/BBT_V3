@@ -1410,22 +1410,33 @@ function showLoading(msg) {
   overlay.classList.add('show');
 }
 
+// 訊息function
 function showMessage(msg) {
+
   const overlay = document.getElementById('overlay');
   const text = document.getElementById('overlay-text');
   const ok = document.getElementById('overlay-ok');
 
   text.textContent = msg;
-  ok.style.display = 'none';
 
-  // ✅ 重點：點遮罩即可關閉（只綁一次）
-  overlay.onclick = () => {
+  // ✅ ✅ ✅ 顯示按鈕（關鍵）
+  ok.style.display = 'inline-block';
+
+  // ✅ ✅ ✅ 按鈕負責關閉（穩）
+  ok.onclick = () => {
     hideOverlay();
-    overlay.onclick = null; // 避免影響後續 loading
+  };
+
+  // ✅ 點背景也能關
+  overlay.onclick = (e) => {
+    if (e.target === overlay){
+      hideOverlay();
+    }
   };
 
   overlay.classList.add('show');
 }
+
 
 function hideOverlay() {
   document.getElementById('overlay').classList.remove('show');
