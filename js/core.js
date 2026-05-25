@@ -196,7 +196,7 @@ function renderGameCard(g){
             items.map(i => `
               <div style="
                 flex:1;
-                font-size:18px;
+                font-size:14px;
                 font-weight:800;
                 white-space:nowrap;
                 overflow:hidden;
