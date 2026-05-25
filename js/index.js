@@ -464,38 +464,63 @@ function openWeeklySchedule(){
           </div>
         `;
 
-        Object.keys(dateGroups[date])
-          .sort()
-          .forEach(cat => {
-
-            const list = dateGroups[date][cat];
-
-            // ✅ 同組內依時間排序
-            list.sort((a,b)=>
-              new Date(a.date + ' ' + a.time) -
-              new Date(b.date + ' ' + b.time)
-            );
-
-            // ✅ 組別顏色
-            const color =
+        Object.keys(dateGroups)
+          .sort((a,b)=>new Date(a)-new Date(b))
+          .forEach(date => {
+        
+            html += `
+              <div style="
+                font-size:18px;
+                font-weight:800;
+                margin:12px 0 6px;
+                color:#1a237e;
+              ">
+                ${date}
+              </div>
+            `;
+        
+            const list = dateGroups[date];
+        
+            // ✅ ✅ ✅ 🔥 先整體排序（關鍵）
+            list.sort((a,b)=>{
+              return new Date(a.date + ' ' + a.time) -
+                     new Date(b.date + ' ' + b.time);
+            });
+        
+            // ✅ ✅ ✅ 再分組（只是顯示用途）
+            const catMap = {};
+        
+            list.forEach(g=>{
+              const cat = g.category || '未分類';
+              if (!catMap[cat]) catMap[cat] = [];
+              catMap[cat].push(g);
+            });
+        
+            // ✅ 顏色
+            const getColor = (cat)=>
               cat === '大聯盟' ? '#2563eb' :
               cat === '小聯盟' ? '#16a34a' :
               '#6b7280';
-
-            html += `
-              <div style="
-                margin:6px 0 4px;
-                font-weight:700;
-                color:${color};
-                border-left:4px solid ${color};
-                padding-left:8px;
-              ">
-                ${cat}
-              </div>
-            `;
-
-            // ✅ render 卡片（關鍵）
-            html += list.map(g => renderGameCard(g)).join('');
+        
+            Object.keys(catMap).forEach(cat=>{
+        
+              html += `
+                <div style="
+                  margin:6px 0 4px;
+                  font-weight:700;
+                  color:${getColor(cat)};
+                  border-left:4px solid ${getColor(cat)};
+                  padding-left:8px;
+                ">
+                  ${cat}
+                </div>
+              `;
+        
+              html += catMap[cat]
+                .map(g => renderGameCard(g))
+                .join('');
+            });
+        
           });
 
       });
