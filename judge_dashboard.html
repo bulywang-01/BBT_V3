@@ -978,7 +978,11 @@ function render(){
               <td>${g.home_team}</td>
               <td>${g.field}</td>
               <td>${assigned}/${g.need_count}</td>
-              <td>${occupied.PU||''}</td>
+              
+              ${['PU','U1','U2','U3'].map(role=>{
+              return `<td>${renderPos(g, role, isPast)}</td>`;
+              }).join('')}
+
               <td>${occupied.U1||''}</td>
               <td>${occupied.U2||''}</td>
               <td>${occupied.U3||''}</td>
@@ -1086,31 +1090,33 @@ function renderGameRow(g, today) {
 }
 
 /* ✅ ✅ ✅ 拆出：站位邏輯 */
-function renderPos(g, role, isPast) {
+function renderPos(g, role, isPast){
+
+  const need = g.need_count || 0;
 
   if (
-    g.need_count === 0 ||
-    (g.need_count === 1 && role !== 'PU') ||
-    (g.need_count === 2 && ['U2','U3'].includes(role)) ||
-    (g.need_count === 3 && role === 'U2')
-  ) {
+    need === 0 ||
+    (need === 1 && role !== 'PU') ||
+    (need === 2 && ['U2','U3'].includes(role)) ||
+    (need === 3 && role === 'U2')
+  ){
     return '<span class="pos-na">不需要</span>';
   }
 
   const occupied = g.judges || {};
-  const name = getName(occupied[role]);
+  const name = occupied[role] || '';
 
-  /* ✅ ✅ ✅ 過期 → 只顯示人名（關鍵） */
-  if (isPast) {
-    return name;
+  // ✅ 過期：只顯示名字
+  if (isPast){
+    return name || '';
   }
 
-  /* ✅ 已有人 */
-  if (name !== '—') {
+  // ✅ 已有人
+  if (name){
 
     const isMe = g.my_position === role;
 
-    if (isMe) {
+    if (isMe){
       return `
         <div class="judge-name me">
           ★ ${name}
@@ -1125,12 +1131,12 @@ function renderPos(g, role, isPast) {
     return `<div class="judge-name">${name}</div>`;
   }
 
-  /* ✅ 待位中 */
-  if (g.my_position) {
+  // ✅ 已報別的位置
+  if (g.my_position){
     return '<span class="pos-hint">待位中</span>';
   }
 
-  /* ✅ 可報名 */
+  // ✅ ✅ ✅ 可以報名（這行就是你不見的）
   return `
     <div class="pos-choice"
       onclick="signupJudgeInstant('${g.game_id}','${role}')">
@@ -1138,6 +1144,7 @@ function renderPos(g, role, isPast) {
     </div>
   `;
 }
+
 
   
 // 手機版 ${renderTimeHHmm(g.time_range)}
