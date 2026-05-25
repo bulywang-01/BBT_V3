@@ -1073,7 +1073,7 @@ function renderRecordRowFix(g){
 /* ✅ cell */
 function renderRecordCellFix(g,role){
 
-  const slot = g.record_slots?.[role];
+  const slot = g.records?.[role];
   const isPast = isPastGame(g.date);
 
   // ✅ 有人
@@ -1144,7 +1144,7 @@ function renderRecordRow(g){
 
 function renderRecordCell(g,role){
 
-  const slot = g.record_slots?.[role];
+  const slot = g.records?.[role];
   const isPast = isPastGame(g.date);
 
   if (slot){
@@ -1306,7 +1306,7 @@ function renderMobileRecord(list){
 /* ✅ 手機 cell */
 function renderMobileRecordCell(g,role){
 
-  const slot = g.record_slots?.[role];
+  const slot = g.records?.[role];
   const isPast = isPastGame(g.date);
 
   if (slot){
@@ -1354,7 +1354,7 @@ function buildGroupTable(list) {
 /* ===== 桌機版紀錄報名　Signup UI ===== */
 function renderSignupCell(g, role) {
 
-  const slot = g.record_slots?.[role];
+  const slot = g.records?.[role];
 
   if (isPastGame(g.date)) {
     if (slot && slot.user_id) {
