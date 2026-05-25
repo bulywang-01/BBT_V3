@@ -960,12 +960,42 @@ function buildRow(g){
     <td>${g.home_team}</td>
     <td>${g.field}</td>
 
-    <td>${renderSignupCell(g,'REC_MAIN')}</td>
-    <td>${renderSignupCell(g,'REC_TRAINEE')}</td>
-    <td>${renderSignupCell(g,'REC_VIDEO')}</td>
+    ${renderCell(g,'REC_MAIN')}
+    ${renderCell(g,'REC_TRAINEE')}
+    ${renderCell(g,'REC_VIDEO')}
   </tr>`;
 }
 
+
+function renderCell(g,role){
+
+  const slot = g.record_slots ? g.record_slots[role] : null;
+
+  if (slot){
+    if (String(slot.user_id) === String(session.user_id)){
+      return `
+        <td>
+          <span style="color:#2e7d32;font-weight:700">
+            ${slot.name}
+            <span style="color:red;cursor:pointer"
+              onclick="cancelSignup('${g.game_id}','${role}')">
+              [取消]
+            </span>
+          </span>
+        </td>`;
+    }
+    return `<td>${slot.name}</td>`;
+  }
+
+  return `
+    <td>
+      <span style="color:#1976d2;cursor:pointer;font-weight:700"
+        onclick="signup('${g.game_id}','${role}')">
+        ＋報名
+      </span>
+    </td>
+  `;
+}
 
 /* ===== render ===== */
 function renderRecordDashboard(list){
