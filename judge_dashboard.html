@@ -857,6 +857,7 @@ function rememberSelection(gameId, role, btn) {
 }
 
 /* ✅ ✅ ✅ 核心：統一時間 */
+
 function getTime(g){
   return g.time || '';
 }
@@ -895,7 +896,9 @@ function timeToMinutesSafe(t){
   return timeToMinutes(t);
 }
 
-/* ===== render ===== */
+
+/* ✅ ========= 主 render ========= */
+
 function render(){
 
   const box = document.getElementById('content');
@@ -965,10 +968,13 @@ function render(){
         categoryGroups[cat]
           .sort((a,b)=>timeToMinutes(getTime(a))-timeToMinutes(getTime(b)))
           .forEach(g=>{
+
             const tr=document.createElement('tr');
 
             const occupied=g.judges||{};
             const assigned=Object.values(occupied).filter(x=>x).length;
+
+            const isPast = new Date(g.date.replace(/\//g,'-')) < today;
 
             tr.innerHTML=`
               <td>${g.game_code}</td>
@@ -978,11 +984,9 @@ function render(){
               <td>${g.home_team}</td>
               <td>${g.field}</td>
               <td>${assigned}/${g.need_count}</td>
-              
               ${['PU','U1','U2','U3'].map(role=>{
-              return `<td>${renderPos(g, role, isPast)}</td>`;
+                return `<td>${renderPos(g,role,isPast)}</td>`;
               }).join('')}
-
             `;
 
             tbody.appendChild(tr);
@@ -995,6 +999,7 @@ function render(){
 
     });
 }
+
 
 /* ===== 手機 ===== */
 function renderMobile(){
@@ -1086,7 +1091,9 @@ function renderGameRow(g, today) {
   return tr;
 }
 
-/* ✅ ✅ ✅ 拆出：站位邏輯 */
+
+/* ✅ ========= 報名核心 ========= */
+
 function renderPos(g, role, isPast){
 
   const need = g.need_count || 0;
@@ -1097,51 +1104,49 @@ function renderPos(g, role, isPast){
     (need === 2 && ['U2','U3'].includes(role)) ||
     (need === 3 && role === 'U2')
   ){
-    return '<span class="pos-na">不需要</span>';
+    return '<span style="color:#999">—</span>';
   }
 
   const occupied = g.judges || {};
   const name = occupied[role] || '';
 
-  // ✅ 過期：只顯示名字
   if (isPast){
     return name || '';
   }
 
-  // ✅ 已有人
+  // ✅ 有人
   if (name){
 
     const isMe = g.my_position === role;
 
     if (isMe){
       return `
-        <div class="judge-name me">
+        <span style="color:#2e7d32;font-weight:700">
           ★ ${name}
-          <span class="cancel-btn"
+          <span style="color:red;cursor:pointer"
             onclick="cancelMySignup('${g.my_signup_id}')">
             [取消]
           </span>
-        </div>
+        </span>
       `;
     }
 
-    return `<div class="judge-name">${name}</div>`;
+    return name;
   }
 
-  // ✅ 已報別的位置
+  // ✅ 已報別位置
   if (g.my_position){
-    return '<span class="pos-hint">待位中</span>';
+    return '<span style="color:#999">待位</span>';
   }
 
-  // ✅ ✅ ✅ 可以報名（這行就是你不見的）
+  // ✅ ✅ ✅ 可報名（你剛剛少這個）
   return `
-    <div class="pos-choice"
+    <span style="color:#1976d2;cursor:pointer;font-weight:700"
       onclick="signupJudgeInstant('${g.game_id}','${role}')">
       點選
-    </div>
+    </span>
   `;
 }
-
 
   
 // 手機版 ${renderTimeHHmm(g.time_range)}
@@ -1485,79 +1490,48 @@ function logout(){
   location.replace('login.html');
 }
 
-// 取消自已報名的賽事
-function cancelMySignup(signupId) {
-  if (!signupId) return;
 
-  if (!confirm('確定要取消這個站位嗎？')) return;
+/* ✅ ========= 取消 ========= */
 
-  const session = JSON.parse(localStorage.getItem('session_user') || {});
-  if (!session.user_id) {
-    showMessage('登入狀態已失效');
-    return;
-  }
+function cancelMySignup(signupId){
 
-  // ✅ 顯示取消中
-  showLoading('取消報名中...');
+  const session = JSON.parse(localStorage.getItem('session_user')||'{}');
 
-  callApi(
-    {
-      action: 'cancelJudgeSignup',
-      user_id: session.user_id,
-      signup_id: signupId
-    },
-    res => {
-      if (res && res.result === 'ok') {
-        showMessage('✅ 已取消站位');
-        setTimeout(() => {
-          reloadCurrentView();
-        }, 600);
-      } else {
-        showMessage(res?.message || '❌ 取消失敗');
-      }
-    }
-  );
+  callApi({
+    action:'cancelJudgeSignup',
+    user_id:session.user_id,
+    signup_id:signupId
+  },res=>{
+    showMessage('✅ 已取消');
+    reloadCurrentView();
+  });
 }
 
-// 按了就直接送出，不用再按鍵了
+
+/* ✅ ========= 報名 ========= */
+
 function signupJudgeInstant(gameId, role){
-
-  const g = allGames.find(x => x.game_id == gameId);
-  if (!g) return;
-
-  const err = validateSignup(g, role);
-  if (err){
-    showMessage(err);
-    return;
-  }
 
   showLoading('報名中...');
 
-  const session = JSON.parse(localStorage.getItem('session_user') || '{}');
+  const session = JSON.parse(localStorage.getItem('session_user')||'{}');
 
   callApi({
     action:'judgeSignupByGames',
     user_id: session.user_id,
-    games_with_position: `${gameId}:${role}`
-  }, res => {
+    games_with_position:`${gameId}:${role}`
+  },res=>{
 
-    if (res && res.result === 'ok'){
-
-      // ✅ ✅ ✅ 直接更新 UI（不 reload）
-      g.judges = g.judges || {};
-      g.judges[role] = session.name;
-      g.my_position = role;
-
-      render();
-      renderMobile();
-
-      showMessage('✅ 報名成功');
-
-    } else {
-      showMessage(res?.message || '❌ 報名失敗');
+    if(res.result==='ok'){
+      showMessage('✅ 成功');
+      reloadCurrentView();
+    }else{
+      showMessage(res.message||'失敗');
     }
+
   });
 }
+
 
 
 // 初始化月份
