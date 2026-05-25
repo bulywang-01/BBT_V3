@@ -685,15 +685,19 @@ td:nth-child(5) {
 let session;
 let games = [];
 
-function reloadCurrentView() {
+function reloadCurrentView(){
 
-  // ✅ 強制重新抓 session（避免 cache 問題）
-  session = JSON.parse(localStorage.getItem('session_user') || '{}');
+  const now = new Date();
 
-  if (currentMonth === null) {
-    loadGames();
+  if (currentMonth !== null){
+
+    // ✅ ✅ ✅ 用目前選擇的年份（你之前有這個變數）
+    loadRecordGamesByMonth(currentYear || now.getFullYear(), currentMonth);
+
   } else {
-    loadRecordGamesByMonth(currentYear, currentMonth);
+
+    loadGames();
+
   }
 }
 
@@ -908,7 +912,19 @@ function groupGames(list) {
 /* ===== Render（桌機） ===== */
 /* ✅ 統一時間 */
 function getTime(g){
-  return g.time || '';
+  if (!g) return '';
+
+  // ✅ 已整理好的
+  if (typeof g.time === 'string') return g.time;
+
+  // ✅ 備援（舊資料）
+  if (g.time instanceof Date){
+    return Utilities
+      ? Utilities.formatDate(g.time,'Asia/Taipei','HH:mm')
+      : g.time;
+  }
+
+  return '';
 }
 
 /* ===== 分組 ===== */
@@ -1241,7 +1257,7 @@ function renderMobileRecord(list) {
           <div class="record-card ${isPast ? 'expired-card' : ''}">
 
             <div class="mobile-time-row">
-              <div class="time">⏰ ${g.time}</div>
+              <div class="time">⏰ ${getTime(g)}</div>
               <div class="game-code badge">${g.game_code}</div>
               <div class="field">📍 ${g.field}</div>
             </div>
@@ -1399,7 +1415,7 @@ function signup(gameId, role){
   // ✅ 共用規則
   const err = validateSignup(g, role);
   if (err){
-    showToast(err, 'error');
+    showMessage(err);   // ✅ ✅ ✅ 顯示完整衝突資訊
     return;
   }
 
