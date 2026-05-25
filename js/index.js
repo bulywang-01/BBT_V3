@@ -434,23 +434,30 @@ function openWeeklySchedule(){
     }
 
     /*********************************************************
-     ✅ ✅ ✅ 核心：日期 →（時間優先排序 + 場地輔助）→ 分組顯示
+     ✅ ✅ ✅ 日期 → 場地 → 排序（最終結構）
     *********************************************************/
 
     const dateGroups = {};
 
-    // ✅ 每天一個 Array（關鍵）
+    // ✅ 分日期
     weekGames.forEach(g=>{
-      if (!dateGroups[g.date]) dateGroups[g.date] = [];
-      dateGroups[g.date].push(g);
+      if (!dateGroups[g.date]) dateGroups[g.date] = {};
+      const field = g.field || '未知場地';
+
+      if (!dateGroups[g.date][field]) {
+        dateGroups[g.date][field] = [];
+      }
+
+      dateGroups[g.date][field].push(g);
     });
 
     let html = '';
 
     Object.keys(dateGroups)
-      .sort((a,b)=>new Date(a) - new Date(b))
+      .sort((a,b)=>new Date(a)-new Date(b))
       .forEach(date => {
 
+        /************* 日期 *************/
         html += `
           <div style="
             font-size:18px;
@@ -462,65 +469,62 @@ function openWeeklySchedule(){
           </div>
         `;
 
-        const list = dateGroups[date];
+        const fieldGroups = dateGroups[date];
 
-        /***********************
-         ✅ ✅ ✅ 🔥 排序邏輯（最終版）
-        ************************/
-        list.sort((a,b)=>{
-
-          const t1 = new Date(a.date + ' ' + a.time);
-          const t2 = new Date(b.date + ' ' + b.time);
-
-          // ✅ 1️⃣ 先比時間
-          if (t1 - t2 !== 0){
-            return t1 - t2;
-          }
-
-          // ✅ 2️⃣ 同時間 → 再比場地（避免亂跳）
-          if (a.field !== b.field){
-            return (a.field || '').localeCompare(b.field || '');
-          }
-
-          // ✅ 3️⃣ 同場地同時間 → 才比組別（最後）
-          return (a.category || '').localeCompare(b.category || '');
-        });
-
-        /***********************
-         ✅ ✅ ✅ 分組（只為顯示）
-        ************************/
-        const catMap = {};
-
-        list.forEach(g=>{
-          const cat = g.category || '未分類';
-          if (!catMap[cat]) catMap[cat] = [];
-          catMap[cat].push(g);
-        });
-
-        const getColor = (cat)=>
-          cat === '大聯盟' ? '#2563eb' :
-          cat === '小聯盟' ? '#16a34a' :
-          '#6b7280';
-
-        Object.keys(catMap)
+        Object.keys(fieldGroups)
           .sort()
-          .forEach(cat => {
+          .forEach(field => {
 
+            const list = fieldGroups[field];
+
+            /***********************
+             ✅ ✅ ✅ 同場地 → 只看時間排序（核心）
+            ************************/
+            list.sort((a,b)=>{
+              return new Date(a.date + ' ' + a.time)
+                   - new Date(b.date + ' ' + b.time);
+            });
+
+            /************* 場地標題 *************/
             html += `
               <div style="
-                margin:6px 0 4px;
-                font-weight:700;
-                color:${getColor(cat)};
-                border-left:4px solid ${getColor(cat)};
-                padding-left:8px;
+                margin:8px 0 4px;
+                font-weight:800;
+                font-size:15px;
+                color:#374151;
               ">
-                ${cat}
+                📍 ${field}
               </div>
             `;
 
-            html += catMap[cat]
-              .map(g => renderGameCard(g))
-              .join('');
+            /***********************
+             ✅ ✅ ✅ 組別顏色（顯示用）
+            ************************/
+            const getColor = (cat)=>
+              cat === '大聯盟' ? '#2563eb' :
+              cat === '小聯盟' ? '#16a34a' :
+              '#6b7280';
+
+            /************* render 每場 *************/
+            list.forEach(g => {
+
+              const color = getColor(g.category);
+
+              html += `
+                <div style="
+                  margin:6px 0 2px;
+                  font-weight:700;
+                  color:${color};
+                  border-left:4px solid ${color};
+                  padding-left:8px;
+                ">
+                  ${g.category || ''}
+                </div>
+              `;
+
+              html += renderGameCard(g);
+            });
+
           });
 
       });
@@ -528,7 +532,6 @@ function openWeeklySchedule(){
     content.innerHTML = html;
 
     setGameCache(weekGames);
-
   });
 }
 
