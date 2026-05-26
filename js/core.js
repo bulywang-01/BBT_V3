@@ -486,11 +486,12 @@ function getTime(g){
   if (typeof g.time === 'string') return g.time;
 
   if (g.time instanceof Date){
-    return (
-      g.time.getHours().toString().padStart(2,'0') + ':' +
-      g.time.getMinutes().toString().padStart(2,'0')
-    );
+    return g.time.getHours().toString().padStart(2,'0')
+      + ':' +
+      g.time.getMinutes().toString().padStart(2,'0');
   }
+
+  if (g.time_range) return g.time_range;
 
   return '';
 }
