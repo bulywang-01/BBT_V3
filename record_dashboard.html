@@ -685,23 +685,6 @@ td:nth-child(5) {
 let session;
 let games = [];
 
-function reloadCurrentView(){
-
-  const now = new Date();
-
-  if (currentMonth !== null){
-
-    // ✅ ✅ ✅ 用目前選擇的年份（你之前有這個變數）
-    loadRecordGamesByMonth(currentYear || now.getFullYear(), currentMonth);
-
-  } else {
-
-    loadGames();
-
-  }
-}
-
-  
 // 組別對應顏色
 function applyCategoryBadgeColor() {
   const colorMap = {
@@ -910,22 +893,6 @@ function groupGames(list) {
 }
 
 /* ===== Render（桌機） ===== */
-/* ✅ 統一時間 */
-function getTime(g){
-  if (!g) return '';
-
-  // ✅ 已整理好的
-  if (typeof g.time === 'string') return g.time;
-
-  // ✅ 備援（舊資料）
-  if (g.time instanceof Date){
-    return Utilities
-      ? Utilities.formatDate(g.time,'Asia/Taipei','HH:mm')
-      : g.time;
-  }
-
-  return '';
-}
 
 /* ===== 分組 ===== */
 function groupGames(list){
@@ -1158,14 +1125,21 @@ function renderRecordRow(g){
  ✅ cell（核心）
 ========================= */
 
-function renderRecordCell(g,role){
+function renderRecordCell(g, role){
 
   const slot = g.records?.[role];
   const isPast = isPastGame(g.date);
 
-  if (slot){
+  // ✅ 有人
+  if (slot && slot.user_id){
 
+    // ✅ 自己
     if (String(slot.user_id) === String(session.user_id)){
+
+      if (isPast){
+        return `<td><span style="color:#999">${slot.name}</span></td>`;
+      }
+
       return `
         <td>
           <span style="color:#2e7d32;font-weight:700">
@@ -1181,8 +1155,8 @@ function renderRecordCell(g,role){
     return `<td>${slot.name}</td>`;
   }
 
-  // ✅ 過期鎖死（你之前少這段）
-  if (isPast){
+  // ✅ ✅ ✅ 過期不能操作
+  if (!canSignup(g)){
     return `<td style="color:#999">—</td>`;
   }
 
@@ -1195,6 +1169,7 @@ function renderRecordCell(g,role){
     </td>
   `;
 }
+
 
 /* ===== 手機版 render（完整）===== */
 /* 舊版
@@ -1289,34 +1264,79 @@ function renderMobileRecord(list) {
 /* ===== 手機 ===== */
 function renderMobileRecord(list){
 
-  const root=document.getElementById('mobileView');
-  root.innerHTML='';
+  const root = document.getElementById('mobileView');
+  root.innerHTML = '';
 
   list.forEach(g=>{
 
+    if (currentMonth === null && isPastGame(g.date)){
+      return; // ✅ 全年不顯示
+    }
+
     const isPast = isPastGame(g.date);
 
-    root.innerHTML+=`
+    root.innerHTML += `
       <div class="record-card ${isPast?'expired-card':''}">
 
-        <div>⏰ ${getTime(g)}</div>
-        <div>${g.game_code}</div>
-
-        <div>
-          ${g.away_team} vs ${g.home_team}
+        <div class="mobile-time-row">
+          <div class="time">⏰ ${getTime(g)}</div>
+          <div class="game-code badge">${g.game_code}</div>
+          <div class="field">📍 ${g.field}</div>
         </div>
 
-        <div style="display:flex;gap:6px;margin-top:8px">
+        <div class="mobile-teams">
+          <strong>${g.away_team}</strong>
+          <span class="vs">vs</span>
+          <strong>${g.home_team}</strong>
+        </div>
 
-          ${['REC_MAIN','REC_TRAINEE','REC_VIDEO']
-            .map(role=>renderMobileRecordCell(g,role))
-            .join('')}
-
+        <div class="record-roles">
+          ${renderMobileRole(g,'REC_MAIN','紀錄')}
+          ${renderMobileRole(g,'REC_TRAINEE','見習')}
+          ${renderMobileRole(g,'REC_VIDEO','影像')}
         </div>
 
       </div>
     `;
   });
+}
+
+// 接上：手機 slot
+function renderMobileRole(g, role, label){
+
+  const slot = g.records?.[role];
+  const isPast = isPastGame(g.date);
+
+  // ✅ 有人
+  if (slot){
+
+    const isMe = String(slot.user_id) === String(session.user_id);
+
+    return `
+      <div class="record-role ${isMe?'me':'other'}">
+        ${label}<br>${slot.name}
+        ${
+          isMe && !isPast
+          ? `<div class="cancel-btn"
+               onclick="cancelSignup('${g.game_id}','${role}')">
+               取消
+             </div>`
+          : ''
+        }
+      </div>
+    `;
+  }
+
+  if (!canSignup(g)){
+    return `<div class="record-role other">${label}<br>—</div>`;
+  }
+
+  return `
+    <div class="record-role action"
+      onclick="signup('${g.game_id}','${role}')">
+      ＋${label}
+    </div>
+  `;
 }
 
 /* ✅ 手機 cell */
@@ -1409,85 +1429,46 @@ function renderSignupCell(g, role) {
 /* ===== Actions ===== */
 function signup(gameId, role){
 
-  const g = games.find(x => x.game_id == gameId);
+  const g = games.find(x=>x.game_id==gameId);
   if (!g) return;
 
-  // ✅ 共用規則
-  const err = validateSignup(g, role);
-  if (err){
-    showMessage(err);   // ✅ ✅ ✅ 顯示完整衝突資訊
+  if (!canSignup(g)){
+    showMessage('❌ 該場已過期，無法報名');
     return;
   }
 
-  showToast('報名中...');
+  showLoading('報名中...');
 
   callApi({
-    action: 'recordSignup',
+    action:'recordSignup',
     user_id: session.user_id,
     game_id: gameId,
     record_role: role
-  }, res => {
+  }, res=>{
 
-    if (!res){
-      showToast('系統無回應', 'error');
-      return;
-    }
+    showMessage(res.result==='ok' ? '✅ 報名成功' : '❌ 失敗');
 
-    if (res.result === 'ok'){
-
-      // ✅ ✅ ✅ 無刷新（核心升級）
-      g.record_slots = g.record_slots || {};
-      g.record_slots[role] = {
-        user_id: session.user_id,
-        name: session.name
-      };
-
-      // ✅ ⚠️ 紀錄允許多個，但仍標記 my_position
-      g.my_position = role;
-
-      renderRecordDashboard(games);
-      renderMobileRecord(games);
-
-      //showToast('✅ 報名成功');
-      showSuccess('✅ 報名成功');
-
-    } else {
-      showToast(res.message || '報名失敗', 'error');
-    }
+    setTimeout(()=>reloadCurrentView(), 500);
   });
 }
 
-function cancelSignup(gameId, role) {
 
-  if (!confirm('確定取消此場紀錄？')) return;
+function cancelSignup(gameId, role){
 
-  showToast('取消中...');
+  if (!confirm('確定取消?')) return;
+
+  showLoading('取消中...');
 
   callApi({
-    action: 'cancelRecordSignup',
+    action:'cancelRecordSignup',
     user_id: session.user_id,
     game_id: gameId,
     record_role: role
-  }, res => {
+  }, res=>{
 
-    console.log('cancel res:', res);
+    showMessage('✅ 已取消');
 
-    if (!res) {
-      showToast('系統無回應', 'error');
-      return;
-    }
-
-    if (res.result === 'ok') {
-
-      //showToast('已取消');
-      showSuccess('✅ 已取消');
-
-      // ✅ ✅ ✅ 🔥 同樣 reload
-      reloadCurrentView();
-
-    } else {
-      showToast(res.message || '取消失敗', 'error');
-    }
+    setTimeout(()=>reloadCurrentView(), 500);
   });
 }
 
