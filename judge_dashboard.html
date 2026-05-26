@@ -626,6 +626,13 @@ tr.full {
   color: #6b7280;
 }
 
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+  gap:16px;
+  padding:0 16px 10px;
+}
+
 </style>
   
 </head>
@@ -984,48 +991,6 @@ function renderRow(g){
 }
 
 
-/* ===== 手機 ===== */
-function renderMobile(){
-
-  const root=document.getElementById('mobileView');
-  root.innerHTML='';
-
-  const grouped={};
-
-  allGames.forEach(g=>{
-    if(!grouped[g.date])grouped[g.date]={};
-    if(!grouped[g.date][g.category])grouped[g.date][g.category]=[];
-    grouped[g.date][g.category].push(g);
-  });
-
-  Object.keys(grouped).sort().forEach(date=>{
-
-    const box=document.createElement('div');
-    box.innerHTML=`<h3>${date}</h3>`;
-
-    Object.keys(grouped[date]).forEach(cat=>{
-
-      grouped[date][cat]
-        .sort((a,b)=>timeToMinutes(getTime(a))-timeToMinutes(getTime(b)))
-        .forEach(g=>{
-
-          box.innerHTML+=`
-            <div class="game-card">
-              <div>⏰ ${getTime(g)}</div>
-              <div>${g.game_code}</div>
-              <div>${g.away_team} vs ${g.home_team}</div>
-            </div>
-          `;
-        });
-
-    });
-
-    root.appendChild(box);
-
-  });
-
-}
-
 /* ✅ ✅ ✅ 拆出：render 每一列 */
 function renderGameRow(g, today) {
 
@@ -1055,7 +1020,7 @@ function renderGameRow(g, today) {
 
   tr.innerHTML = `
     <td><span class="game-badge ${isPast ? 'expired' : ''}">${g.game_code}</span></td>
-    <td>${g.time}</td>
+    <td>${getTime(g)}</td>
     <td>${g.category || ''}</td>
     <td>${g.away_team || ''}</td>
     <td>${g.home_team || ''}</td>
@@ -1194,7 +1159,7 @@ function renderMobile() {
             <div class="game-card ${isPastGameRow ? 'expired-card' : ''}">
               
               <div class="mobile-time-row">
-                <div class="time">⏰ ${g.time}</div>
+                <div class="time">⏰ ${getTime(g)}</div>
 
                 <div class="game-code badge ${isPastGameRow ? 'expired' : ''}"
                   data-category="${g.category || ''}">
