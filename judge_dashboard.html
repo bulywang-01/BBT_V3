@@ -746,6 +746,15 @@ tr.full {
   color:#999;
 }
 
+.date-header{
+  font-size:18px;
+  font-weight:800;
+  color:#1d4ed8;
+  margin:18px 12px 8px;
+  padding-left:6px;
+  border-left:4px solid #1d4ed8;
+}
+
 </style>
   
 </head>
@@ -1005,15 +1014,46 @@ function render(){
   const root = document.getElementById('content');
   root.innerHTML = '';
 
+  if (!games || !games.length){
+    root.innerHTML = '<div>沒有資料</div>';
+    return;
+  }
+
+  const group = {};
+
+  // ✅ 分組（先過濾）
   games.forEach(g=>{
     if (!shouldRenderGame(g)) return;
 
-    root.innerHTML += renderGameCard(g,{
-      type:'judge',
-      session:s
-    });
+    if (!group[g.date]) group[g.date] = [];
+    group[g.date].push(g);
   });
+
+  // ✅ 日期排序
+  Object.keys(group)
+    .sort((a,b)=>new Date(a)-new Date(b))
+    .forEach(date=>{
+
+      // ✅ ✅ ✅ 日期只出現一次
+      root.innerHTML += `
+        <div class="date-header">
+          📅 ${date}
+        </div>
+      `;
+
+      root.innerHTML += `<div class="card-grid">`;
+
+      group[date].forEach(g=>{
+        root.innerHTML += renderGameCard(g,{
+          type:'judge',
+          session:s
+        });
+      });
+
+      root.innerHTML += `</div>`;
+    });
 }
+
 
 
 /* =========================
