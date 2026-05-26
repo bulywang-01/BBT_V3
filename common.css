@@ -246,3 +246,43 @@ body{
     grid-template-columns: 1fr;
   }
 }
+
+/* ✅ 本週標題 */
+.week-title{
+  margin:16px;
+  font-size:18px;
+  font-weight:800;
+}
+
+/* ✅ 場地 */
+.field-title{
+  margin:6px 16px;
+  font-size:14px;
+  font-weight:700;
+  color:#444;
+}
+
+/* ✅ 分欄 */
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+  gap:16px;
+  padding:0 16px 10px;
+}
+
+/* 給首頁的 */
+/* ✅ 聯盟顏色 */
+.cat-big{
+  border-left:6px solid #2563eb;
+}
+
+.cat-small{
+  border-left:6px solid #16a34a;
+}
+
+/* ✅ 手機 */
+@media(max-width:768px){
+  .card-grid{
+    grid-template-columns:1fr;
+  }
+}
