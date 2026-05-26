@@ -231,3 +231,18 @@ body{
     font-size:16px;
   }
 }
+
+/* ✅ 桌機卡片排列 */
+.card-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px,1fr));
+  gap:16px;
+  padding:0 16px 10px 16px;
+}
+
+/* ✅ 手機自動1欄 */
+@media(max-width:768px){
+  .card-grid{
+    grid-template-columns: 1fr;
+  }
+}
