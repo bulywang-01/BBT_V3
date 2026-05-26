@@ -515,3 +515,102 @@ function showToast(msg, type='normal'){
   setTimeout(()=> el.style.opacity = 0, 2200);
 }
 
+/* =========================
+ ✅ 時間處理（唯一入口）
+========================= */
+function getTime(g){
+  if (!g) return '';
+
+  if (typeof g.time === 'string') return g.time;
+
+  if (g.time instanceof Date){
+    return (
+      g.time.getHours().toString().padStart(2,'0') + ':' +
+      g.time.getMinutes().toString().padStart(2,'0')
+    );
+  }
+
+  return '';
+}
+
+/* =========================
+ ✅ 過期判斷（唯一入口）
+========================= */
+function isPastGame(dateStr){
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const d = new Date((dateStr || '').replace(/\//g,'-'));
+  d.setHours(0,0,0,0);
+
+  return d < today;
+}
+
+/* =========================
+ ✅ 可報名判斷（統一規則）
+========================= */
+function canSignup(g){
+  if (!g) return false;
+
+  // ✅ 過期一律不能報
+  if (isPastGame(g.date)) return false;
+
+  return true;
+}
+
+/* =========================
+ ✅ 全年 / 單月 過濾（核心）
+========================= */
+function shouldRenderGame(g){
+  if (!g) return false;
+
+  if (window.currentMonth === null){
+    // ✅ 全年：不顯示過期
+    if (isPastGame(g.date)) return false;
+  }
+
+  return true;
+}
+
+/* =========================
+ ✅ 統一 reload（裁判/紀錄共用）
+========================= */
+function reloadCurrentView(){
+
+  const now = new Date();
+
+  console.log('🔄 reloadCurrentView', window.currentMonth);
+
+  // 👉 記得用 window（避免 scope 問題）
+  if (window.currentMonth !== null){
+
+    if (typeof loadJudgeGamesByMonth === 'function'){
+      loadJudgeGamesByMonth(
+        window.currentYear || now.getFullYear(),
+        window.currentMonth
+      );
+    }
+
+    if (typeof loadRecordGamesByMonth === 'function'){
+      loadRecordGamesByMonth(
+        window.currentYear || now.getFullYear(),
+        window.currentMonth
+      );
+    }
+
+  } else {
+
+    if (typeof loadGames === 'function'){
+      loadGames();
+    }
+  }
+}
+
+/* =========================
+ ✅ UI 安全顯示
+========================= */
+function safeName(slot){
+  if (!slot) return '';
+  if (typeof slot === 'string') return slot;
+  return slot.name || '';
+}
