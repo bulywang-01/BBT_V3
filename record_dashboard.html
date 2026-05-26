@@ -799,7 +799,8 @@ function loadGames() {
 
     // games = Array.isArray(res.games) ? res.games : [];
     games = (res.games || []).map(normalizeGame);
-    renderRecordDashboard(games);
+    // renderRecordDashboard(games);
+    render();
     renderMobileRecord(games);   // ✅ 新增
   });
 }
@@ -918,21 +919,7 @@ function groupGames(list){
   return map;
 }
 
-/* 舊版
-function buildRow(g) {
-  return `
-  <tr>
-    <td class='col-game'>${g.game_code || ''}</td><td>${formatTimeTW(g.time)}</td>
-    <td>${g.away_team}</td>
-    <td>${g.home_team}</td>
-    <td>${g.field}</td>
-    <td>${renderSignupCell(g,'REC_MAIN')}</td>
-    <td>${renderSignupCell(g,'REC_TRAINEE')}</td>
-    <td>${renderSignupCell(g,'REC_VIDEO')}</td>
-  </tr>`;
-}
-*/
-  
+ 
 /* ===== table ===== */
 function buildRow(g){
   return `
@@ -1653,6 +1640,78 @@ function setActiveTab(el) {
 
 function showSuccess(msg){
   showMessage(msg || '✅ 成功');
+}
+
+/* 新增，保留舊版 render */
+function render(){
+
+  const root = document.getElementById('content');
+  root.innerHTML = '';
+
+  if (!games || !games.length){
+    root.innerHTML = '<div>沒有資料</div>';
+    return;
+  }
+
+  const groups = {};
+
+  games.forEach(g=>{
+    if (!shouldRenderGame(g)) return;
+
+    if (!groups[g.date]) groups[g.date] = [];
+    groups[g.date].push(g);
+  });
+
+  Object.keys(groups)
+    .sort((a,b)=>new Date(a)-new Date(b))
+    .forEach(date=>{
+
+      root.innerHTML += `<h3 style="margin:16px">${date}</h3>`;
+
+      const fieldMap = {};
+
+      groups[date].forEach(g=>{
+        if (!fieldMap[g.field]) fieldMap[g.field] = [];
+        fieldMap[g.field].push(g);
+      });
+
+      Object.keys(fieldMap).forEach(field=>{
+
+        const list = fieldMap[field];
+
+        const multiCategory =
+          [...new Set(list.map(x=>x.category))].length > 1;
+
+        list.sort((a,b)=>{
+
+          if (multiCategory){
+            return getTime(a).localeCompare(getTime(b));
+          }
+
+          if (a.category !== b.category){
+            return a.category.localeCompare(b.category);
+          }
+
+          return getTime(a).localeCompare(getTime(b));
+        });
+
+        root.innerHTML += `
+          <div style="margin:10px 16px;font-weight:700;color:#444">
+            📍 ${field}
+          </div>
+        `;
+
+        root.innerHTML += `<div class="card-grid">`;
+
+        list.forEach(g=>{
+          root.innerHTML += renderGameCard(g);
+        });
+
+        root.innerHTML += `</div>`;
+
+      });
+
+    });
 }
 
 </script>
