@@ -879,65 +879,77 @@ function timeToMinutesSafe(t){
 
 function render(){
 
-  const box = document.getElementById('content');
-  box.innerHTML = '';
+  const root = document.getElementById('content');
+  root.innerHTML = '';
 
-  const dateGroups = {};
+  if (!games || !games.length){
+    root.innerHTML = '<div>沒有資料</div>';
+    return;
+  }
 
-  allGames.forEach(g=>{
-    if (!dateGroups[g.date]) dateGroups[g.date] = [];
-    dateGroups[g.date].push(g);
+  const groups = {};
+
+  // ✅ 依日期分組
+  games.forEach(g=>{
+    if (!shouldRenderGame(g)) return;
+
+    if (!groups[g.date]) groups[g.date] = [];
+    groups[g.date].push(g);
   });
 
-  Object.keys(dateGroups)
+  Object.keys(groups)
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
 
-      box.innerHTML += `<h3>${date}</h3>`;
+      root.innerHTML += `<h3 style="margin:16px">${date}</h3>`;
 
-      const categoryGroups={};
+      // ✅ 再依場地分組
+      const fieldMap = {};
 
-      dateGroups[date].forEach(g=>{
-        const cat=g.category||'未分類';
-        if(!categoryGroups[cat])categoryGroups[cat]=[];
-        categoryGroups[cat].push(g);
+      groups[date].forEach(g=>{
+        if (!fieldMap[g.field]) fieldMap[g.field] = [];
+        fieldMap[g.field].push(g);
       });
 
-      Object.keys(categoryGroups).forEach(cat=>{
+      Object.keys(fieldMap).forEach(field=>{
 
-        box.innerHTML += `
-          <div class="panel">
-            <div>│ ${cat}</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>場次</th>
-                  <th>時間</th>
-                  <th>組別</th>
-                  <th>客隊</th>
-                  <th>主隊</th>
-                  <th>場地</th>
-                  <th>裁判數</th>
-                  <th>PU</th>
-                  <th>U1</th>
-                  <th>U2</th>
-                  <th>U3</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${
-                  categoryGroups[cat]
-                  .sort((a,b)=>timeToMinutes(getTime(a))-timeToMinutes(getTime(b)))
-                  .map(g=>renderRow(g))
-                  .join('')
-                }
-              </tbody>
-            </table>
-          </div>
-        `;
+        const list = fieldMap[field];
+
+        // ✅ 判斷是否同場地多組別
+        const multiCategory =
+          [...new Set(list.map(x=>x.category))].length > 1;
+
+        // ✅ ✅ ✅ 核心排序
+        list.sort((a,b)=>{
+
+          // ✅ 同場地 → 只看時間
+          if (multiCategory){
+            return getTime(a).localeCompare(getTime(b));
+          }
+
+          // ✅ 不同組 → 先類別
+          if (a.category !== b.category){
+            return a.category.localeCompare(b.category);
+          }
+
+          // ✅ 再時間
+          return getTime(a).localeCompare(getTime(b));
+        });
+
+        // ✅ 卡片容器（桌機 2欄）
+        root.innerHTML += `<div class="card-grid">`;
+
+        list.forEach(g=>{
+          root.innerHTML += renderGameCard(g);
+        });
+
+        root.innerHTML += `</div>`;
+
       });
+
     });
 }
+
 
 
 /* =========================
