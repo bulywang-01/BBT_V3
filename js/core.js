@@ -1,26 +1,10 @@
-/* =========================
+/*********************************************************
  ✅ 班表主卡片（唯一UI）
-========================= */
-/* ✅ 主卡片（最終版） */
-function renderGameCard(g, {session} = {}){
+*********************************************************/
+function renderGameCard(g, {type='judge', session=null} = {}){
 
   const isPast = isPastGame(g.date);
-
-  // ✅ 動態裁判站位
-  let judgeRoles = [];
-  const count = Number(g.umpire_count || 0);
-
-  if (count === 0){
-    judgeRoles = [];
-  } else if (count === 1){
-    judgeRoles = ['PU'];
-  } else if (count === 2){
-    judgeRoles = ['PU','U1'];
-  } else if (count === 3){
-    judgeRoles = ['PU','U1','U3'];  // ✅ 注意跳 U2
-  } else {
-    judgeRoles = ['PU','U1','U2','U3'];
-  }
+  const judgeRoles = getJudgeRoles(g);
 
   const recordRoles = [
     ['REC_MAIN','紀錄'],
@@ -29,70 +13,73 @@ function renderGameCard(g, {session} = {}){
   ];
 
   return `
-    <div class="game-card ${isPast?'expired-card':''}">
+  <div class="game-card ${isPast?'expired-card':''}">
 
-      <!-- ✅ 第一列 -->
-      <div class="row-top">
-        <div class="left">${g.date}</div>
-        <div class="center">${g.category}</div>
-        <div class="right">${g.field}</div>
+    <!-- 第一列 -->
+    <div class="row-top">
+      <div class="left">${g.date}</div>
+      <div class="center">${g.category||''}</div>
+      <div class="right">${g.field||''}</div>
+    </div>
+
+    <!-- 第二列 -->
+    <div class="row-mid">
+      <div class="team">${g.away_team||''}</div>
+
+      <div class="center-box">
+        <div class="game-code">${g.game_code||''}</div>
+        <div class="time">${getTime(g)}</div>
       </div>
 
-      <!-- ✅ 第二列 -->
-      <div class="row-mid">
-        <div class="team">${g.away_team}</div>
+      <div class="team">${g.home_team||''}</div>
+    </div>
 
-        <div class="center-box">
-          <div class="game-code">${g.game_code}</div>
-          <div class="time">${getTime(g)}</div>
-        </div>
+    <!-- 第三列 -->
+    <div class="row-bottom">
 
-        <div class="team">${g.home_team}</div>
-      </div>
-
-      <!-- ✅ 第三列 -->
-      <div class="row-bottom">
-
-        <!-- ✅ 裁判 -->
-        ${
-          count === 0
+      <!-- ✅ 裁判 -->
+      ${
+        type !== 'record'
+        ? (
+          judgeRoles.length === 0
           ? `<div class="no-judge">無需裁判</div>`
           : judgeRoles.map(role=>{
+
               const name = g.judges?.[role];
 
               if (name){
                 const isMe = g.my_position === role;
+
                 return `
-                  <div class="slot">
-                    <div class="label">${roleMap(role)}</div>
-                    <div class="name ${isMe?'me':''}">
-                      ${isMe?'★ ':''}${name}
-                    </div>
-                    ${
-                      isMe && !isPast
-                      ? `<div class="cancel"
-                           onclick="cancelMySignup('${g.my_signup_id}')">
-                           取消</div>`
-                      : ''
-                    }
+                <div class="slot">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="name ${isMe?'me':''}">
+                    ${isMe?'★ ':''}${name}
                   </div>
-                `;
+                  ${
+                    isMe && !isPast
+                    ? `<div class="cancel"
+                         onclick="cancelMySignup('${g.my_signup_id}')">
+                         取消</div>`
+                    : ''
+                  }
+                </div>`;
               }
 
               if (isPast){
                 return `
-                  <div class="slot">
-                    <div class="label">${roleMap(role)}</div>
-                    <div class="name">—</div>
-                  </div>`;
+                <div class="slot">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="name">—</div>
+                </div>`;
               }
 
               if (g.my_position){
                 return `
-                  <div class="slot">
-                    <div class="label">${roleMap(role)}</div>
-                    <div class="name">待位</div>
-                  </div>`;
+                <div class="slot">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="name">待位</div>
+                </div>`;
               }
 
               return `
@@ -102,54 +89,61 @@ function renderGameCard(g, {session} = {}){
                   <div class="btn">報名</div>
                 </div>`;
           }).join('')
-        }
+        )
+        : ''
+      }
 
-        <!-- ✅ 紀錄 -->
-        ${recordRoles.map(([role,label])=>{
+      <!-- ✅ 紀錄 -->
+      ${
+        type !== 'judge'
+        ? recordRoles.map(([role,label])=>{
 
           const slot = g.records?.[role];
 
           if (slot){
-            const isMe = session && String(slot.user_id) === String(session.user_id);
+            const isMe =
+              session &&
+              String(slot.user_id) === String(session.user_id);
+
             return `
-              <div class="slot">
-                <div class="label">${label}</div>
-                <div class="name ${isMe?'me':''}">
-                  ${isMe?'★ ':''}${slot.name}
-                </div>
-                ${
-                  isMe && !isPast
-                  ? `<div class="cancel"
-                       onclick="cancelSignup('${g.game_id}','${role}')">
-                       取消</div>`
-                  : ''
-                }
+            <div class="slot">
+              <div class="label">${label}</div>
+              <div class="name ${isMe?'me':''}">
+                ${isMe?'★ ':''}${slot.name}
               </div>
-            `;
+              ${
+                isMe && !isPast
+                ? `<div class="cancel"
+                     onclick="cancelSignup('${g.game_id}','${role}')">
+                     取消</div>`
+                : ''
+              }
+            </div>`;
           }
 
           if (isPast){
             return `
-              <div class="slot">
-                <div class="label">${label}</div>
-                <div class="name">—</div>
-              </div>`;
+            <div class="slot">
+              <div class="label">${label}</div>
+              <div class="name">—</div>
+            </div>`;
           }
 
           return `
-            <div class="slot action"
-              onclick="signup('${g.game_id}','${role}')">
-              <div class="label">${label}</div>
-              <div class="btn">報名</div>
-            </div>
-          `;
-        }).join('')}
-
-      </div>
+          <div class="slot action"
+            onclick="signup('${g.game_id}','${role}')">
+            <div class="label">${label}</div>
+            <div class="btn">報名</div>
+          </div>`;
+        }).join('')
+        : ''
+      }
 
     </div>
+  </div>
   `;
 }
+
 
 /* =========================
  ✅ 班表：裁判 slot（統一版）
@@ -510,23 +504,32 @@ function setGameCache(list){
 /*********************************************************
  * ✅ 報名系統 - 時間衝堂判斷（核心）
  *********************************************************/
+
 function isTimeConflict(targetGame){
 
   const tStart = new Date(targetGame.date + ' ' + getTime(targetGame)).getTime();
-  const tEnd = tStart + (targetGame.duration || 120) * 60000;
+  const tEnd   = tStart + (targetGame.duration || 120)*60000;
 
-  return __GAME_CACHE.some(g => {
-
+  return __GAME_CACHE.some(g=>{
     if (!g.my_position) return false;
+    if (g.game_id === targetGame.game_id) return false;
 
     const gStart = new Date(g.date + ' ' + getTime(g)).getTime();
-    const gEnd = gStart + (g.duration || 120) * 60000;
-
-    if (g.game_id === targetGame.game_id) return false;
+    const gEnd   = gStart + (g.duration || 120)*60000;
 
     return (tStart < gEnd && tEnd > gStart);
   });
 }
+
+/*********************************************************
+ ✅ cache
+*********************************************************/
+let __GAME_CACHE = [];
+
+function setGameCache(list){
+  __GAME_CACHE = list;
+}
+
 
 
 /*********************************************************
@@ -614,37 +617,35 @@ function showToast(msg, type='normal'){
   setTimeout(()=> el.style.opacity = 0, 2200);
 }
 
-/* =========================
- ✅ 時間處理（唯一入口）
-========================= */
+
+/*********************************************************
+ ✅ 時間統一
+*********************************************************/
 function getTime(g){
   if (!g) return '';
-
   if (typeof g.time === 'string') return g.time;
 
   if (g.time instanceof Date){
-    return g.time.getHours().toString().padStart(2,'0')
-      + ':' +
-      g.time.getMinutes().toString().padStart(2,'0');
+    return g.time.getHours().toString().padStart(2,'0') + ':' +
+           g.time.getMinutes().toString().padStart(2,'0');
   }
 
-  if (g.time_range) return g.time_range;
-
-  return '';
+  return g.time_range || g.game_time || '';
 }
 
-/* =========================
- ✅ 過期判斷（唯一入口）
-========================= */
+/*********************************************************
+ ✅ 過期判斷
+*********************************************************/
 function isPastGame(dateStr){
   const today = new Date();
   today.setHours(0,0,0,0);
 
-  const d = new Date((dateStr || '').replace(/\//g,'-'));
+  const d = new Date((dateStr||'').replace(/\//g,'-'));
   d.setHours(0,0,0,0);
 
   return d < today;
 }
+
 
 /* =========================
  ✅ 可報名判斷（統一規則）
@@ -658,19 +659,46 @@ function canSignup(g){
   return true;
 }
 
-/* =========================
- ✅ 全年 / 單月 過濾（核心）
-========================= */
+
+/*********************************************************
+ ✅ 是否顯示（全年隱藏過期）
+*********************************************************/
 function shouldRenderGame(g){
   if (!g) return false;
 
   if (window.currentMonth === null){
-    // ✅ 全年：不顯示過期
     if (isPastGame(g.date)) return false;
   }
-
   return true;
 }
+
+
+/*********************************************************
+ ✅ 裁判站位
+*********************************************************/
+function getJudgeRoles(g){
+
+  const count =
+    Number(g.umpire_count)
+    || Number(g.need_count)
+    || 0;
+
+  if (count === 0) return [];
+  if (count === 1) return ['PU'];
+  if (count === 2) return ['PU','U1'];
+  if (count === 3) return ['PU','U1','U3'];
+  return ['PU','U1','U2','U3'];
+}
+
+function roleMap(r){
+  return {
+    PU:'主審',
+    U1:'一壘',
+    U2:'二壘',
+    U3:'三壘'
+  }[r] || r;
+}
+
 
 /* =========================
  ✅ 統一 reload（裁判/紀錄共用）
@@ -715,12 +743,3 @@ function safeName(slot){
   return slot.name || '';
 }
 
-/* 裁判角色標籤 */
-function roleMap(r){
-  return {
-    PU:'主審',
-    U1:'一壘',
-    U2:'二壘',
-    U3:'三壘'
-  }[r] || r;
-}
