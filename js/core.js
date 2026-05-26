@@ -1,218 +1,180 @@
-/*********************************************************
- * ✅ ✅ ✅ 班表共用核心
- *********************************************************/
-function renderGameCard(g){
+/* =========================
+ ✅ 班表主卡片（唯一UI）
+========================= */
+function renderGameCard(g, type){
 
-  const d = new Date(g.date);
-  const w = ['日','一','二','三','四','五','六'][d.getDay()];
+  const isPast = isPastGame(g.date);
 
-  const isMine = g.my_position && g.my_position !== '';
-  const myName = session.name;
-
-  /************* ✅ 名字高亮 *************/
-  function highlight(name){
-    if (!name) return '';
-
-    if (name === myName){
-      return `
-        <span style="
-          background:#dbeafe;
-          color:#1d4ed8;
-          padding:3px 6px;
-          border-radius:6px;
-          white-space:nowrap;
-        ">
-          ${name}
-        </span>
-      `;
-    }
-
-    return `<span style="white-space:nowrap;">${name}</span>`;
-  }
-
-  /************* ✅ 裁判角色 *************/
-  const roleMap = {
-    1: ['PU'],
-    2: ['PU','U1'],
-    3: ['PU','U1','U3'],
-    4: ['PU','U1','U2','U3']
-  };
-
-  const roles = roleMap[g.need_count || 0] || [];
-
-  const hasJudge = roles.some(r => g.judges?.[r]);
-  const hasRecord = Object.values(g.records || {}).some(v => v);
-
-  /************* ✅ 組合項目 *************/
-  const items = [];
-
-  roles.forEach(r=>{
-    const label =
-      r === 'PU' ? '主審' :
-      r === 'U1' ? '一壘' :
-      r === 'U2' ? '二壘' : '三壘';
-
-    items.push({
-      label,
-      value: highlight(g.judges?.[r])
-    });
-  });
-
-  if (hasRecord){
-    items.push(
-      { label:'記錄', value:highlight(g.records.REC_MAIN) },
-      { label:'見習', value:highlight(g.records.REC_TRAINEE) },
-      { label:'影像', value:highlight(g.records.REC_VIDEO) }
-    );
-  }
+  if (!shouldRenderGame(g)) return '';
 
   return `
-  <div style="
-    background:${isMine ? '#eef6ff' : '#fff'};
-    border-radius:14px;
-    padding:16px;
-    margin-bottom:14px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.08);
-  ">
+    <div class="game-card ${isPast?'expired-card':''}">
 
-    <!-- ✅ 第一區 -->
-    <div style="
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      align-items:center;
-      font-weight:700;
-      margin-bottom:8px;
-    ">
-      <div style="color:#2563eb;text-align:left;">
-        ${g.date.slice(5)}（${w}）
+      <!-- 上排 -->
+      <div class="mobile-time-row">
+        <div class="time">⏰ ${getTime(g)}</div>
+        <div class="game-code badge">${g.game_code}</div>
+        <div class="field">📍 ${g.field}</div>
       </div>
 
-      <div style="text-align:center;font-size:14px;">
-        ${g.category || ''}
+      <!-- 對戰 -->
+      <div class="mobile-teams">
+        <strong>${g.away_team}</strong>
+        <span class="vs">vs</span>
+        <strong>${g.home_team}</strong>
       </div>
 
-      <div style="text-align:right;">
-        ${g.field || ''}
-      </div>
-    </div>
-
-    <!-- ✅ 第二區 -->
-    <div style="display:flex;align-items:center;gap:12px;margin:12px 0;">
-
-      <!-- 主隊 -->
-      <div style="
-        flex:1;
-        background:#f0f2f6;
-        border-radius:12px;
-        padding:14px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      ">
-        <span style="
-          font-size:clamp(14px, 1.8vw, 18px);
-          font-weight:700;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        ">
-          ${g.home_team}
-        </span>
-      </div>
-
-      <!-- 中間 -->
-      <div style="flex:0 0 110px;text-align:center;">
-        <div style="
-          display:inline-block;
-          padding:3px 12px;
-          background:#e8f0ff;
-          color:#2563eb;
-          border-radius:999px;
-          font-weight:700;
-        ">
-          ${g.game_code}
-        </div>
-
-        <div style="
-          margin-top:6px;
-          color:#dc2626;
-          font-size:20px;
-          font-weight:800;
-        ">
-          ${g.time}
-        </div>
-      </div>
-
-      <!-- 客隊 -->
-      <div style="
-        flex:1;
-        background:#f0f2f6;
-        border-radius:12px;
-        padding:14px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      ">
-        <span style="
-          font-size:clamp(14px, 1.8vw, 18px);
-          font-weight:700;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        ">
-          ${g.away_team}
-        </span>
-      </div>
+      <!-- slot -->
+      ${
+        type === 'judge'
+          ? renderJudgeSlots(g, isPast)
+          : renderRecordSlots(g, isPast)
+      }
 
     </div>
-
-    <!-- ✅ 第三區（✅ 完整修正：無 scroll） -->
-    ${
-      (hasJudge || hasRecord) ? `
-      <div style="
-        border-top:1px dashed #ccc;
-        padding-top:10px;
-        font-size:13px;
-      ">
-
-        <!-- 標題 -->
-        <div style="display:flex;text-align:center;color:#777;">
-          ${
-            items.map(i => `
-              <div style="flex:1;font-size:12px;">
-                ${i.label}
-              </div>
-            `).join('')
-          }
-        </div>
-
-        <!-- 名字 -->
-        <div style="
-          display:flex;
-          text-align:center;
-          margin-top:4px;
-        ">
-          ${
-            items.map(i => `
-              <div style="
-                flex:1;
-                font-size:14px;          /* ✅ 再縮一點 */
-                font-weight:800;         /* ✅ 保持清楚 */
-                word-break:break-all;    /* ✅ 中文正常、不會變 ... */
-              ">
-                ${i.value || ''}
-              </div>
-            `).join('')
-          }
-        </div>
-
-      </div>
-      ` : ''
-    }
-
-  </div>
   `;
 }
+
+/* =========================
+ ✅ 班表：裁判 slot（統一版）
+========================= */
+function renderJudgeSlots(g, isPast){
+
+  const roles = ['PU','U1','U2','U3'];
+
+  return `
+    <div class="mobile-pos-labels">
+      <div>主審</div>
+      <div>一壘</div>
+      <div>二壘</div>
+      <div>三壘</div>
+    </div>
+
+    <div class="mobile-pos-grid">
+      ${roles.map(role => {
+
+        const slot = g.judges?.[role];
+
+        // ✅ 有人
+        if (slot){
+          const isMe = g.my_position === role;
+
+          return `
+            <div class="record-role ${isMe?'me':'other'}">
+              ${isMe?'★ ':''}${slot}
+              ${
+                isMe && !isPast
+                ? `<div class="cancel-btn"
+                     onclick="cancelMySignup('${g.my_signup_id}')">
+                     取消
+                   </div>`
+                : ''
+              }
+            </div>
+          `;
+        }
+
+        // ✅ 過期不可操作
+        if (!canSignup(g)){
+          return `<div class="record-role other">—</div>`;
+        }
+
+        // ✅ 已報別位
+        if (g.my_position){
+          return `<div class="record-role other">待位</div>`;
+        }
+
+        return `
+          <div class="record-role action"
+            onclick="signupJudgeInstant('${g.game_id}','${role}')">
+            ＋
+          </div>
+        `;
+
+      }).join('')}
+    </div>
+  `;
+}
+
+/* =========================
+ ✅ 班表：紀錄 slot（統一版）
+========================= */
+function renderRecordSlots(g, isPast){
+
+  const roles = [
+    ['REC_MAIN','紀錄'],
+    ['REC_TRAINEE','見習'],
+    ['REC_VIDEO','影像']
+  ];
+
+  return `
+    <div class="record-roles">
+      ${roles.map(([role,label]) => {
+
+        const slot = g.records?.[role];
+
+        // ✅ 有人
+        if (slot){
+          const isMe = String(slot.user_id) === String(session.user_id);
+
+          return `
+            <div class="record-role ${isMe?'me':'other'}">
+              ${label}<br>${slot.name}
+              ${
+                isMe && !isPast
+                ? `<div class="cancel-btn"
+                     onclick="cancelSignup('${g.game_id}','${role}')">
+                     取消
+                   </div>`
+                : ''
+              }
+            </div>
+          `;
+        }
+
+        // ✅ 過期不可操作
+        if (!canSignup(g)){
+          return `<div class="record-role other">${label}<br>—</div>`;
+        }
+
+        return `
+          <div class="record-role action"
+            onclick="signup('${g.game_id}','${role}')">
+            ＋${label}
+          </div>
+        `;
+
+      }).join('')}
+    </div>
+  `;
+}
+
+/* =========================
+ ✅ 班表：手機 render（裁判）
+========================= */
+function renderMobileJudge(list){
+
+  const root = document.getElementById('mobileView');
+  root.innerHTML = '';
+
+  list.forEach(g => {
+    root.innerHTML += renderGameCard(g, 'judge');
+  });
+}
+
+/* =========================
+ ✅ 班表：手機 render（紀錄）
+========================= */
+function renderMobileRecord(list){
+
+  const root = document.getElementById('mobileView');
+  root.innerHTML = '';
+
+  list.forEach(g => {
+    root.innerHTML += renderGameCard(g, 'record');
+  });
+}
+
 
 /*********************************************************
  * ✅ ✅ ✅ 班表名字高亮
