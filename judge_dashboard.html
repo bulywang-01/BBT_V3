@@ -1015,7 +1015,12 @@ function timeToMinutesSafe(t){
 /* ✅ ========= 主 render ========= */
 function render(){
 
-  const root = document.getElementById('content');
+  const isMobile = window.innerWidth < 768;
+
+  const root = document.getElementById(
+    isMobile ? 'mobileView' : 'content'
+  );
+
   root.innerHTML = '';
 
   if (!games || !games.length){
@@ -1025,7 +1030,6 @@ function render(){
 
   const group = {};
 
-  // ✅ 分組（先過濾）
   games.forEach(g=>{
     if (!shouldRenderGame(g)) return;
 
@@ -1033,31 +1037,23 @@ function render(){
     group[g.date].push(g);
   });
 
-  // ✅ 日期排序
   Object.keys(group)
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
 
-      // ✅ ✅ ✅ 日期只出現一次
       root.innerHTML += `
-        <div class="date-header">
-          📅 ${date}
+        <div class="date-header">📅 ${date}</div>
+        <div class="card-grid">
+          ${group[date].map(g =>
+            renderGameCard(g,{
+              type:'judge',
+              session:s
+            })
+          ).join('')}
         </div>
       `;
-
-      root.innerHTML += `<div class="card-grid">`;
-
-      group[date].forEach(g=>{
-        root.innerHTML += renderGameCard(g,{
-          type:'judge',
-          session:s
-        });
-      });
-
-      root.innerHTML += `</div>`;
     });
 }
-
 
 
 /* =========================
