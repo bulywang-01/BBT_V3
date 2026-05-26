@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ✅ 載入本週出勤提醒
   loadWeeklyReminder();
+  
+  // ✅ 
+  loadHomeGames();
 
 });
 
@@ -192,7 +195,28 @@ function loadDashboard(){
   });
 }
 
+function loadHomeGames(){
 
+  callApi({
+    action:'getSignableGames',
+    user_id: session.user_id
+  }, res => {
+
+    if (!res || res.result !== 'ok'){
+      console.log('❌ 首頁 API 失敗');
+      return;
+    }
+
+    // ✅ ✅ ✅ 關鍵兩步
+    games = (res.games || []).map(safeMerge);
+
+    console.log('📦 首頁 games:', games);
+
+    // ✅ ✅ ✅ 呼叫首頁 render
+    renderHome();
+
+  });
+}
 
 /*********************************************************
  * ✅ 時間格式
@@ -337,58 +361,7 @@ function openMySchedule(){
 /*********************************************************
  * ✅ ✅ ✅ 本週班表（純顯示）
  *********************************************************/
-/* 舊版
-function openWeeklySchedule(){
 
-  const overlay = document.getElementById('weekly-overlay');
-  const content = document.getElementById('weeklyContent');
-
-  if (overlay) overlay.style.display = 'flex';
-  if (!content) return;
-
-  renderLoading(content);
-
-  callApi({
-    action:'getSignableGames',
-    user_id: session.user_id
-  }, res => {
-
-    if (!res || res.result !== 'ok'){
-      content.innerHTML = '載入失敗';
-      return;
-    }
-
-    const games = (res.games || []).map(safeMerge);
-
-    const now = new Date();
-    const day = now.getDay() === 0 ? 7 : now.getDay();
-
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (day - 1));
-
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    const weekGames = games.filter(g=>{
-      const d = new Date(g.date);
-      return d >= monday && d <= sunday;
-    });
-
-    if (!weekGames.length){
-      content.innerHTML = '本週沒有賽事';
-      return;
-    }
-
-    weekGames.sort((a,b)=>
-      new Date(a.date + ' ' + a.time) -
-      new Date(b.date + ' ' + b.time)
-    );
-
-    content.innerHTML = weekGames.map(renderGameCard).join('');
-    setGameCache(weekGames);
-  });
-}
-*/
 function openWeeklySchedule(){
 
   const overlay = document.getElementById('weekly-overlay');
@@ -591,4 +564,100 @@ function safeMerge(g){
   });
 
   return g;
+}
+
+/* 首頁 */
+function renderHome(){
+
+  const root = document.getElementById('content');
+  root.innerHTML = '';
+
+  if (!games || !games.length){
+    root.innerHTML = '<div>本週沒有賽事</div>';
+    return;
+  }
+
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - today.getDay());   // 週日
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);   // 週六
+
+  // ✅ 篩出本週
+  const weekGames = games.filter(g=>{
+    const d = new Date(g.date.replace(/\//g,'-'));
+    return d >= start && d <= end;
+  });
+
+  if (!weekGames.length){
+    root.innerHTML = '<div>本週沒有賽事</div>';
+    return;
+  }
+
+  // ✅ 依日期分
+  const dateMap = {};
+
+  weekGames.forEach(g=>{
+    if (!dateMap[g.date]) dateMap[g.date] = [];
+    dateMap[g.date].push(g);
+  });
+
+  Object.keys(dateMap)
+    .sort((a,b)=>new Date(a)-new Date(b))
+    .forEach(date=>{
+
+      root.innerHTML += `<h3 class="week-title">${date}</h3>`;
+
+      // ✅ 同場地 grouping
+      const fieldMap = {};
+
+      dateMap[date].forEach(g=>{
+        if (!fieldMap[g.field]) fieldMap[g.field] = [];
+        fieldMap[g.field].push(g);
+      });
+
+      Object.keys(fieldMap).forEach(field=>{
+
+        const list = fieldMap[field];
+
+        const hasMultiCategory =
+          [...new Set(list.map(x=>x.category))].length > 1;
+
+        // ✅ ✅ ✅ 排序（核心）
+        list.sort((a,b)=>{
+
+          if (hasMultiCategory){
+            return getTime(a).localeCompare(getTime(b));
+          }
+
+          if (a.category !== b.category){
+            return a.category.localeCompare(b.category);
+          }
+
+          return getTime(a).localeCompare(getTime(b));
+        });
+
+        root.innerHTML += `
+          <div class="field-title">📍 ${field}</div>
+          <div class="card-grid">
+            ${list.map(g=>renderHomeCard(g)).join('')}
+          </div>
+        `;
+      });
+
+    });
+}
+
+function renderHomeCard(g){
+
+  const colorClass =
+    g.category?.includes('大聯盟') ? 'cat-big' :
+    g.category?.includes('小聯盟') ? 'cat-small' : '';
+
+  return `
+    <div class="game-card ${colorClass}">
+      ${renderGameCard(g)}
+    </div>
+  `;
 }
