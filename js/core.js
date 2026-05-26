@@ -99,7 +99,7 @@ function renderJudgeSlots(g, isPast){
 /* =========================
  ✅ 班表：紀錄 slot（統一版）
 ========================= */
-function renderRecordSlots(g, isPast){
+function renderRecordSlots(g, isPast, session){
 
   const roles = [
     ['REC_MAIN','紀錄'],
