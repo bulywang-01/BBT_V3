@@ -2,34 +2,150 @@
  ✅ 班表主卡片（唯一UI）
 ========================= */
 /* ✅ 主卡片（最終版） */
-function renderGameCard(g, opts = {}){
-
-  const { type = 'judge', session = null } = opts;
+function renderGameCard(g, {session} = {}){
 
   const isPast = isPastGame(g.date);
 
-  if (!shouldRenderGame(g)) return '';
+  // ✅ 動態裁判站位
+  let judgeRoles = [];
+  const count = Number(g.umpire_count || 0);
+
+  if (count === 0){
+    judgeRoles = [];
+  } else if (count === 1){
+    judgeRoles = ['PU'];
+  } else if (count === 2){
+    judgeRoles = ['PU','U1'];
+  } else if (count === 3){
+    judgeRoles = ['PU','U1','U3'];  // ✅ 注意跳 U2
+  } else {
+    judgeRoles = ['PU','U1','U2','U3'];
+  }
+
+  const recordRoles = [
+    ['REC_MAIN','紀錄'],
+    ['REC_TRAINEE','見習'],
+    ['REC_VIDEO','影像']
+  ];
 
   return `
     <div class="game-card ${isPast?'expired-card':''}">
 
-      <div class="mobile-time-row">
-        <div class="time">⏰ ${getTime(g)}</div>
-        <div class="game-code badge">${g.game_code}</div>
-        <div class="field">📍 ${g.field}</div>
+      <!-- ✅ 第一列 -->
+      <div class="row-top">
+        <div class="left">${g.date}</div>
+        <div class="center">${g.category}</div>
+        <div class="right">${g.field}</div>
       </div>
 
-      <div class="mobile-teams">
-        <strong>${g.away_team}</strong>
-        <span class="vs">vs</span>
-        <strong>${g.home_team}</strong>
+      <!-- ✅ 第二列 -->
+      <div class="row-mid">
+        <div class="team">${g.away_team}</div>
+
+        <div class="center-box">
+          <div class="game-code">${g.game_code}</div>
+          <div class="time">${getTime(g)}</div>
+        </div>
+
+        <div class="team">${g.home_team}</div>
       </div>
 
-      ${
-        type === 'judge'
-          ? renderJudgeSlots(g, isPast, session)
-          : renderRecordSlots(g, isPast, session)
-      }
+      <!-- ✅ 第三列 -->
+      <div class="row-bottom">
+
+        <!-- ✅ 裁判 -->
+        ${
+          count === 0
+          ? `<div class="no-judge">無需裁判</div>`
+          : judgeRoles.map(role=>{
+              const name = g.judges?.[role];
+
+              if (name){
+                const isMe = g.my_position === role;
+                return `
+                  <div class="slot">
+                    <div class="label">${roleMap(role)}</div>
+                    <div class="name ${isMe?'me':''}">
+                      ${isMe?'★ ':''}${name}
+                    </div>
+                    ${
+                      isMe && !isPast
+                      ? `<div class="cancel"
+                           onclick="cancelMySignup('${g.my_signup_id}')">
+                           取消</div>`
+                      : ''
+                    }
+                  </div>
+                `;
+              }
+
+              if (isPast){
+                return `
+                  <div class="slot">
+                    <div class="label">${roleMap(role)}</div>
+                    <div class="name">—</div>
+                  </div>`;
+              }
+
+              if (g.my_position){
+                return `
+                  <div class="slot">
+                    <div class="label">${roleMap(role)}</div>
+                    <div class="name">待位</div>
+                  </div>`;
+              }
+
+              return `
+                <div class="slot action"
+                  onclick="signupJudgeInstant('${g.game_id}','${role}')">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="btn">報名</div>
+                </div>`;
+          }).join('')
+        }
+
+        <!-- ✅ 紀錄 -->
+        ${recordRoles.map(([role,label])=>{
+
+          const slot = g.records?.[role];
+
+          if (slot){
+            const isMe = session && String(slot.user_id) === String(session.user_id);
+            return `
+              <div class="slot">
+                <div class="label">${label}</div>
+                <div class="name ${isMe?'me':''}">
+                  ${isMe?'★ ':''}${slot.name}
+                </div>
+                ${
+                  isMe && !isPast
+                  ? `<div class="cancel"
+                       onclick="cancelSignup('${g.game_id}','${role}')">
+                       取消</div>`
+                  : ''
+                }
+              </div>
+            `;
+          }
+
+          if (isPast){
+            return `
+              <div class="slot">
+                <div class="label">${label}</div>
+                <div class="name">—</div>
+              </div>`;
+          }
+
+          return `
+            <div class="slot action"
+              onclick="signup('${g.game_id}','${role}')">
+              <div class="label">${label}</div>
+              <div class="btn">報名</div>
+            </div>
+          `;
+        }).join('')}
+
+      </div>
 
     </div>
   `;
@@ -597,4 +713,14 @@ function safeName(slot){
   if (!slot) return '';
   if (typeof slot === 'string') return slot;
   return slot.name || '';
+}
+
+/* 裁判角色標籤 */
+function roleMap(r){
+  return {
+    PU:'主審',
+    U1:'一壘',
+    U2:'二壘',
+    U3:'三壘'
+  }[r] || r;
 }
