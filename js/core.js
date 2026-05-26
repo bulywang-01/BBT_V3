@@ -1,7 +1,10 @@
 /* =========================
  ✅ 班表主卡片（唯一UI）
 ========================= */
-function renderGameCard(g, type){
+/* ✅ 主卡片（最終版） */
+function renderGameCard(g, opts = {}){
+
+  const { type = 'judge', session = null } = opts;
 
   const isPast = isPastGame(g.date);
 
@@ -10,25 +13,22 @@ function renderGameCard(g, type){
   return `
     <div class="game-card ${isPast?'expired-card':''}">
 
-      <!-- 上排 -->
       <div class="mobile-time-row">
         <div class="time">⏰ ${getTime(g)}</div>
         <div class="game-code badge">${g.game_code}</div>
         <div class="field">📍 ${g.field}</div>
       </div>
 
-      <!-- 對戰 -->
       <div class="mobile-teams">
         <strong>${g.away_team}</strong>
         <span class="vs">vs</span>
         <strong>${g.home_team}</strong>
       </div>
 
-      <!-- slot -->
       ${
         type === 'judge'
-          ? renderJudgeSlots(g, isPast)
-          : renderRecordSlots(g, isPast)
+          ? renderJudgeSlots(g, isPast, session)
+          : renderRecordSlots(g, isPast, session)
       }
 
     </div>
@@ -152,28 +152,36 @@ function renderRecordSlots(g, isPast, session){
 /* =========================
  ✅ 班表：手機 render（裁判）
 ========================= */
-function renderMobileJudge(list){
+function renderMobileJudge(list, session){
 
   const root = document.getElementById('mobileView');
   root.innerHTML = '';
 
   list.forEach(g => {
-    root.innerHTML += renderGameCard(g, 'judge');
+    root.innerHTML += renderGameCard(g, {
+      type:'judge',
+      session
+    });
   });
 }
+
 
 /* =========================
  ✅ 班表：手機 render（紀錄）
 ========================= */
-function renderMobileRecord(list){
+function renderMobileRecord(list, session){
 
   const root = document.getElementById('mobileView');
   root.innerHTML = '';
 
   list.forEach(g => {
-    root.innerHTML += renderGameCard(g, 'record');
+    root.innerHTML += renderGameCard(g, {
+      type:'record',
+      session
+    });
   });
 }
+
 
 
 /*********************************************************
@@ -183,15 +191,13 @@ function highlight(name){
 
   if (!name) return '';
 
-  if (name === session.name){
+  if (session && name === session.name){
     return `
       <span style="
         background:#dbeafe;
         color:#1d4ed8;
         padding:3px 6px;
-        border-radius:6px;
-        white-space:nowrap;
-      ">
+        border-radius:6px;">
         ${name}
       </span>
     `;
@@ -273,7 +279,12 @@ function signupRecord(g, role){
 
     if (res.result === 'ok'){
 
-      g.records[role] = session.name;
+      // ✅ ✅ ✅ 修這裡
+      g.records[role] = {
+        user_id: session.user_id,
+        name: session.name
+      };
+
       g.my_position = role;
 
       renderFromCache();
@@ -341,19 +352,23 @@ function reloadGames(){
 // ✅ 👉 重畫畫面
 function renderFromCache(){
 
-  // ✅ 我的班表
+  const session = getSession(); // ✅ 關鍵
+
   const my = __GAME_CACHE.filter(g => g.my_position);
   const list = document.getElementById('my-schedule-list');
 
   if (list){
-    list.innerHTML = my.map(renderGameCard).join('');
+    list.innerHTML = my.map(g =>
+      renderGameCard(g,{type:'judge',session})
+    ).join('');
   }
 
-  // ✅ 本週班表
   const weekly = document.getElementById('weeklyContent');
 
   if (weekly){
-    weekly.innerHTML = __GAME_CACHE.map(renderGameCard).join('');
+    weekly.innerHTML = __GAME_CACHE.map(g =>
+      renderGameCard(g,{type:'judge',session})
+    ).join('');
   }
 }
 
@@ -374,23 +389,22 @@ function setGameCache(list){
  *********************************************************/
 function isTimeConflict(targetGame){
 
-  const tStart = new Date(targetGame.date + ' ' + targetGame.time).getTime();
-  const tEnd   = tStart + (targetGame.duration || 120) * 60000;
+  const tStart = new Date(targetGame.date + ' ' + getTime(targetGame)).getTime();
+  const tEnd = tStart + (targetGame.duration || 120) * 60000;
 
   return __GAME_CACHE.some(g => {
 
     if (!g.my_position) return false;
 
-    const gStart = new Date(g.date + ' ' + g.time).getTime();
-    const gEnd   = gStart + (g.duration || 120) * 60000;
+    const gStart = new Date(g.date + ' ' + getTime(g)).getTime();
+    const gEnd = gStart + (g.duration || 120) * 60000;
 
-    // ✅ 同一場不用比
     if (g.game_id === targetGame.game_id) return false;
 
-    // ✅ 重疊條件
     return (tStart < gEnd && tEnd > gStart);
   });
 }
+
 
 /*********************************************************
  * ✅ 聯盟級報名規則引擎（唯一核心）
