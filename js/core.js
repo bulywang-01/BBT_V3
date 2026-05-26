@@ -659,14 +659,11 @@ function canSignup(g){
  ✅ 是否顯示（全年隱藏過期）
 *********************************************************/
 function shouldRenderGame(g){
-  if (!g) return false;
-
   if (window.currentMonth === null){
     if (isPastGame(g.date)) return false;
   }
   return true;
 }
-
 
 /*********************************************************
  ✅ 裁判站位
