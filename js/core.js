@@ -38,7 +38,7 @@ function renderGameCard(g, opts = {}){
 /* =========================
  ✅ 班表：裁判 slot（統一版）
 ========================= */
-function renderJudgeSlots(g, isPast){
+function renderJudgeSlots(g, isPast, session){
 
   const roles = ['PU','U1','U2','U3'];
 
@@ -51,43 +51,49 @@ function renderJudgeSlots(g, isPast){
     </div>
 
     <div class="mobile-pos-grid">
-      ${roles.map(role => {
+      ${roles.map(role=>{
 
-        const slot = g.judges?.[role];
+        const name = g.judges?.[role];
 
         // ✅ 有人
-        if (slot){
+        if (name){
+
           const isMe = g.my_position === role;
 
           return `
-            <div class="record-role ${isMe?'me':'other'}">
-              ${isMe?'★ ':''}${slot}
+            <div class="mobile-pos">
+              <span class="${isMe?'mobile-judge-me':''}">
+                ${isMe?'★ ':''}${name}
+              </span>
+
               ${
                 isMe && !isPast
-                ? `<div class="cancel-btn"
+                ? `<div class="mobile-cancel"
                      onclick="cancelMySignup('${g.my_signup_id}')">
-                     取消
-                   </div>`
-                : ''
+                     取消</div>`
+                : ``
               }
             </div>
           `;
         }
 
-        // ✅ 過期不可操作
-        if (!canSignup(g)){
-          return `<div class="record-role other">—</div>`;
+        // ✅ ✅ ✅ 過期：完全不能操作
+        if (isPast){
+          return `<div class="mobile-pos">—</div>`;
         }
 
-        // ✅ 已報別位
+        // ✅ ✅ ✅ 已有其它站位
         if (g.my_position){
-          return `<div class="record-role other">待位</div>`;
+          return `<div class="mobile-pos">待位</div>`;
         }
 
+        // ✅ ✅ ✅ 可報名
         return `
-          <div class="record-role action"
-            onclick="signupJudgeInstant('${g.game_id}','${role}')">
-            ＋
+          <div class="mobile-pos">
+            <div class="mobile-pos-btn"
+              onclick="signupJudgeInstant('${g.game_id}','${role}')">
+              報名
+            </div>
           </div>
         `;
 
@@ -95,6 +101,7 @@ function renderJudgeSlots(g, isPast){
     </div>
   `;
 }
+
 
 /* =========================
  ✅ 班表：紀錄 slot（統一版）
