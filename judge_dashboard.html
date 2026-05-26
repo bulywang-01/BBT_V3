@@ -735,6 +735,9 @@ function loadHeader() {
   </div>
 
 <script>
+
+const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  
 function getName(v){
   if (!v) return '—';
   if (typeof v === 'object') return v.name || '—';
@@ -770,7 +773,7 @@ let games = [];
 
 /* ===== API ===== */
 function loadGames() {
-  const session = JSON.parse(localStorage.getItem('session_user') || {});
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
   showLoading('載入賽事資料中...');
 
   callApi(
@@ -785,6 +788,11 @@ function loadGames() {
 
       allGames = res.games || [];
       games = allGames;
+      
+      if (typeof setGameCache === 'function'){
+        setGameCache(allGames);   // ✅ 關鍵
+      }
+
       render();
       renderMobile();
 
@@ -949,7 +957,10 @@ function render(){
         root.innerHTML += `<div class="card-grid">`;
 
         list.forEach(g=>{
-          root.innerHTML += renderGameCard(g, session);
+          root.innerHTML += renderGameCard(g, {
+            type: 'judge',   // ✅ 指定
+            session          // ✅ 傳物件
+          });
         });
 
         root.innerHTML += `</div>`;
@@ -1095,103 +1106,23 @@ function renderPos(g, role, isPast){
 
   
 // 手機版 ${renderTimeHHmm(g.time_range)}
- 
-function renderMobile() {
+function renderMobile(){
 
   const root = document.getElementById('mobileView');
   if (!root) return;
 
   root.innerHTML = '';
 
-  const grouped = groupGamesForMobile(allGames);
+  allGames.forEach(g=>{
+    if (!shouldRenderGame(g)) return;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // ✅ ✅ ✅ 日期排序（防止 5/10 排在 5/2 前面）
-  const dates = Object.keys(grouped).sort((a, b) => {
-    return new Date(a.replace(/\//g, '-')) - new Date(b.replace(/\//g, '-'));
-  });
-
-  // ✅ ✅ ✅ 全年提示
-  if (currentMonth === null) {
-    root.insertAdjacentHTML(
-      'beforeend',
-      '<div class="hint">※ 過期賽事請看「單月班表」</div>'
-    );
-  }
-
-  dates.forEach(date => {
-
-    const isPast = isPastGame(date);
-
-    // ✅ ✅ ✅ 🔥關鍵修正：只有全年才擋
-    if (currentMonth === null && isPast) return;
-
-    const dateBox = document.createElement('div');
-    dateBox.className = 'm-date-box';
-
-    // ✅ ✅ ✅ 單月灰底
-    if (currentMonth !== null && isPast) {
-      dateBox.style.background = '#f3f4f6';
-      dateBox.style.opacity = '0.85';
-    }
-
-    dateBox.innerHTML = `<div class="m-date-title">📅 ${date}</div>`;
-
-    Object.keys(grouped[date]).forEach(category => {
-
-      const groupBox = document.createElement('div');
-      groupBox.className = 'm-group-box';
-
-      groupBox.innerHTML = `<div class="m-group-title">${category}</div>`;
-
-      grouped[date][category]
-        .sort((a, b) =>
-          timeToMinutesSafe(a.time_range) -
-          timeToMinutesSafe(b.time_range)
-        )
-        .forEach(g => {
-
-          const isPastGameRow = isPastGame(g.date);
-
-          groupBox.innerHTML += `
-            <div class="game-card ${isPastGameRow ? 'expired-card' : ''}">
-              
-              <div class="mobile-time-row">
-                <div class="time">⏰ ${getTime(g)}</div>
-
-                <div class="game-code badge ${isPastGameRow ? 'expired' : ''}"
-                  data-category="${g.category || ''}">
-                  ${g.game_code || ''}
-                </div>
-
-                <div class="field">📍 ${g.field}</div>
-              </div>
-
-              <div class="mobile-teams">
-                <strong>${g.away_team}</strong>
-                <span class="vs">vs</span>
-                <strong>${g.home_team}</strong>
-              </div>
-
-              ${renderMobilePosGrid(g)}
-
-            </div>
-          `;
-        });
-
-      dateBox.appendChild(groupBox);
+    root.innerHTML += renderGameCard(g,{
+      type:'judge',
+      session
     });
-
-    root.appendChild(dateBox);
   });
 
   applyCategoryBadgeColor();
-}
-
-
-
 
 // ✅ 裁判頁手機版：依 日期 → 組別 → 場次 分組
 function groupGamesForMobile(games) {
@@ -1440,7 +1371,7 @@ function logout(){
 
 function cancelMySignup(signupId){
 
-  const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
   showLoading('取消中...');
 
@@ -1460,7 +1391,7 @@ function cancelMySignup(signupId){
 
 function signupJudgeInstant(gameId, role){
 
-  const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
   showLoading('報名中...');
 
@@ -1531,7 +1462,7 @@ function setActiveTab(el) {
 // 呼叫API
 function loadJudgeGamesByMonth(year, month) {
 
-  const session = JSON.parse(localStorage.getItem('session_user') || '{}');
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
   showLoading('載入月份班表中...');
 
@@ -1550,6 +1481,10 @@ function loadJudgeGamesByMonth(year, month) {
     }
 
     allGames = res.games || [];
+
+    if (typeof setGameCache === 'function'){
+      setGameCache(allGames);
+    }
 
     // ✅ ✅ ✅ 關鍵（補空資料）
     if (!allGames.length) {
