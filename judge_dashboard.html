@@ -949,7 +949,7 @@ function render(){
         root.innerHTML += `<div class="card-grid">`;
 
         list.forEach(g=>{
-          root.innerHTML += renderGameCard(g);
+          root.innerHTML += renderGameCard(g, session);
         });
 
         root.innerHTML += `</div>`;
