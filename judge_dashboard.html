@@ -628,7 +628,8 @@ tr.full {
 
 .card-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+/*  grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); */
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:16px;
   padding:0 16px 10px;
 }
@@ -655,8 +656,11 @@ tr.full {
   }
 
   .card-grid{
-    grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:12px;
   }
+
 }
 
 .row-top{
@@ -1472,8 +1476,8 @@ function signupJudgeInstant(gameId, role){
 
 
 // 初始化月份
-let currentMonth = null;
-
+window.currentMonth = null;
+  
 function initMonthTabs() {
 
   const now = new Date();
