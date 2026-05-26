@@ -777,7 +777,7 @@ function loadGames() {
   showLoading('載入賽事資料中...');
 
   callApi(
-    { action:'getSignableGames', user_id: session.user_id || '' },
+    { action:'getSignableGames', user_id: s.user_id || '' },
     res => {
       hideOverlay();
 
@@ -959,7 +959,7 @@ function render(){
         list.forEach(g=>{
           root.innerHTML += renderGameCard(g, {
             type: 'judge',   // ✅ 指定
-            session          // ✅ 傳物件
+            session: s       // ✅ 傳物件
           });
         });
 
@@ -1118,11 +1118,13 @@ function renderMobile(){
 
     root.innerHTML += renderGameCard(g,{
       type:'judge',
-      session
+      session: s
     });
   });
 
   applyCategoryBadgeColor();
+
+} 
 
 // ✅ 裁判頁手機版：依 日期 → 組別 → 場次 分組
 function groupGamesForMobile(games) {
@@ -1296,7 +1298,7 @@ function submitSignup(){
   callApi(
     {
       action: 'judgeSignupByGames',
-      user_id: session.user_id,
+      user_id: s.user_id,
       games_with_position: payload.join(',')
     },
     res => {
@@ -1397,7 +1399,7 @@ function signupJudgeInstant(gameId, role){
 
   callApi({
     action:'judgeSignupByGames',
-    user_id: session.user_id,
+    user_id: s.user_id,
     games_with_position:`${gameId}:${role}`
   },res=>{
     showMessage(res.result==='ok'?'✅ 成功':res.message||'失敗');
@@ -1470,7 +1472,7 @@ function loadJudgeGamesByMonth(year, month) {
     action: 'getJudgeGamesByMonth',
     year: year,
     month: month,
-    user_id: session.user_id
+    user_id: s.user_id
   }, res => {
 
     hideOverlay();
