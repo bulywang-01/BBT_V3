@@ -633,6 +633,32 @@ tr.full {
   padding:0 16px 10px;
 }
 
+/* ✅ 桌機卡片優化 */
+@media (min-width:768px){
+
+  .game-card{
+    font-size:14px;
+    padding:12px;
+  }
+
+  .mobile-teams{
+    font-size:16px;
+  }
+
+  .mobile-time-row{
+    font-size:14px;
+  }
+
+  .mobile-pos-btn{
+    font-size:12px;
+    padding:4px 0;
+  }
+
+  .card-grid{
+    grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+  }
+}
+
 </style>
   
 </head>
@@ -893,7 +919,6 @@ function timeToMinutesSafe(t){
 
 /* ✅ ========= 主 render ========= */
 
-
 function render(){
 
   const root = document.getElementById('content');
@@ -904,72 +929,64 @@ function render(){
     return;
   }
 
-  const groups = {};
+  const groupByDate = {};
 
-  // ✅ 依日期分組
   games.forEach(g=>{
     if (!shouldRenderGame(g)) return;
 
-    if (!groups[g.date]) groups[g.date] = [];
-    groups[g.date].push(g);
+    if (!groupByDate[g.date]) groupByDate[g.date] = [];
+    groupByDate[g.date].push(g);
   });
 
-  Object.keys(groups)
+  Object.keys(groupByDate)
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
 
       root.innerHTML += `<h3 style="margin:16px">${date}</h3>`;
 
-      // ✅ 再依場地分組
-      const fieldMap = {};
+      const list = groupByDate[date];
 
-      groups[date].forEach(g=>{
+      // ✅ 判斷同場地
+      const fieldMap = {};
+      list.forEach(g=>{
         if (!fieldMap[g.field]) fieldMap[g.field] = [];
         fieldMap[g.field].push(g);
       });
 
-      Object.keys(fieldMap).forEach(field=>{
+      root.innerHTML += `<div class="card-grid">`;
 
-        const list = fieldMap[field];
+      Object.values(fieldMap).forEach(group=>{
 
-        // ✅ 判斷是否同場地多組別
         const multiCategory =
-          [...new Set(list.map(x=>x.category))].length > 1;
+          [...new Set(group.map(x=>x.category))].length > 1;
 
-        // ✅ ✅ ✅ 核心排序
-        list.sort((a,b)=>{
+        group.sort((a,b)=>{
 
-          // ✅ 同場地 → 只看時間
+          // ✅ 同場地且多組 → 只排時間
           if (multiCategory){
             return getTime(a).localeCompare(getTime(b));
           }
 
-          // ✅ 不同組 → 先類別
+          // ✅ 否則 → 組別 → 時間
           if (a.category !== b.category){
             return a.category.localeCompare(b.category);
           }
 
-          // ✅ 再時間
           return getTime(a).localeCompare(getTime(b));
         });
 
-        // ✅ 卡片容器（桌機 2欄）
-        root.innerHTML += `<div class="card-grid">`;
-
-        list.forEach(g=>{
-          root.innerHTML += renderGameCard(g, {
-            type: 'judge',   // ✅ 指定
-            session: s       // ✅ 傳物件
+        group.forEach(g=>{
+          root.innerHTML += renderGameCard(g,{
+            type:'judge',
+            session:s   // ✅ 正確
           });
         });
 
-        root.innerHTML += `</div>`;
-
       });
 
+      root.innerHTML += `</div>`;
     });
 }
-
 
 
 /* =========================
