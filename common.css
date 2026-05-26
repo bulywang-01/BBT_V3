@@ -1,3 +1,15 @@
+/* =========================
+ ✅ 基礎
+========================= */
+body{
+  margin:0;
+  font-family:"Segoe UI", Arial, sans-serif;
+  background:#f5f7fb;
+}
+
+/* =========================
+ ✅ Header
+========================= */
 .header{
   display:flex;
   justify-content:space-between;
@@ -48,22 +60,174 @@
   font-size:13px;
 }
 
-.user-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-box .change-pwd {
-  font-size: 13px;
-  color: #2c7be5;
-  text-decoration: none;
-}
-
-.user-box .change-pwd:hover {
-  text-decoration: underline;
-}
-
 .logout:hover{
   text-decoration:underline;
+}
+
+.change-pwd{
+  font-size:13px;
+  color:#2c7be5;
+  text-decoration:none;
+}
+
+.change-pwd:hover{
+  text-decoration:underline;
+}
+
+/* =========================
+ ✅ 卡片（核心UI）
+========================= */
+.game-card{
+  background:#ffffff;
+  border-radius:14px;
+  padding:16px;
+  margin:14px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+.expired{
+  background:#f3f4f6;
+  opacity:0.85;
+}
+
+/* =========================
+ ✅ Header區
+========================= */
+.card-header{
+  display:flex;
+  justify-content:space-between;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+.card-header .date{
+  color:#2563eb;
+}
+
+.card-header .category{
+  font-size:14px;
+}
+
+.card-header .field{
+  text-align:right;
+}
+
+/* =========================
+ ✅ 對戰區
+========================= */
+.teams{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:12px 0;
+}
+
+.team{
+  flex:1;
+  background:#f0f2f6;
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+  font-size:clamp(14px,1.8vw,18px);
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.center{
+  flex:0 0 110px;
+  text-align:center;
+}
+
+.center .code{
+  display:inline-block;
+  padding:3px 12px;
+  background:#e8f0ff;
+  color:#2563eb;
+  border-radius:999px;
+  font-weight:700;
+}
+
+.center .time{
+  margin-top:6px;
+  color:#dc2626;
+  font-size:18px;
+  font-weight:800;
+}
+
+/* =========================
+ ✅ slot（裁判 / 紀錄 共用）
+========================= */
+.slot-grid{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+
+.slot{
+  text-align:center;
+  font-size:14px;
+  font-weight:700;
+  padding:10px 6px;
+  border-radius:10px;
+}
+
+/* ✅ 狀態 */
+.slot.me{
+  background:#e8f5e9;
+  border:2px solid #2e7d32;
+}
+
+.slot.other{
+  background:#f1f1f1;
+}
+
+.slot.action{
+  background:#e3f2fd;
+  border:2px dashed #1976d2;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.slot.action:hover{
+  background:#d0e7ff;
+}
+
+.slot.disabled{
+  background:#f3f4f6;
+  color:#aaa;
+}
+
+/* =========================
+ ✅ 取消按鈕
+========================= */
+.cancel-btn{
+  margin-top:6px;
+  color:#dc2626;
+  font-size:12px;
+  cursor:pointer;
+}
+
+/* =========================
+ ✅ 手機版
+========================= */
+@media(max-width:768px){
+
+  .game-card{
+    margin:10px;
+    padding:14px;
+  }
+
+  .slot-grid{
+    grid-template-columns: repeat(3,1fr);
+  }
+
+  .team{
+    font-size:14px;
+  }
+
+  .center .time{
+    font-size:16px;
+  }
 }
