@@ -734,17 +734,6 @@ function getName(v){
   return v;
 }
 
-// 過期不顯示
-function isPastGame(gameDateStr) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const d = new Date(gameDateStr.replace(/\//g, '-'));
-  d.setHours(0, 0, 0, 0);
-
-  return d < today;
-}
-
 // 組別對應顏色
 function applyCategoryBadgeColor() {
   const colorMap = {
@@ -857,18 +846,6 @@ function rememberSelection(gameId, role, btn) {
 }
 
 /* ✅ ✅ ✅ 核心：統一時間 */
-
-function getTime(g){
-  return g.time || '';
-}
-
-/* 舊的
-function timeToMinutes(t){
-  const d = new Date(t);
-  return d.getHours()*60+d.getMinutes();
-}
-*/
-
 function timeToMinutes(t){
   if (!t) return 0;
   const [h,m] = t.split(':').map(Number);
@@ -1606,17 +1583,6 @@ function loadJudgeGamesByMonth(year, month) {
     render();
     renderMobile();
   });
-}
-
-function reloadCurrentView(){
-
-  if (currentMonth !== null){
-    const now = new Date();
-    loadJudgeGamesByMonth(now.getFullYear(), currentMonth);
-  } else {
-    loadGames();
-  }
-
 }
 
 </script>
