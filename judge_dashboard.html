@@ -907,7 +907,7 @@ function loadGames() {
       }
 
       render();
-      renderMobile();
+      ;
 
     }
   );
@@ -917,8 +917,6 @@ function loadGames() {
 function cancelSelected(gameId) {
   delete selectedPositions[gameId];
   render();
-  renderMobile();
-
 }
   
 function cancelSelectedByDate() {
@@ -944,8 +942,6 @@ function cancelSelectedByDate() {
   } else {
     alert(`已取消 ${date} 的 ${removed} 筆選擇`);
     render();
-    renderMobile();
-
   }
 }
 
@@ -972,7 +968,6 @@ function rememberSelection(gameId, role, btn) {
 
   // ✅ 一定要在 if 外
   render();
-  renderMobile();
 }
 
 /* ✅ ✅ ✅ 核心：統一時間 */
@@ -1005,74 +1000,19 @@ function timeToMinutesSafe(t){
 
 
 /* ✅ ========= 主 render ========= */
-
 function render(){
 
   const root = document.getElementById('content');
   root.innerHTML = '';
 
-  if (!games || !games.length){
-    root.innerHTML = '<div>沒有資料</div>';
-    return;
-  }
-
-  const groupByDate = {};
-
   games.forEach(g=>{
     if (!shouldRenderGame(g)) return;
 
-    if (!groupByDate[g.date]) groupByDate[g.date] = [];
-    groupByDate[g.date].push(g);
-  });
-
-  Object.keys(groupByDate)
-    .sort((a,b)=>new Date(a)-new Date(b))
-    .forEach(date=>{
-
-      root.innerHTML += `<h3 style="margin:16px">${date}</h3>`;
-
-      const list = groupByDate[date];
-
-      // ✅ 判斷同場地
-      const fieldMap = {};
-      list.forEach(g=>{
-        if (!fieldMap[g.field]) fieldMap[g.field] = [];
-        fieldMap[g.field].push(g);
-      });
-
-      root.innerHTML += `<div class="card-grid">`;
-
-      Object.values(fieldMap).forEach(group=>{
-
-        const multiCategory =
-          [...new Set(group.map(x=>x.category))].length > 1;
-
-        group.sort((a,b)=>{
-
-          // ✅ 同場地且多組 → 只排時間
-          if (multiCategory){
-            return getTime(a).localeCompare(getTime(b));
-          }
-
-          // ✅ 否則 → 組別 → 時間
-          if (a.category !== b.category){
-            return a.category.localeCompare(b.category);
-          }
-
-          return getTime(a).localeCompare(getTime(b));
-        });
-
-        group.forEach(g=>{
-          root.innerHTML += renderGameCard(g,{
-            type:'judge',
-            session:s   // ✅ 正確
-          });
-        });
-
-      });
-
-      root.innerHTML += `</div>`;
+    root.innerHTML += renderGameCard(g,{
+      type:'judge',
+      session:s
     });
+  });
 }
 
 
@@ -1207,28 +1147,6 @@ function renderPos(g, role, isPast){
   `;
 }
 
-
-  
-// 手機版 ${renderTimeHHmm(g.time_range)}
-function renderMobile(){
-
-  const root = document.getElementById('mobileView');
-  if (!root) return;
-
-  root.innerHTML = '';
-
-  allGames.forEach(g=>{
-    if (!shouldRenderGame(g)) return;
-
-    root.innerHTML += renderGameCard(g,{
-      type:'judge',
-      session: s
-    });
-  });
-
-  applyCategoryBadgeColor();
-
-} 
 
 // ✅ 裁判頁手機版：依 日期 → 組別 → 場次 分組
 function groupGamesForMobile(games) {
@@ -1601,7 +1519,6 @@ function loadJudgeGamesByMonth(year, month) {
     }
 
     render();
-    renderMobile();
   });
 }
 
