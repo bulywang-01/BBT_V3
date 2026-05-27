@@ -646,7 +646,7 @@ function validateSignup(targetGame, role){
     const gEnd   = gStart + (g.duration || 120) * 60000;
 
     if (tStart < gEnd && tEnd > gStart){
-      return '❌ 時間衝突（已有其他場次）';
+      return '❌ 同場角色時間衝突';
     }
   }
 
