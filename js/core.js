@@ -76,8 +76,8 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
               if (g.my_position){
                 return `
-                <div class="slot">
-                  <div class="label">${roleMap(role)}</div>
+                <div class="slot waiting">
+                  <div class="label">${roleMap ? roleMap(role) : label}</div>
                   <div class="name">待位</div>
                 </div>`;
               }
