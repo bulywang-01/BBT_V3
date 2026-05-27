@@ -578,7 +578,12 @@ function validateSignup(targetGame, role){
   /************* ✅ 同場限制 *************/
   if (targetGame.my_position){
 
-    // ✅ 已是裁判 → 不可再報任何
+    // ✅ ✅ ✅ 重點：如果是「同一個位置」（取消流程）→放行
+    if (targetGame.my_position === role){
+      return '';
+    }
+
+    // ✅ 已是裁判
     if (!targetGame.my_position.startsWith('REC')){
       return '❌ 同一場裁判只能一個角色，且不能兼紀錄';
     }
@@ -589,18 +594,16 @@ function validateSignup(targetGame, role){
     }
   }
 
-  /************* ✅ 欄位是否已滿 *************/
+  /************* ✅ 欄位是否已滿（修正版） *************/
   const occupied =
     (targetGame.judges && targetGame.judges[role]) ||
     (targetGame.records && targetGame.records[role]);
-  
-  // ✅ ✅ ✅ 如果是「自己位置」→不要擋
+
   if (occupied && targetGame.my_position !== role){
     return '❌ 該位置已有人';
   }
 
-
-  /************* ✅ 跨場時間衝堂（核心） *************/
+  /************* ✅ 跨場時間衝堂 *************/
   const tStart = new Date(targetGame.date + ' ' + getTime(targetGame)).getTime();
   const tEnd   = tStart + (targetGame.duration || 120) * 60000;
 
@@ -609,7 +612,7 @@ function validateSignup(targetGame, role){
     if (!g.my_position) continue;
     if (g.game_id === targetGame.game_id) continue;
 
-    const gStart = new Date(g.date + ' ' + g.time).getTime();
+    const gStart = new Date(g.date + ' ' + getTime(g)).getTime();
     const gEnd   = gStart + (g.duration || 120) * 60000;
 
     if (tStart < gEnd && tEnd > gStart){
