@@ -5,7 +5,6 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
   const isPast = isPastGame(g.date);
   const judgeRoles = getJudgeRoles(g);
-  const slot = g.records?.[role];
 
   const recordRoles = [
     ['REC_MAIN','紀錄'],
