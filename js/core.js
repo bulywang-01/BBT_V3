@@ -333,34 +333,25 @@ function handleSlotClick(gid, role){
   if (!g) return;
 
   const isRecord = role.startsWith('REC');
+  const isMe = g.my_position === role;
 
-  // ✅ ✅ ✅ 修正關鍵：分開判斷
-  const isMe = isRecord
-    ? (g.my_position === role)
-    : (g.my_position === role);
-
-  // ✅ ✅ ✅ 點自己 → 取消
+  // ✅ 點自己 → 取消
   if (isMe){
-
-    isRecord
-      ? cancelRecord(g, role)
-      : cancelJudge(g, role);
-
+    isRecord ? cancelRecord(g, role) : cancelJudge(g, role);
     return;
   }
 
-  // ✅ ✅ ✅ 驗證
+  // ✅ 檢查
   const err = validateSignup(g, role);
   if (err){
     showToast(err,'error');
     return;
   }
 
-  // ✅ ✅ ✅ 執行
-  isRecord
-    ? signupRecord(g, role)
-    : signupJudge(g, role);
+  // ✅ 報名
+  isRecord ? signupRecord(g, role) : signupJudge(g, role);
 }
+
 
 
 /*********************************************************
@@ -408,7 +399,7 @@ function signupRecord(g, role){
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading');
 
-  showToast('報名中...');   // ✅ 補這
+  showToast('報名中...');   // ✅ 加這行
 
   callApi({
     action:'recordSignup',
@@ -491,7 +482,7 @@ function cancelRecord(g, role){
 
     if (res.result === 'ok'){
 
-      if (g.records) g.records[role] = null;   // ✅ 這行很關鍵
+      if (g.records) g.records[role] = null;   // ✅ ✅ ✅ 關鍵
 
       g.my_position = '';
 
@@ -815,7 +806,7 @@ function updateGameCard(g){
   const el = document.getElementById(`game-${g.game_id}`);
   if (!el) return;
 
-  const type = el.dataset.type || 'record';   // ✅ 自動判斷
+  const type = el.dataset.type || 'record';  // ✅ 關鍵
 
   el.classList.add('loading');
 
