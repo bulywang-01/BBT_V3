@@ -67,7 +67,7 @@ body {
   font-size:16px;
   font-weight:800;
   color:#1d4ed8;
-  margin:20px 8px 8px;
+  margin:22px 10px 10px;
   padding-left:6px;
   border-left:4px solid #1d4ed8;
 }
@@ -79,7 +79,7 @@ body {
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:14px;                 /* ✅ 原本太小 */
-  margin-bottom:14px;       /* ✅ 關鍵 */
+  margin-bottom:18px;       /* ✅ 關鍵 */
 }
 
 /* ===============================
@@ -172,7 +172,8 @@ body {
 
 /* 名字 */
 .name{
-  font-size:13px;
+  font-size:15px;
+  font-weight:700;    /* ✅ 加粗 */
   white-space:nowrap;   /* ✅ 防止斷行炸版 */
 }
 
@@ -212,10 +213,9 @@ body {
  ✅ 過期
 ================================ */
 .expired-card{
-  background:#f3f4f6;
+  background:#e5e7eb;
+  opacity:0.6;
   border:1px solid #d1d5db;
-  opacity:0.65;   /* ✅ 重點 */
-
 }
 
 /* ===============================
@@ -269,8 +269,7 @@ body {
   font-size:14px;
   font-weight:700;
   color:#1976d2;
-  margin:10px 10px 6px;
-
+  margin:14px 10px 6px;
 }
 </style>
   
@@ -500,23 +499,6 @@ function timeToMinutes(t){
   return h*60+m;
 }
 
-/* 舊的
-function timeToMinutesSafe(t) {
-  if (!t) return 0;
-
-  if (typeof t === 'string' && t.includes(':')) {
-    const [h, m] = t.split(':').map(Number);
-    return h * 60 + m;
-  }
-
-  if (t instanceof Date) {
-    return t.getHours() * 60 + t.getMinutes();
-  }
-
-  return 0;
-}
-*/
-
 function timeToMinutesSafe(t){
   return timeToMinutes(t);
 }
@@ -533,25 +515,25 @@ function render(){
     return;
   }
 
-  if (window.currentMonth !== null){
- 
-   const d = new Date(g.date.replace(/\//g,'-'));
-   const m = d.getMonth()+1;
- 
-   if (m !== window.currentMonth) return;
- }
- 
   const dateMap = {};
 
-  // ✅ Step 1：依日期分組
+  // ✅ ✅ ✅ 正確位置（重點）
   games.forEach(g=>{
+
     if (!shouldRenderGame(g)) return;
+
+    // ✅ ✅ ✅ 月份過濾（修這裡）
+    if (window.currentMonth !== null){
+      const d = new Date(g.date.replace(/\//g,'-'));
+      const m = d.getMonth()+1;
+
+      if (m !== window.currentMonth) return;
+    }
 
     if (!dateMap[g.date]) dateMap[g.date] = [];
     dateMap[g.date].push(g);
   });
 
-  // ✅ Step 2：日期排序
   Object.keys(dateMap)
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
@@ -564,7 +546,6 @@ function render(){
 
       const list = dateMap[date];
 
-      // ✅ Step 3：同一天 → 依「組別」再分組
       const categoryMap = {};
 
       list.forEach(g=>{
@@ -573,35 +554,24 @@ function render(){
         categoryMap[cat].push(g);
       });
 
-      // ✅ Step 4：每個組別個別 render
       Object.keys(categoryMap).forEach(cat=>{
 
-        // ✅ 組別標題
         root.innerHTML += `
-          <div class="category-title">
-            ${cat}
+          <div class="category-title">${cat}</div>
+          <div class="card-grid">
+            ${
+              categoryMap[cat]
+              .sort((a,b)=>getTime(a).localeCompare(getTime(b)))
+              .map(g=>renderGameCard(g,{type:'judge',session:s}))
+              .join('')
+            }
           </div>
         `;
-
-        // ✅ 卡片區
-        root.innerHTML += `<div class="card-grid">`;
-
-        categoryMap[cat]
-          .sort((a,b)=>getTime(a).localeCompare(getTime(b))) // ✅ 組內依時間
-          .forEach(g=>{
-
-            root.innerHTML += renderGameCard(g,{
-              type:'judge',
-              session:s
-            });
-
-          });
-
-        root.innerHTML += `</div>`;
       });
 
     });
 }
+
 
 
 
