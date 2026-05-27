@@ -230,6 +230,27 @@ body {
   }
 }
 
+#overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.35);
+  z-index:9999;
+}
+
+#overlay-box{
+  position:relative;
+  background:#fff;
+  padding:18px 22px;
+  border-radius:10px;
+  text-align:center;
+  font-size:15px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.25);
+  min-width:220px;
+}
+
 </style>
   
 </head>
@@ -484,21 +505,12 @@ function timeToMinutesSafe(t){
 /* ✅ ========= 主 render ========= */
 function render(){
 
-  const isMobile = window.innerWidth < 768;
-
-  const root = document.getElementById(
-    isMobile ? 'mobileView' : 'content'
-  );
-
+  const root = document.getElementById('content');
   root.innerHTML = '';
-
-  if (!games || !games.length){
-    root.innerHTML = '<div>沒有資料</div>';
-    return;
-  }
 
   const group = {};
 
+  // ✅ 先過濾 + 依日期分
   games.forEach(g=>{
     if (!shouldRenderGame(g)) return;
 
@@ -506,23 +518,56 @@ function render(){
     group[g.date].push(g);
   });
 
+  // ✅ 日期排序
   Object.keys(group)
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
 
       root.innerHTML += `
-        <div class="date-header">📅 ${date}</div>
-        <div class="card-grid">
-          ${group[date].map(g =>
-            renderGameCard(g,{
-              type:'judge',
-              session:s
-            })
-          ).join('')}
+        <div class="date-header">
+          📅 ${formatDateTW(date)}
         </div>
       `;
+
+      // ✅ 場地分組
+      const fieldMap = {};
+
+      group[date].forEach(g=>{
+        if (!fieldMap[g.field]) fieldMap[g.field] = [];
+        fieldMap[g.field].push(g);
+      });
+
+      root.innerHTML += `<div class="card-grid">`;
+
+      Object.values(fieldMap).forEach(list=>{
+
+        const multiCategory =
+          [...new Set(list.map(x=>x.category))].length > 1;
+
+        list.sort((a,b)=>{
+
+          // ✅ 同場地不同組 → 只排時間
+          if (multiCategory){
+            return getTime(a).localeCompare(getTime(b));
+          }
+
+          // ✅ 同組 → 排時間
+          return getTime(a).localeCompare(getTime(b));
+        });
+
+        list.forEach(g=>{
+          root.innerHTML += renderGameCard(g,{
+            type:'judge',
+            session:s
+          });
+        });
+
+      });
+
+      root.innerHTML += `</div>`;
     });
 }
+
 
 
 /* =========================
@@ -910,14 +955,15 @@ function cancelMySignup(signupId){
 
   callApi({
     action:'cancelJudgeSignup',
-    user_id:session.user_id,
-    signup_id:signupId
+    user_id: s.user_id,   // ✅ 修這行
+    signup_id: signupId
   },res=>{
     showMessage('✅ 已取消');
     reloadCurrentView();
   });
 
 }
+
 
 
 /* ✅ ========= 報名 ========= */
