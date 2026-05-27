@@ -907,22 +907,36 @@ function submitSignup(){
 function showLoading(msg){
 
   const overlay = document.getElementById('overlay');
+  const text = document.getElementById('overlay-text');
+  const ok = document.getElementById('overlay-ok');
+
+  text.textContent = msg || '處理中...';
+
+  ok.style.display = 'none';
+
+  overlay.style.display = 'flex';   // ✅ 強制顯示
   overlay.classList.add('show');
 
-  document.getElementById('overlay-text').textContent = msg || '處理中...';
+  // ✅ ✅ ✅ 防止永遠卡住
+  clearTimeout(window.__loadingTimer);
 
-  // ✅ ✅ ✅ 防止卡死（核心）
   window.__loadingTimer = setTimeout(()=>{
     hideOverlay();
-  }, 5000);
+  }, 4000);
 }
 
 
 function hideOverlay(){
-  clearTimeout(window.__loadingTimer);
-  document.getElementById('overlay').classList.remove('show');
-}
 
+  const overlay = document.getElementById('overlay');
+  if (!overlay) return;
+
+  overlay.classList.remove('show');
+
+  // ✅ 強制保險（防止殘留）
+  overlay.style.display = 'none';
+
+}
 
 
 // 訊息function
