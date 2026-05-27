@@ -129,12 +129,23 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             </div>`;
           }
 
+          // ✅ ✅ ✅ 已有其他角色 or 衝堂 → 顯示待位
+          if (g.my_position && g.my_position !== role){
+            return `
+              <div class="slot waiting">
+                <div class="label">${label}</div>
+                <div class="name">待位</div>
+              </div>`;
+          }
+          
+          // ✅ 正常可報名
           return `
-          <div class="slot action"
-            onclick="handleSlotClick('${g.game_id}','${role}')">
-            <div class="label">${label}</div>
-            <div class="btn">報名</div>
-          </div>`;
+            <div class="slot action"
+              onclick="handleSlotClick('${g.game_id}','${role}')">
+              <div class="label">${label}</div>
+              <div class="btn">報名</div>
+            </div>`;
+
         }).join('')
         : ''
       }
@@ -253,10 +264,25 @@ function renderRecordSlots(g, isPast, session){
           `;
         }
 
-        // ✅ 過期不可操作
-        if (!canSignup(g)){
-          return `<div class="record-role other">${label}<br>—</div>`;
-        }
+      // ✅ ✅ ✅ 同場已有角色 或 時間衝突 → 待位
+      const conflict = isTimeConflict(g);
+      
+      if (
+        (g.my_position && g.my_position !== role)
+        || conflict
+      ){
+        return `
+          <div class="record-role other waiting">
+            ${label}<br>待位
+          </div>
+        `;
+      }
+      
+      // ✅ 過期不可操作
+      if (!canSignup(g)){
+        return `<div class="record-role other">${label}<br>—</div>`;
+      }
+
 
         return `
           <div class="record-role action"
