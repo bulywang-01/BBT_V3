@@ -366,10 +366,10 @@ function handleSlotClick(gid, role){
 
 // ✅ 報名（裁判）
 function signupJudge(g, role){
-
+  const s = JSON.parse(localStorage.getItem('session_user') || '{}');
   callApi({
     action:'judgeSignupByGames',
-    user_id: session.user_id,
+   user_id: s.user_id,
     games_with_position: `${g.game_id}:${role}`
   }, res => {
 
@@ -387,11 +387,13 @@ function signupJudge(g, role){
 // ✅ 報名（紀錄）
 function signupRecord(g, role){
 
+  hideOverlay();   // ✅ 一進來先關
+  const s = JSON.parse(localStorage.getItem('session_user') || '{}');
+ 
   callApi({
-    hideOverlay();   // ✅ 一進來先關
     action:'recordSignup',
     game_id: g.game_id,
-    user_id: session.user_id,
+    user_id: s.user_id,
     record_role: role
   }, res => {
 
@@ -399,7 +401,7 @@ function signupRecord(g, role){
 
       // ✅ ✅ ✅ 修這裡
       g.records[role] = {
-        user_id: session.user_id,
+       user_id: s.user_id,
         name: session.name
       };
 
@@ -413,8 +415,9 @@ function signupRecord(g, role){
 //✅ 取消（裁判）
 function cancelJudge(g, role){
 
+  hideOverlay();   // ✅ 一進來先關
+ 
   callApi({
-    hideOverlay();   // ✅ 一進來先關
     action:'cancelJudgeSignup',
     signup_id: g.my_signup_id
   }, res => {
@@ -432,12 +435,14 @@ function cancelJudge(g, role){
 
 //✅ 取消（紀錄）
 function cancelRecord(g, role){
-
+ 
+  hideOverlay();   // ✅ 一進來先關
+  const s = JSON.parse(localStorage.getItem('session_user') || '{}');
+ 
   callApi({
-    hideOverlay();   // ✅ 一進來先關
     action:'cancelRecordSignup',
     game_id: g.game_id,
-    user_id: session.user_id,
+    user_id: s.user_id,
     record_role: role
   }, res => {
 
