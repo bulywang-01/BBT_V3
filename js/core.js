@@ -376,7 +376,7 @@ function signupJudge(g, role){
     if (res.result === 'ok'){
 
       // ✅ ✅ ✅ 不 reload → 直接改資料
-      g.judges[role] = session.name;
+      g.judges[role] = s.name;
       g.my_position = role;
 
       renderFromCache();
@@ -387,7 +387,6 @@ function signupJudge(g, role){
 // ✅ 報名（紀錄）
 function signupRecord(g, role){
 
-  hideOverlay();   // ✅ 一進來先關
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
  
   callApi({
@@ -397,6 +396,8 @@ function signupRecord(g, role){
     record_role: role
   }, res => {
 
+  hideOverlay();   // ✅ 一進來先關
+   
     if (res.result === 'ok'){
 
       // ✅ ✅ ✅ 修這裡
@@ -415,13 +416,14 @@ function signupRecord(g, role){
 //✅ 取消（裁判）
 function cancelJudge(g, role){
 
-  hideOverlay();   // ✅ 一進來先關
  
   callApi({
     action:'cancelJudgeSignup',
     signup_id: g.my_signup_id
   }, res => {
 
+  hideOverlay();   // ✅ 一進來先關
+   
     if (res.result === 'ok'){
 
       g.judges[role] = '';
@@ -436,7 +438,6 @@ function cancelJudge(g, role){
 //✅ 取消（紀錄）
 function cancelRecord(g, role){
  
-  hideOverlay();   // ✅ 一進來先關
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
  
   callApi({
@@ -446,6 +447,8 @@ function cancelRecord(g, role){
     record_role: role
   }, res => {
 
+  hideOverlay();   // ✅ 一進來先關
+   
     if (res.result === 'ok'){
 
       g.records[role] = '';
@@ -562,7 +565,7 @@ function validateSignup(targetGame, role){
   }
 
   /************* ✅ 跨場時間衝堂（核心） *************/
-  const tStart = new Date(targetGame.date + ' ' + targetGame.time).getTime();
+  const tStart = new Date(targetGame.date + ' ' + getTime(targetGame)).getTime();
   const tEnd   = tStart + (targetGame.duration || 120) * 60000;
 
   for (let g of __GAME_CACHE){
