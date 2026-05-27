@@ -3,7 +3,7 @@
 *********************************************************/
 function renderGameCard(g, {type='judge', session=null} = {}){
 
-  const isPast = isPastGame(${formatDateTW(g.date)});
+  const isPast = isPastGame(g.date);
   const judgeRoles = getJudgeRoles(g);
 
   const recordRoles = [
@@ -17,7 +17,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
     <!-- 第一列 -->
     <div class="row-top">
-      <div class="left">${g.date}</div>
+      <div class="left">${formatDateTW(g.date)}</div>
       <div class="center">${g.category||''}</div>
       <div class="right">${g.field||''}</div>
     </div>
