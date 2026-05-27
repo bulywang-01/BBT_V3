@@ -611,151 +611,68 @@ function groupGamesForMobile(games) {
   return map;
 }
 
-function renderMobilePosGrid(g) {
-  if (isPastGame(g.date)){
-    return `
-      <div class="mobile-pos-grid">
-        ${
-          [
-            ['REC_MAIN','紀錄'],
-            ['REC_TRAINEE','見習'],
-            ['REC_VIDEO','影像']
-          ].map(([role,label])=>{
-      
-            const slot = g.records?.[role];
-            const isMe = g.my_position === role;
-      
-            // ✅ 已有人
-            if (slot){
-              return `
-                <div class="mobile-pos">
-                  <span class="${isMe?'mobile-judge-me':''}">
-                    ${getName(slot)}
-                  </span>
-                  ${
-                    isMe && !isPast
-                    ? `<div class="mobile-cancel"
-                          onclick="handleSlotClick('${g.game_id}','${role}')">
-                          取消
-                       </div>`
-                    : ''
-                  }
-                </div>
-              `;
-            }
-      
-            // ✅ 過期
-            if (isPast){
-              return `<div class="mobile-pos">—</div>`;
-            }
-      
-            // ✅ 已有其它位置
-            if (g.my_position){
-              return `<div class="mobile-pos">待位</div>`;
-            }
-      
-            // ✅ 可報名
-            return `
-              <div class="mobile-pos">
-                <div class="mobile-pos-btn"
-                  onclick="handleSlotClick('${g.game_id}','${role}')">
-                  ${label}
-                </div>
-              </div>
-            `;
-      
-          }).join('')
-        }
-      </div>
+function renderMobilePosGrid(g) {function renderMobilePosGrid(g){
 
-    `;
-  }
+  const isPast = isPastGame(g.date);
 
-  
-  const ROLE_NAME = {
-  PU: '主審',
-  U1: '一壘',
-  U2: '二壘',
-  U3: '三壘'
-  };
-  
-  const roles = ['PU', 'U1', 'U2', 'U3'];
-  const today = new Date(); today.setHours(0,0,0,0);
-  const isPast = new Date(g.date.replace(/\//g,'-')) < today;
-
-
-  const occupied = g.records || {};
-
-  function needNA(role) {
-    return (
-      g.need_count === 0 ||
-      (g.need_count === 1 && role !== 'PU') ||
-      (g.need_count === 2 && ['U2','U3'].includes(role)) ||
-      (g.need_count === 3 && role === 'U2')
-    );
-  }
+  const roles = [
+    ['REC_MAIN','紀錄'],
+    ['REC_TRAINEE','見習'],
+    ['REC_VIDEO','影像']
+  ];
 
   return `
-  
-     <!-- ✅ 站位標籤列 -->
-     <div class="mobile-pos-labels">
-       <div>主審</div>
-       <div>一壘</div>
-       <div>二壘</div>
-       <div>三壘</div>
-     </div>
-   
-     <!-- ✅ 站位內容 -->
+  <div class="mobile-pos-grid">
+    ${
+      roles.map(([role,label])=>{
 
-    <div class="mobile-pos-grid">
-      ${roles.map(role => {
-        if (needNA(role)) {
-          return `<div class="mobile-pos"><span class="mobile-pos-na">-</span></div>`;
-        }
+        const slot = g.records?.[role];
+        const isMe = g.my_position === role;
 
-        if (occupied[role]) {
-          const isMe = g.my_position === role;
+        // ✅ 已有人
+        if (slot){
           return `
             <div class="mobile-pos">
-              <span class="${isMe ? 'mobile-judge-me' : ''}">
-                ${getName(occupied[role])}
+              <span class="${isMe?'mobile-judge-me':''}">
+                ${getName(slot)}
               </span>
               ${
-                isMe
-                  ? `<span class="mobile-cancel"
-                         onclick="handleSlotClick('${g.my_signup_id}')">取消</span>`
-                  : ''
+                isMe && !isPast
+                ? `<div class="mobile-cancel"
+                      onclick="handleSlotClick('${g.game_id}','${role}')">
+                      取消
+                   </div>`
+                : ''
               }
             </div>
           `;
         }
 
-        if (g.my_position) {
-          return `<div class="mobile-pos"><span class="mobile-pos-hint">待位中</span></div>`;
+        // ✅ 過期
+        if (isPast){
+          return `<div class="mobile-pos">—</div>`;
         }
 
-        if (selectedPositions[g.game_id] === role) {
-          return `
-            <div class="mobile-pos">
-              <div class="mobile-pos-btn selected"
-                   onclick="cancelSelected('${g.game_id}')">選定</div>
-            </div>
-          `;
+        // ✅ 已有其它位置
+        if (g.my_position){
+          return `<div class="mobile-pos">待位</div>`;
         }
 
+        // ✅ 可報名
         return `
           <div class="mobile-pos">
             <div class="mobile-pos-btn"
               onclick="handleSlotClick('${g.game_id}','${role}')">
-              ${ROLE_NAME[role]}
+              ${label}
             </div>
           </div>
         `;
-      }).join('')}
-    </div>
+
+      }).join('')
+    }
+  </div>
   `;
 }
-
  
 function renderTimeHHmm(t) {
   if (!t) return '';
