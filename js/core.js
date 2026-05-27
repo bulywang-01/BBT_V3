@@ -5,6 +5,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
   const isPast = isPastGame(g.date);
   const judgeRoles = getJudgeRoles(g);
+  const slot = g.records?.[role];
 
   const recordRoles = [
     ['REC_MAIN','紀錄'],
@@ -335,20 +336,22 @@ function handleSlotClick(gid, role){
   const isRecord = role.startsWith('REC');
   const isMe = g.my_position === role;
 
+  // ✅ 點自己 → 取消
   if (isMe){
     isRecord ? cancelRecord(g, role) : cancelJudge(g, role);
     return;
   }
 
+  // ✅ 驗證
   const err = validateSignup(g, role);
   if (err){
     showToast(err,'error');
     return;
   }
 
+  // ✅ 執行
   isRecord ? signupRecord(g, role) : signupJudge(g, role);
 }
-
 
 /*********************************************************
  * ✅ 報名系統完整版本 - 報名功能
@@ -391,7 +394,7 @@ function signupJudge(g, role){
 function signupRecord(g, role){
 
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
- 
+
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading');
 
@@ -402,19 +405,18 @@ function signupRecord(g, role){
     record_role: role
   }, res => {
 
-  // hideOverlay();   // ✅ 一進來先關
-   
     if (res.result === 'ok'){
 
-      // ✅ ✅ ✅ 修這裡
       g.records[role] = {
-       user_id: s.user_id,
+        user_id: s.user_id,
         name: s.name
       };
 
       g.my_position = role;
 
       updateGameCard(g);
+
+      showToast('✅ 已報名','success');
     }
   });
 }
@@ -454,11 +456,11 @@ function cancelJudge(g, role){
 
 //✅ 取消（紀錄）
 function cancelRecord(g, role){
- 
+
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
- 
+
   const el = document.getElementById(`game-${g.game_id}`);
-  if (el) el.classList.add('loading'); 
+  if (el) el.classList.add('loading');
 
   callApi({
     action:'cancelRecordSignup',
@@ -472,8 +474,8 @@ function cancelRecord(g, role){
       g.records[role] = '';
       g.my_position = '';
 
-      updateGameCard(g);   // ✅ ✅ ✅ 改這
-      
+      updateGameCard(g);
+
       showToast('✅ 已取消','success');
     }
   });
