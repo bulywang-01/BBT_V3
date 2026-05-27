@@ -388,6 +388,7 @@ function signupJudge(g, role){
 function signupRecord(g, role){
 
   callApi({
+    hideOverlay();   // ✅ 一進來先關
     action:'recordSignup',
     game_id: g.game_id,
     user_id: session.user_id,
@@ -413,6 +414,7 @@ function signupRecord(g, role){
 function cancelJudge(g, role){
 
   callApi({
+    hideOverlay();   // ✅ 一進來先關
     action:'cancelJudgeSignup',
     signup_id: g.my_signup_id
   }, res => {
@@ -432,6 +434,7 @@ function cancelJudge(g, role){
 function cancelRecord(g, role){
 
   callApi({
+    hideOverlay();   // ✅ 一進來先關
     action:'cancelRecordSignup',
     game_id: g.game_id,
     user_id: session.user_id,
