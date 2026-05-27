@@ -77,7 +77,7 @@ body {
 ================================ */
 .card-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); /* ✅ 修正消失 */
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:10px;
   padding:0 6px 10px;
 }
@@ -171,8 +171,11 @@ body {
 }
 
 .name.me{
-  color:#16a34a;
+  background:#dbeafe;
+  color:#1d4ed8;
   font-weight:800;
+  border-radius:6px;
+  padding:2px 4px;
 }
 
 /* 按鈕 */
@@ -251,6 +254,12 @@ body {
   min-width:220px;
 }
 
+.category-title{
+  font-size:14px;
+  font-weight:700;
+  color:#1976d2;
+  margin:8px 6px 6px;
+}
 </style>
   
 </head>
@@ -508,18 +517,23 @@ function render(){
   const root = document.getElementById('content');
   root.innerHTML = '';
 
-  const group = {};
+  if (!games || !games.length){
+    root.innerHTML = '<div>沒有資料</div>';
+    return;
+  }
 
-  // ✅ 先過濾 + 依日期分
+  const dateMap = {};
+
+  // ✅ Step 1：依日期分組
   games.forEach(g=>{
     if (!shouldRenderGame(g)) return;
 
-    if (!group[g.date]) group[g.date] = [];
-    group[g.date].push(g);
+    if (!dateMap[g.date]) dateMap[g.date] = [];
+    dateMap[g.date].push(g);
   });
 
-  // ✅ 日期排序
-  Object.keys(group)
+  // ✅ Step 2：日期排序
+  Object.keys(dateMap)
     .sort((a,b)=>new Date(a)-new Date(b))
     .forEach(date=>{
 
@@ -529,42 +543,44 @@ function render(){
         </div>
       `;
 
-      // ✅ 場地分組
-      const fieldMap = {};
+      const list = dateMap[date];
 
-      group[date].forEach(g=>{
-        if (!fieldMap[g.field]) fieldMap[g.field] = [];
-        fieldMap[g.field].push(g);
+      // ✅ Step 3：同一天 → 依「組別」再分組
+      const categoryMap = {};
+
+      list.forEach(g=>{
+        const cat = g.category || '未分類';
+        if (!categoryMap[cat]) categoryMap[cat] = [];
+        categoryMap[cat].push(g);
       });
 
-      root.innerHTML += `<div class="card-grid">`;
+      // ✅ Step 4：每個組別個別 render
+      Object.keys(categoryMap).forEach(cat=>{
 
-      Object.values(fieldMap).forEach(list=>{
+        // ✅ 組別標題
+        root.innerHTML += `
+          <div class="category-title">
+            ${cat}
+          </div>
+        `;
 
-        const multiCategory =
-          [...new Set(list.map(x=>x.category))].length > 1;
+        // ✅ 卡片區
+        root.innerHTML += `<div class="card-grid">`;
 
-        list.sort((a,b)=>{
+        categoryMap[cat]
+          .sort((a,b)=>getTime(a).localeCompare(getTime(b))) // ✅ 組內依時間
+          .forEach(g=>{
 
-          // ✅ 同場地不同組 → 只排時間
-          if (multiCategory){
-            return getTime(a).localeCompare(getTime(b));
-          }
+            root.innerHTML += renderGameCard(g,{
+              type:'judge',
+              session:s
+            });
 
-          // ✅ 同組 → 排時間
-          return getTime(a).localeCompare(getTime(b));
-        });
-
-        list.forEach(g=>{
-          root.innerHTML += renderGameCard(g,{
-            type:'judge',
-            session:s
           });
-        });
 
+        root.innerHTML += `</div>`;
       });
 
-      root.innerHTML += `</div>`;
     });
 }
 
@@ -677,7 +693,7 @@ function renderPos(g, role, isPast){
     if (g.my_position === role){
       return `
         <span style="color:#2e7d32;font-weight:700">
-          ★ ${name}
+          ${name}
           <span style="color:red;cursor:pointer"
             onclick="cancelMySignup('${g.my_signup_id}')">
             [取消]
@@ -787,7 +803,7 @@ function renderMobilePosGrid(g) {
           return `
             <div class="mobile-pos">
               <span class="${isMe ? 'mobile-judge-me' : ''}">
-                ${isMe ? '★ ' : ''}${getName(occupied[role])}
+                ${getName(occupied[role])}
               </span>
               ${
                 isMe
@@ -891,18 +907,22 @@ function submitSignup(){
 function showLoading(msg){
 
   const overlay = document.getElementById('overlay');
-  const text = document.getElementById('overlay-text');
-  const ok = document.getElementById('overlay-ok');
-
-  text.textContent = msg || '處理中...';
-
-  ok.style.display = 'none';
   overlay.classList.add('show');
+
+  document.getElementById('overlay-text').textContent = msg || '處理中...';
+
+  // ✅ ✅ ✅ 防止卡死（核心）
+  window.__loadingTimer = setTimeout(()=>{
+    hideOverlay();
+  }, 5000);
 }
+
 
 function hideOverlay(){
+  clearTimeout(window.__loadingTimer);
   document.getElementById('overlay').classList.remove('show');
 }
+
 
 
 // 訊息function
