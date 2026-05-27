@@ -12,8 +12,20 @@ function renderGameCard(g, {type='judge', session=null} = {}){
     ['REC_VIDEO','影像']
   ];
 
+  // ✅ ✅ ✅ 核心判斷（全系統唯一來源）
+  const conflict = isTimeConflict(g);
+  const hasRole = g.my_position;
+
+  function getReason(role){
+    if (conflict) return '時間衝突';
+    if (hasRole && hasRole !== role) return '其他角色';
+    return '';
+  }
+
   return `
-  <div class="game-card ${isPast?'expired-card':''}" id="game-${g.game_id}" data-type="${type}">
+  <div class="game-card ${isPast?'expired-card':''}"
+       id="game-${g.game_id}"
+       data-type="${type}">
 
     <!-- 第一列 -->
     <div class="row-top">
@@ -40,13 +52,14 @@ function renderGameCard(g, {type='judge', session=null} = {}){
       <!-- ✅ 裁判 -->
       ${
         type !== 'record'
-        ? (
-          judgeRoles.length === 0
+        ? judgeRoles.length === 0
           ? `<div class="no-judge">無需裁判</div>`
           : judgeRoles.map(role=>{
 
               const name = g.judges?.[role];
+              const reason = getReason(role);
 
+              // ✅ 已有人
               if (name){
                 const isMe = g.my_position === role;
 
@@ -66,6 +79,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                 </div>`;
               }
 
+              // ✅ 過期
               if (isPast){
                 return `
                 <div class="slot">
@@ -74,14 +88,16 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                 </div>`;
               }
 
-              if (g.my_position){
+              // ✅ ✅ ✅ 待位（含原因）
+              if (reason){
                 return `
                 <div class="slot waiting">
-                  <div class="label">${roleMap ? roleMap(role) : label}</div>
-                  <div class="name">待位</div>
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="name">${reason}</div>
                 </div>`;
               }
 
+              // ✅ 可報名
               return `
                 <div class="slot action"
                   onclick="handleSlotClick('${g.game_id}','${role}')">
@@ -89,7 +105,6 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                   <div class="btn">報名</div>
                 </div>`;
           }).join('')
-        )
         : ''
       }
 
@@ -99,7 +114,9 @@ function renderGameCard(g, {type='judge', session=null} = {}){
         ? recordRoles.map(([role,label])=>{
 
           const slot = g.records?.[role];
+          const reason = getReason(role);
 
+          // ✅ 已有人
           if (slot){
             const isMe =
               session &&
@@ -121,6 +138,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             </div>`;
           }
 
+          // ✅ 過期
           if (isPast){
             return `
             <div class="slot">
@@ -129,22 +147,22 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             </div>`;
           }
 
-          // ✅ ✅ ✅ 已有其他角色 or 衝堂 → 顯示待位
-          if (g.my_position && g.my_position !== role){
+          // ✅ ✅ ✅ 待位（含原因）
+          if (reason){
             return `
-              <div class="slot waiting">
-                <div class="label">${label}</div>
-                <div class="name">待位</div>
-              </div>`;
-          }
-          
-          // ✅ 正常可報名
-          return `
-            <div class="slot action"
-              onclick="handleSlotClick('${g.game_id}','${role}')">
+            <div class="slot waiting">
               <div class="label">${label}</div>
-              <div class="btn">報名</div>
+              <div class="name">${reason}</div>
             </div>`;
+          }
+
+          // ✅ 可報名
+          return `
+          <div class="slot action"
+            onclick="handleSlotClick('${g.game_id}','${role}')">
+            <div class="label">${label}</div>
+            <div class="btn">報名</div>
+          </div>`;
 
         }).join('')
         : ''
