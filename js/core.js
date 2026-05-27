@@ -2,7 +2,7 @@
  ✅ 班表主卡片（唯一UI）
 *********************************************************/
 function renderGameCard(g, {type='judge', session=null} = {}){
-｛
+
   const isPast = isPastGame(g.date);
   const judgeRoles = getJudgeRoles(g);
 
