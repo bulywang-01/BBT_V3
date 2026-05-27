@@ -333,24 +333,35 @@ function handleSlotClick(gid, role){
   if (!g) return;
 
   const isRecord = role.startsWith('REC');
-  const isMe = g.my_position === role;
 
-  // ✅ 點自己 → 取消
+  // ✅ ✅ ✅ 修正關鍵：分開判斷
+  const isMe = isRecord
+    ? (g.my_position === role)
+    : (g.my_position === role);
+
+  // ✅ ✅ ✅ 點自己 → 取消
   if (isMe){
-    isRecord ? cancelRecord(g, role) : cancelJudge(g, role);
+
+    isRecord
+      ? cancelRecord(g, role)
+      : cancelJudge(g, role);
+
     return;
   }
 
-  // ✅ 驗證
+  // ✅ ✅ ✅ 驗證
   const err = validateSignup(g, role);
   if (err){
     showToast(err,'error');
     return;
   }
 
-  // ✅ 執行
-  isRecord ? signupRecord(g, role) : signupJudge(g, role);
+  // ✅ ✅ ✅ 執行
+  isRecord
+    ? signupRecord(g, role)
+    : signupJudge(g, role);
 }
+
 
 /*********************************************************
  * ✅ 報名系統完整版本 - 報名功能
@@ -397,6 +408,8 @@ function signupRecord(g, role){
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading');
 
+  showToast('報名中...');   // ✅ 補這
+
   callApi({
     action:'recordSignup',
     game_id: g.game_id,
@@ -406,6 +419,8 @@ function signupRecord(g, role){
 
     if (res.result === 'ok'){
 
+      g.records ||= {};
+
       g.records[role] = {
         user_id: s.user_id,
         name: s.name
@@ -413,10 +428,14 @@ function signupRecord(g, role){
 
       g.my_position = role;
 
-      updateGameCard(g, 'record');
+      updateGameCard(g);
 
       showToast('✅ 已報名','success');
+
+    } else {
+      showToast(res?.message || '失敗','error');
     }
+
   });
 }
 
@@ -461,6 +480,8 @@ function cancelRecord(g, role){
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading');
 
+  showToast('取消中...');
+
   callApi({
     action:'cancelRecordSignup',
     game_id: g.game_id,
@@ -470,13 +491,18 @@ function cancelRecord(g, role){
 
     if (res.result === 'ok'){
 
-      g.records[role] = '';
+      if (g.records) g.records[role] = null;   // ✅ 這行很關鍵
+
       g.my_position = '';
 
-      updateGameCard(g, 'record');
+      updateGameCard(g);
 
       showToast('✅ 已取消','success');
+
+    } else {
+      showToast('取消失敗','error');
     }
+
   });
 }
 
@@ -789,12 +815,12 @@ function updateGameCard(g){
   const el = document.getElementById(`game-${g.game_id}`);
   if (!el) return;
 
-  const type = el.dataset.type || 'judge';   // ✅ 從卡片讀
+  const type = el.dataset.type || 'record';   // ✅ 自動判斷
 
   el.classList.add('loading');
 
   el.outerHTML = renderGameCard(g,{
-    type: type,
+    type,
     session:s
   });
 }
