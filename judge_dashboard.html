@@ -163,6 +163,20 @@ body {
 
 .slot{
   text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;   /* ✅ 核心 */
+}
+
+.slot.waiting {
+  background:#f3f4f6;     /* 淡灰底 */
+  border-radius:6px;
+  color:#9ca3af;          /* 灰字 */
+  font-weight:600;
+}
+
+.slot.waiting .name{
+  color:#9ca3af;
 }
 
 /* label */
