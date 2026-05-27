@@ -590,9 +590,15 @@ function validateSignup(targetGame, role){
   }
 
   /************* ✅ 欄位是否已滿 *************/
-  if (targetGame.judges?.[role] || targetGame.records?.[role]){
+  const occupied =
+    (targetGame.judges && targetGame.judges[role]) ||
+    (targetGame.records && targetGame.records[role]);
+  
+  // ✅ ✅ ✅ 如果是「自己位置」→不要擋
+  if (occupied && targetGame.my_position !== role){
     return '❌ 該位置已有人';
   }
+
 
   /************* ✅ 跨場時間衝堂（核心） *************/
   const tStart = new Date(targetGame.date + ' ' + getTime(targetGame)).getTime();
