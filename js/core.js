@@ -3,7 +3,7 @@
 *********************************************************/
 function renderGameCard(g, {type='judge', session=null} = {}){
 
-  const isPast = isPastGame(g.date);
+  const isPast = isPastGame(${formatDateTW(g.date)});
   const judgeRoles = getJudgeRoles(g);
 
   const recordRoles = [
@@ -641,6 +641,21 @@ function isPastGame(dateStr){
   return d < today;
 }
 
+/*********************************************************
+ ✅ 日期格式：改成 月／日（星期），例：5/31(日)
+*********************************************************/
+function formatDateTW(dateStr){
+
+  if (!dateStr) return '';
+
+  const d = new Date(dateStr.replace(/\//g,'-'));
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+
+  const w = ['日','一','二','三','四','五','六'][d.getDay()];
+
+  return `${m}/${day}(${w})`;
+}
 
 /* =========================
  ✅ 可報名判斷（統一規則）
