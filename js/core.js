@@ -193,8 +193,12 @@ function renderJudgeSlots(g, isPast, session){
         }
 
         // ✅ ✅ ✅ 已有其它站位
-        if (g.my_position){
-          return `<div class="mobile-pos">待位</div>`;
+        if (g.my_position && g.my_position !== role){
+          return `
+            <div class="slot waiting">
+              <div class="label">${roleMap(role)}</div>
+              <div class="name">待位</div>
+            </div>`;
         }
 
         // ✅ ✅ ✅ 可報名
