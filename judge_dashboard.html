@@ -960,17 +960,13 @@ function showMessage(msg){
     }
   };
 
+  overlay.style.display = 'flex';   // ✅ 一定要加
   overlay.classList.add('show');
-
+ 
   // ✅ ✅ ✅ 自動關閉（最重要）
   setTimeout(()=>{
     hideOverlay();
   }, 1200);
-}
-
-
-function hideOverlay() {
-  document.getElementById('overlay').classList.remove('show');
 }
 
 function logout(){
@@ -992,6 +988,9 @@ function cancelMySignup(signupId){
     user_id: s.user_id,   // ✅ 修這行
     signup_id: signupId
   },res=>{
+   
+    hideOverlay();   // ✅ 一定要放
+
     showMessage('✅ 已取消');
     reloadCurrentView();
   });
