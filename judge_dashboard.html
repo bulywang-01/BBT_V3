@@ -67,7 +67,7 @@ body {
   font-size:16px;
   font-weight:800;
   color:#1d4ed8;
-  margin:14px 6px 6px;
+  margin:20px 8px 8px;
   padding-left:6px;
   border-left:4px solid #1d4ed8;
 }
@@ -78,19 +78,25 @@ body {
 .card-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:10px;
-  padding:0 6px 10px;
+  gap:14px;                 /* ✅ 原本太小 */
+  margin-bottom:14px;       /* ✅ 關鍵 */
 }
 
 /* ===============================
  ✅ 卡片
 ================================ */
 .game-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  background:#fff;
+  border-radius:12px;
+  padding:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);  /* ✅ 換陰影 */
+  transition:.15s;
   font-size: 14px;
+}
+
+ 
+.game-card:hover{
+  transform:translateY(-2px);
 }
 
 /* ===============================
@@ -175,7 +181,7 @@ body {
   color:#1d4ed8;
   font-weight:800;
   border-radius:6px;
-  padding:2px 4px;
+  padding:2px 6px;
 }
 
 /* 按鈕 */
@@ -207,8 +213,9 @@ body {
 ================================ */
 .expired-card{
   background:#f3f4f6;
-  opacity:0.85;
-  border:1px solid #e5e7eb;
+  border:1px solid #d1d5db;
+  opacity:0.65;   /* ✅ 重點 */
+
 }
 
 /* ===============================
@@ -221,11 +228,15 @@ body {
   }
 
   .team{
-    font-size:14px;
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:0.5px;
   }
 
   .time{
-    font-size:15px;
+    color:#dc2626;
+    font-size:17px;
+    font-weight:900;
   }
 
   .row-bottom{
@@ -258,7 +269,8 @@ body {
   font-size:14px;
   font-weight:700;
   color:#1976d2;
-  margin:8px 6px 6px;
+  margin:10px 10px 6px;
+
 }
 </style>
   
@@ -274,13 +286,13 @@ body {
 <script src="js/core.js"></script>
 
 
-<!-- 畫面中間呈現訊息 -->
+<!-- 畫面中間呈現訊息
 <div id="overlay">
   <div id="overlay-box">
     <div id="overlay-text">處理中...</div>
     <button id="overlay-ok">確定</button>
   </div>
-</div>
+</div> -->
 
 <div id="header-container"></div>
 
@@ -399,15 +411,14 @@ let games = [];
 /* ===== API ===== */
 function loadGames() {
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
-  showLoading('載入賽事資料中...');
+ showToast('載入賽事資料中...');
 
   callApi(
     { action:'getSignableGames', user_id: s.user_id || '' },
     res => {
-      hideOverlay();
 
       if (!res || res.result !== 'ok') {
-        showMessage(res?.message || '無法取得賽事資料');
+        showToast(res?.message || '無法取得賽事資料');
         return;
       }
 
@@ -522,6 +533,14 @@ function render(){
     return;
   }
 
+  if (window.currentMonth !== null){
+ 
+   const d = new Date(g.date.replace(/\//g,'-'));
+   const m = d.getMonth()+1;
+ 
+   if (m !== window.currentMonth) return;
+ }
+ 
   const dateMap = {};
 
   // ✅ Step 1：依日期分組
@@ -873,7 +892,7 @@ function renderTimeHHmm(t) {
 function submitSignup(){
   const entries = Object.keys(selectedPositions);
   if (!entries.length){
-    showMessage('尚未選擇站位');
+    showToast('尚未選擇站位');
     return;
   }
 
@@ -885,7 +904,7 @@ function submitSignup(){
   );
 
   // ✅ 顯示存入中
-  showLoading('報名資料存入中...');
+ showToast('報名資料存入中...');
 
   callApi(
     {
@@ -895,79 +914,18 @@ function submitSignup(){
     },
     res => {
       if (res && res.result === 'ok') {
-        showMessage('✅ 報名成功');
+        showToast('✅ 報名成功');
         setTimeout(() => location.reload(), 800);
       } else {
-        showMessage(res?.message || '❌ 報名失敗');
+        showToast(res?.message || '❌ 報名失敗');
       }
     }
   );
 }
 
-function showLoading(msg){
-
-  const overlay = document.getElementById('overlay');
-  const text = document.getElementById('overlay-text');
-  const ok = document.getElementById('overlay-ok');
-
-  text.textContent = msg || '處理中...';
-
-  ok.style.display = 'none';
-
-  overlay.style.display = 'flex';   // ✅ 強制顯示
-  overlay.classList.add('show');
-
-  // ✅ ✅ ✅ 防止永遠卡住
-  clearTimeout(window.__loadingTimer);
-
-  window.__loadingTimer = setTimeout(()=>{
-    hideOverlay();
-  }, 4000);
-}
-
-
-function hideOverlay(){
-
-  const overlay = document.getElementById('overlay');
-  if (!overlay) return;
-
-  overlay.classList.remove('show');
-
-  // ✅ 強制保險（防止殘留）
-  overlay.style.display = 'none';
-
-}
-
 
 // 訊息function
-function showMessage(msg){
 
-  const overlay = document.getElementById('overlay');
-  const text = document.getElementById('overlay-text');
-  const ok = document.getElementById('overlay-ok');
-
-  text.textContent = msg;
-
-  ok.style.display = 'inline-block';
-
-  ok.onclick = () => {
-    hideOverlay();
-  };
-
-  overlay.onclick = (e) => {
-    if (e.target === overlay){
-      hideOverlay();
-    }
-  };
-
-  overlay.style.display = 'flex';   // ✅ 一定要加
-  overlay.classList.add('show');
- 
-  // ✅ ✅ ✅ 自動關閉（最重要）
-  setTimeout(()=>{
-    hideOverlay();
-  }, 1200);
-}
 
 function logout(){
   localStorage.clear();
@@ -981,7 +939,7 @@ function cancelMySignup(signupId){
 
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
-  showLoading('取消中...');
+ showToast('取消中...');
 
   callApi({
     action:'cancelJudgeSignup',
@@ -989,9 +947,7 @@ function cancelMySignup(signupId){
     signup_id: signupId
   },res=>{
    
-    hideOverlay();   // ✅ 一定要放
-
-    showMessage('✅ 已取消');
+    showToast('✅ 已取消');
     reloadCurrentView();
   });
 
@@ -1005,14 +961,14 @@ function signupJudgeInstant(gameId, role){
 
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
-  showLoading('報名中...');
+ showToast('報名中...');
 
   callApi({
     action:'judgeSignupByGames',
     user_id: s.user_id,
     games_with_position:`${gameId}:${role}`
   },res=>{
-    showMessage(res.result==='ok'?'✅ 成功':res.message||'失敗');
+    showToast(res.result==='ok'?'✅ 成功':res.message||'失敗');
     reloadCurrentView();
   });
 
@@ -1076,7 +1032,7 @@ function loadJudgeGamesByMonth(year, month) {
 
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
-  showLoading('載入月份班表中...');
+ showToast('載入月份班表中...');
 
   callApi({
     action: 'getJudgeGamesByMonth',
@@ -1085,10 +1041,8 @@ function loadJudgeGamesByMonth(year, month) {
     user_id: s.user_id
   }, res => {
 
-    hideOverlay();
-
     if (!res || res.result !== 'ok') {
-      showMessage('載入失敗');
+      showToast('載入失敗');
       return;
     }
 
@@ -1100,7 +1054,7 @@ function loadJudgeGamesByMonth(year, month) {
 
     // ✅ ✅ ✅ 關鍵（補空資料）
     if (!allGames.length) {
-      showMessage('當月無賽事');
+      showToast('當月無賽事');
       document.getElementById('content').innerHTML = '';
       document.getElementById('mobileView').innerHTML = '';
       return;
