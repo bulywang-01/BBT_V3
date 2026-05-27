@@ -13,7 +13,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
   ];
 
   return `
-  <div class="game-card ${isPast?'expired-card':''}">
+  <div class="game-card ${isPast?'expired-card':''}" id="game-${g.game_id}">
 
     <!-- 第一列 -->
     <div class="row-top">
@@ -54,12 +54,12 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                 <div class="slot">
                   <div class="label">${roleMap(role)}</div>
                   <div class="name ${isMe?'me':''}">
-                    ${isMe?'★ ':''}${name}
+                    ${name}
                   </div>
                   ${
                     isMe && !isPast
                     ? `<div class="cancel"
-                         onclick="cancelMySignup('${g.my_signup_id}')">
+                         onclick="handleSlotClick('${g.game_id}','${role}')">
                          取消</div>`
                     : ''
                   }
@@ -84,7 +84,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
               return `
                 <div class="slot action"
-                  onclick="signupJudgeInstant('${g.game_id}','${role}')">
+                  onclick="handleSlotClick('${g.game_id}','${role}')">
                   <div class="label">${roleMap(role)}</div>
                   <div class="btn">報名</div>
                 </div>`;
@@ -109,7 +109,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             <div class="slot">
               <div class="label">${label}</div>
               <div class="name ${isMe?'me':''}">
-                ${isMe?'★ ':''}${slot.name}
+                ${slot.name}
               </div>
               ${
                 isMe && !isPast
@@ -131,7 +131,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
           return `
           <div class="slot action"
-            onclick="signup('${g.game_id}','${role}')">
+            onclick="handleSlotClick('${g.game_id}','${role}')">
             <div class="label">${label}</div>
             <div class="btn">報名</div>
           </div>`;
@@ -173,13 +173,13 @@ function renderJudgeSlots(g, isPast, session){
           return `
             <div class="mobile-pos">
               <span class="${isMe?'mobile-judge-me':''}">
-                ${isMe?'★ ':''}${name}
+                ${name}
               </span>
 
               ${
                 isMe && !isPast
                 ? `<div class="mobile-cancel"
-                     onclick="cancelMySignup('${g.my_signup_id}')">
+                     onclick="handleSlotClick('${g.game_id}','${role}')">
                      取消</div>`
                 : ``
               }
@@ -201,7 +201,7 @@ function renderJudgeSlots(g, isPast, session){
         return `
           <div class="mobile-pos">
             <div class="mobile-pos-btn"
-              onclick="signupJudgeInstant('${g.game_id}','${role}')">
+              onclick="handleSlotClick('${g.game_id}','${role}')">
               報名
             </div>
           </div>
@@ -256,7 +256,7 @@ function renderRecordSlots(g, isPast, session){
 
         return `
           <div class="record-role action"
-            onclick="signup('${g.game_id}','${role}')">
+            onclick="handleSlotClick('${g.game_id}','${role}')">
             ＋${label}
           </div>
         `;
@@ -308,7 +308,7 @@ function highlight(name){
 
   if (!name) return '';
 
-  if (session && name === session.name){
+  if (session && name === s.name){
     return `
       <span style="
         background:#dbeafe;
@@ -333,32 +333,22 @@ function handleSlotClick(gid, role){
   if (!g) return;
 
   const isRecord = role.startsWith('REC');
+  const isMe = g.my_position === role;
 
-  /** ✅ 點自己 → 取消 **/
-  if (g.my_position === role){
-
-    if (isRecord){
-      cancelRecord(g, role);
-    } else {
-      cancelJudge(g, role);
-    }
+  if (isMe){
+    isRecord ? cancelRecord(g, role) : cancelJudge(g, role);
     return;
   }
 
-  /** ✅ 驗證（核心） **/
   const err = validateSignup(g, role);
   if (err){
-    showToast(err);
+    showToast(err,'error');
     return;
   }
 
-  /** ✅ 執行 **/
-  if (isRecord){
-    signupRecord(g, role);
-  } else {
-    signupJudge(g, role);
-  }
+  isRecord ? signupRecord(g, role) : signupJudge(g, role);
 }
+
 
 /*********************************************************
  * ✅ 報名系統完整版本 - 報名功能
@@ -366,21 +356,34 @@ function handleSlotClick(gid, role){
 
 // ✅ 報名（裁判）
 function signupJudge(g, role){
+
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
+
+  const el = document.getElementById(`game-${g.game_id}`);
+  if (el) el.classList.add('loading');   // ✅ ✅ ✅ 加在這
+
+  showToast('報名中...');
+
   callApi({
     action:'judgeSignupByGames',
-   user_id: s.user_id,
-    games_with_position: `${g.game_id}:${role}`
+    user_id: s.user_id,
+    games_with_position:`${g.game_id}:${role}`
   }, res => {
 
     if (res.result === 'ok'){
 
-      // ✅ ✅ ✅ 不 reload → 直接改資料
+      // ✅ ✅ ✅ 直接改資料
       g.judges[role] = s.name;
       g.my_position = role;
 
-      renderFromCache();
+      updateGameCard(g);   // ✅ ✅ ✅ 重點（不用 render）
+
+      showToast('✅ 已報名','success');
+
+    } else {
+      showToast(res?.message || '失敗','error');
     }
+
   });
 }
 
@@ -389,6 +392,9 @@ function signupRecord(g, role){
 
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
  
+  const el = document.getElementById(`game-${g.game_id}`);
+  if (el) el.classList.add('loading');
+
   callApi({
     action:'recordSignup',
     game_id: g.game_id,
@@ -396,19 +402,19 @@ function signupRecord(g, role){
     record_role: role
   }, res => {
 
-  hideOverlay();   // ✅ 一進來先關
+  // hideOverlay();   // ✅ 一進來先關
    
     if (res.result === 'ok'){
 
       // ✅ ✅ ✅ 修這裡
       g.records[role] = {
        user_id: s.user_id,
-        name: session.name
+        name: s.name
       };
 
       g.my_position = role;
 
-      renderFromCache();
+      updateGameCard(g);
     }
   });
 }
@@ -416,21 +422,32 @@ function signupRecord(g, role){
 //✅ 取消（裁判）
 function cancelJudge(g, role){
 
- 
+  const s = JSON.parse(localStorage.getItem('session_user') || '{}');
+
+  const el = document.getElementById(`game-${g.game_id}`);
+  if (el) el.classList.add('loading'); 
+
+  showToast('取消中...');
+
   callApi({
     action:'cancelJudgeSignup',
+    user_id: s.user_id,
     signup_id: g.my_signup_id
   }, res => {
 
-  hideOverlay();   // ✅ 一進來先關
-   
     if (res.result === 'ok'){
 
       g.judges[role] = '';
       g.my_position = '';
 
-      renderFromCache();
+      updateGameCard(g);   // ✅ ✅ ✅
+
+      showToast('✅ 已取消','success');
+
+    } else {
+      showToast(res?.message || '失敗','error');
     }
+
   });
 }
 
@@ -440,6 +457,9 @@ function cancelRecord(g, role){
  
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
  
+  const el = document.getElementById(`game-${g.game_id}`);
+  if (el) el.classList.add('loading'); 
+
   callApi({
     action:'cancelRecordSignup',
     game_id: g.game_id,
@@ -447,14 +467,14 @@ function cancelRecord(g, role){
     record_role: role
   }, res => {
 
-  hideOverlay();   // ✅ 一進來先關
-   
     if (res.result === 'ok'){
 
       g.records[role] = '';
       g.my_position = '';
 
-      renderFromCache();
+      updateGameCard(g);   // ✅ ✅ ✅ 改這
+      
+      showToast('✅ 已取消','success');
     }
   });
 }
@@ -759,5 +779,21 @@ function safeName(slot){
   if (!slot) return '';
   if (typeof slot === 'string') return slot;
   return slot.name || '';
+}
+
+/* =========================
+ ✅ 局部更新函式
+========================= */
+function updateGameCard(g){
+
+  const el = document.getElementById(`game-${g.game_id}`);
+  if (!el) return;   // ✅ ✅ ✅ 這行一定要
+
+  el.classList.add('loading');
+
+  el.outerHTML = renderGameCard(g,{
+    type:'judge',
+    session:s
+  });
 }
 
