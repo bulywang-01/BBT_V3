@@ -213,7 +213,6 @@ function renderGameCard(g, opt={}){
 function getSameDayOtherFieldGames(g){
 
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
-
   if (!g || !g.date || !s?.user_id) return [];
 
   return __GAME_CACHE.filter(x => {
@@ -221,21 +220,16 @@ function getSameDayOtherFieldGames(g){
     if (x.game_id === g.game_id) return false;
     if (x.date !== g.date) return false;
 
-    // ✅ ✅ ✅ 判斷「我是否真的有在這場」
     const judgeHit = Object.values(x.judges || {}).some(j =>
-      j && typeof j === 'object' &&
-      if (isMySlot(j, s)){
-        role = r;
-      }
+      isMySlot(j, s)
     );
 
     const recordHit = Object.values(x.records || {}).some(r =>
-      r && String(r.user_id) === String(s.user_id)
+      isMySlot(r, s)
     );
 
     if (!judgeHit && !recordHit) return false;
 
-    // ✅ 時間不衝突才提示
     const t1 = new Date(x.date + ' ' + getTime(x)).getTime();
     const t2 = new Date(g.date + ' ' + getTime(g)).getTime();
 
@@ -247,6 +241,7 @@ function getSameDayOtherFieldGames(g){
     return x.field !== g.field;
   });
 }
+
 
 /* =========================
  ✅ 同時間另一場（提示用）
@@ -265,11 +260,7 @@ function getSameTimeOtherGame(g){
 
     // ✅ 裁判
     for (let [r,j] of Object.entries(x.judges || {})){
-      if (j && typeof j === 'object' &&
-          if (isMySlot(j, s)){
-            role = r;
-          }
-         ){
+      if (isMySlot(j, s)){
         role = r;
         break;
       }
@@ -278,7 +269,7 @@ function getSameTimeOtherGame(g){
     // ✅ 紀錄
     if (!role){
       for (let [r,v] of Object.entries(x.records || {})){
-        if (v && String(v.user_id) === String(s.user_id)){
+        if (isMySlot(v, s)){
           role = r;
           break;
         }
@@ -287,13 +278,11 @@ function getSameTimeOtherGame(g){
 
     if (!role) continue;
 
-    // ✅ ✅ ✅ 改成時間戳比對（關鍵）
     const t1 = new Date(x.date + ' ' + getTime(x)).getTime();
     const t2 = new Date(g.date + ' ' + getTime(g)).getTime();
 
     if (Math.abs(t1 - t2) > 5 * 60 * 1000) continue;
 
-    // ✅ 場地
     if ((x.field||'').trim() === (g.field||'').trim()) continue;
 
     return {
