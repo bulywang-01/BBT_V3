@@ -31,32 +31,34 @@ function renderGameCard(g, opt={}){
   const myRole = g.my_position;
 
   function getReason(targetRole, isRecordSlot){
-
+  
     if (conflict) return '時間衝突';
+  
     if (!myRole) return '';
-
+  
     const myIsRecord = myRole.startsWith('REC');
-    const targetIsRecord = isRecordSlot;
-
-    // ✅ 同場同類
-    if (
-      (myIsRecord && targetIsRecord) ||
-      (!myIsRecord && !targetIsRecord)
-    ){
+  
+    // ✅ ✅ ✅ 裁判 VS 裁判（維持）
+    if (!myIsRecord && !isRecordSlot){
       if (myRole !== targetRole){
         return '待位';
       }
     }
-
-    // ✅ 跨類
-    if (myIsRecord && !targetIsRecord){
+  
+    // ✅ ✅ ✅ 紀錄 VS 紀錄（放開，不限制）
+    if (myIsRecord && isRecordSlot){
+      return '';  // ✅ 不限制 ✅
+    }
+  
+    // ✅ ✅ ✅ 裁判 vs 紀錄（互斥）
+    if (myIsRecord && !isRecordSlot){
       return '紀錄';
     }
-
-    if (!myIsRecord && targetIsRecord){
+  
+    if (!myIsRecord && isRecordSlot){
       return '裁判';
     }
-
+  
     return '';
   }
 
@@ -72,6 +74,18 @@ function renderGameCard(g, opt={}){
     </div>
 
     <div class="row-mid">
+         ${
+       isSameDayOtherFieldGame(g)
+       ? `<div style="
+             color:#dc2626;
+             font-size:12px;
+             margin-top:4px;
+             text-align:center;
+           ">
+           ⚠️ 請留意是不同場地哦
+         </div>`
+       : ''
+     }
       <div class="team">${g.away_team||''}</div>
 
       <div class="center-box">
@@ -185,6 +199,25 @@ function renderGameCard(g, opt={}){
   `;
 }
 
+/* =========================
+ ✅ 不同場提醒
+========================= */
+function isSameDayOtherFieldGame(g){
+
+  if (!g || !g.date) return false;
+
+  return __GAME_CACHE.some(x => {
+
+    if (!x.my_position) return false;
+
+    if (x.game_id === g.game_id) return false;
+
+    if (x.date !== g.date) return false;
+
+    // ✅ 同一天但不同場地
+    return x.field !== g.field;
+  });
+}
 
 /* =========================
  ✅ 班表：裁判 slot（統一版）
@@ -209,7 +242,12 @@ function renderJudgeSlots(g, isPast, session){
         // ✅ 有人
         if (name){
 
-          const isMe = g.my_position === role;
+          const slot = g.judges?.[role];
+          
+          const isMe =
+            slot &&
+            typeof slot === 'object' &&
+            String(slot.user_id) === String(session.user_id);
 
           return `
             <div class="mobile-pos">
@@ -447,8 +485,6 @@ function signupJudge(g, role){
 
       // ✅ ✅ ✅ 直接改資料
      
-      g.judges ||= {};   // ✅ 補這行
-      g.judges[role] = s.name;
       g.judges ||= {};
 
       g.judges[role] = {
@@ -603,14 +639,14 @@ function renderFromCache(){
   if (list){
     list.innerHTML = __GAME_CACHE
       .filter(g=>g.my_position)
-      .map(g=>renderGameCard(g,session))
+      .map(g=>renderGameCard(g,{session}))
       .join('');
   }
 
   const weekly = document.getElementById('weeklyContent');
   if (weekly){
     weekly.innerHTML = __GAME_CACHE
-      .map(g=>renderGameCard(g,session))
+      .map(g=>renderGameCard(g,{session}))
       .join('');
   }
 }
@@ -892,12 +928,14 @@ function updateGameCard(g){
   const el = document.getElementById(`game-${g.game_id}`);
   if (!el) return;
 
-  const type = el.dataset.type || 'record';  // ✅ 關鍵
+  const type = el.dataset.type || 'record';
+
+  const session = JSON.parse(localStorage.getItem('session_user')||'{}');
 
   el.classList.add('loading');
 
   el.outerHTML = renderGameCard(g,{
     type,
-    session:s
+    session
   });
 }
