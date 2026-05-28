@@ -77,12 +77,30 @@ function renderGameCard(g, opt={}){
       ${(() => {
       
         // ✅ 本場已有身份
+        // ✅ 本場已有身份（只在「跨類型頁面」顯示）
         if (g.my_position){
-          return `
-            <div class="row-warning">
-              ⚠️ 本場賽事擔任${roleTextMap(g.my_position)}
-            </div>
-          `;
+        
+          const isMyRecord = g.my_position.startsWith('REC');
+        
+          // ✅ 裁判頁，但你是紀錄 → 顯示
+          if (!isRecordPage && isMyRecord){
+            return `
+              <div class="row-warning">
+                ⚠️ 本場已擔任${roleTextMap(g.my_position)}
+              </div>
+            `;
+          }
+        
+          // ✅ 紀錄頁，但你是裁判 → 顯示（你這個case🔥）
+          if (isRecordPage && !isMyRecord){
+            return `
+              <div class="row-warning">
+                ⚠️ 本場已擔任${roleTextMap(g.my_position)}
+              </div>
+            `;
+          }
+        
+          // ✅ 同類（裁判在裁判頁 / 紀錄在紀錄頁）→ 不顯示
         }
       
         // ✅ 同時間其他場（裁判 or 紀錄都會抓）
