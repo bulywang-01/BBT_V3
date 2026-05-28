@@ -74,28 +74,33 @@ function renderGameCard(g, opt={}){
     </div>    
 
     <!-- 警告同場訊息 -->
-    ${(() => {
-    
-      const hit = getSameTimeOtherGame(g);
-    
-      if (!hit || isPast || conflict) return '';
-    
-       const roleText =
-         roleMap(hit.role) ||
-         {
-           REC_MAIN:'紀錄',
-           REC_TRAINEE:'見習',
-           REC_VIDEO:'影像'
-         }[hit.role] ||
-         hit.role;
-    
-      return `
-        <div class="row-warning">
-          ⚠️ 同時段已擔任：${roleText}（另一場）
-        </div>
-      `;
-    
-    })()}
+      ${(() => {
+      
+        const sameGameRole = g.my_position;
+        const other = getOtherGameSameDay(g);
+      
+        // ✅ 同場已有身份（最優先）
+        if (sameGameRole){
+          return `
+            <div class="row-warning">
+              ⚠️ 本場已擔任：${roleTextMap(sameGameRole)}
+            </div>
+          `;
+        }
+      
+        // ✅ 同一天其它場
+        if (other && !isPast){
+          return `
+            <div class="row-warning">
+              ⚠️ 當日已於其他場擔任：${roleTextMap(other.role)}
+            </div>
+          `;
+        }
+      
+        return '';
+      
+      })()}
+
 
 
     <div class="row-mid">
@@ -246,9 +251,9 @@ function getSameDayOtherFieldGames(g){
 /* =========================
  ✅ 同時間另一場（提示用）
 ========================= */
-function getSameTimeOtherGame(g){
+function getOtherGameSameDay(g){
 
-  const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!g || !g.date || !s?.user_id) return null;
 
   for (let x of __GAME_CACHE){
@@ -258,7 +263,7 @@ function getSameTimeOtherGame(g){
 
     let role = null;
 
-    // ✅ 裁判
+    // 裁判
     for (let [r,j] of Object.entries(x.judges || {})){
       if (isMySlot(j, s)){
         role = r;
@@ -266,7 +271,7 @@ function getSameTimeOtherGame(g){
       }
     }
 
-    // ✅ 紀錄
+    // 紀錄
     if (!role){
       for (let [r,v] of Object.entries(x.records || {})){
         if (isMySlot(v, s)){
@@ -278,17 +283,7 @@ function getSameTimeOtherGame(g){
 
     if (!role) continue;
 
-    const t1 = new Date(x.date + ' ' + getTime(x)).getTime();
-    const t2 = new Date(g.date + ' ' + getTime(g)).getTime();
-
-    if (Math.abs(t1 - t2) > 5 * 60 * 1000) continue;
-
-    if ((x.field||'').trim() === (g.field||'').trim()) continue;
-
-    return {
-      game:x,
-      role:role
-    };
+    return { game:x, role };
   }
 
   return null;
@@ -1041,4 +1036,22 @@ function isMySlot(slot, session){
   }
 
   return false;
+}
+
+/* =========================
+ ✅ 中文名稱
+========================= */
+function roleTextMap(role){
+
+  const map = {
+    PU:'主審',
+    U1:'一壘',
+    U2:'二壘',
+    U3:'三壘',
+    REC_MAIN:'紀錄',
+    REC_TRAINEE:'見習',
+    REC_VIDEO:'影像'
+  };
+
+  return map[role] || role;
 }
