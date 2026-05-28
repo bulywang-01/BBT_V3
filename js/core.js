@@ -71,21 +71,26 @@ function renderGameCard(g, opt={}){
       <div class="left">${formatDateTW(g.date)}</div>
       <div class="center">${g.category||''}</div>
       <div class="right">${g.field||''}</div>
-    </div>
+    </div>    
+    
+      ${(() => {
+    
+      const list = getSameDayOtherFieldGames(g);
+    
+      if (!list.length || isPast || conflict || !canSignup(g)) return '';
+    
+      return `
+        <div class="row-warning">
+          ⚠️ 同日已報 ${list.length} 場（不同場地）
+          <div class="sub">
+            ${list.map(x=>`${x.field} ${getTime(x)}`).join(' / ')}
+          </div>
+        </div>
+      `;
+    
+    })()}
 
     <div class="row-mid">
-         ${
-       isSameDayOtherFieldGame(g)
-       ? `<div style="
-             color:#dc2626;
-             font-size:12px;
-             margin-top:4px;
-             text-align:center;
-           ">
-           ⚠️ 請留意是不同場地哦
-         </div>`
-       : ''
-     }
       <div class="team">${g.away_team||''}</div>
 
       <div class="center-box">
@@ -202,19 +207,25 @@ function renderGameCard(g, opt={}){
 /* =========================
  ✅ 不同場提醒
 ========================= */
-function isSameDayOtherFieldGame(g){
+function getSameDayOtherFieldGames(g){
 
-  if (!g || !g.date) return false;
+  if (!g || !g.date) return [];
 
-  return __GAME_CACHE.some(x => {
+  return __GAME_CACHE.filter(x => {
 
     if (!x.my_position) return false;
-
     if (x.game_id === g.game_id) return false;
-
     if (x.date !== g.date) return false;
 
-    // ✅ 同一天但不同場地
+    // ✅ 判斷「不衝突」
+    const t1 = new Date(x.date + ' ' + getTime(x)).getTime();
+    const t2 = new Date(g.date + ' ' + getTime(g)).getTime();
+
+    const overlap =
+      Math.abs(t1 - t2) < ((g.duration || 120)*60000);
+
+    if (overlap) return false;
+
     return x.field !== g.field;
   });
 }
