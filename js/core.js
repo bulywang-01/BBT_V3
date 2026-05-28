@@ -96,7 +96,15 @@ function renderGameCard(g, opt={}){
               const reason = getReason(role,false);
 
               if (name){
-                const isMe = g.my_position === role;
+                // const isMe = g.my_position === role;
+                const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+                
+                const isMe =
+                  g.my_position === role
+                  &&
+                  g.judges?.[role]
+                  &&
+                  g.judges[role] === session.name;
 
                 return `
                 <div class="slot">
