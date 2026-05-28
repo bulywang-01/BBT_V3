@@ -72,23 +72,25 @@ function renderGameCard(g, opt={}){
       <div class="center">${g.category||''}</div>
       <div class="right">${g.field||''}</div>
     </div>    
+
+    // 警告同場訊息
+    ${(() => {
     
-      ${(() => {
+      const hit = getSameTimeOtherGame(g);
     
-      const list = getSameDayOtherFieldGames(g);
+      if (!hit || isPast || conflict) return '';
     
-      if (!list.length || isPast || conflict || !canSignup(g)) return '';
+      const roleText = roleMap(hit.role)
+        || (hit.role.startsWith('REC') ? '紀錄' : hit.role);
     
       return `
         <div class="row-warning">
-          ⚠️ 同日已報 ${list.length} 場（不同場地）
-          <div class="sub">
-            ${list.map(x=>`${x.field} ${getTime(x)}`).join(' / ')}
-          </div>
+          ⚠️ 同時段已擔任：${roleText}（另一場）
         </div>
       `;
     
     })()}
+
 
     <div class="row-mid">
       <div class="team">${g.away_team||''}</div>
@@ -241,6 +243,56 @@ function getSameDayOtherFieldGames(g){
 
     return x.field !== g.field;
   });
+}
+
+/* =========================
+ ✅ 同時間另一場（提示用）
+========================= */
+function getSameTimeOtherGame(g){
+
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  if (!g || !g.date || !s?.user_id) return null;
+
+  for (let x of __GAME_CACHE){
+
+    if (x.game_id === g.game_id) continue;
+    if (x.date !== g.date) continue;
+
+    // ✅ 判斷是否是我
+    let role = null;
+
+    for (let [r,j] of Object.entries(x.judges || {})){
+      if (j && typeof j === 'object' &&
+          String(j.user_id) === String(s.user_id)){
+        role = r;
+        break;
+      }
+    }
+
+    if (!role){
+      for (let [r,v] of Object.entries(x.records || {})){
+        if (v && String(v.user_id) === String(s.user_id)){
+          role = r;
+          break;
+        }
+      }
+    }
+
+    if (!role) continue;
+
+    // ✅ ✅ ✅ 同時間才成立（關鍵）
+    if (getTime(x) !== getTime(g)) continue;
+
+    // ✅ 不同場地
+    if (x.field === g.field) continue;
+
+    return {
+      game:x,
+      role:role
+    };
+  }
+
+  return null;
 }
 
 /* =========================
