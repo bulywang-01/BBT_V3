@@ -96,20 +96,18 @@ function renderGameCard(g, opt={}){
               const reason = getReason(role,false);
 
               if (name){
-                // const isMe = g.my_position === role;
                 const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+                const slot = g.judges?.[role];
                 
                 const isMe =
-                  g.my_position === role
-                  &&
-                  g.judges?.[role]
-                  &&
-                  g.judges[role] === session.name;
+                  slot &&
+                  typeof slot === 'object' &&
+                  String(slot.user_id) === String(session.user_id);
 
                 return `
                 <div class="slot">
                   <div class="label">${roleMap(role)}</div>
-                  <div class="name ${isMe?'me':''}">${name}</div>
+                  <div class="name ${isMe?'me':''}">${typeof slot === 'object' ? slot.name : slot}</div>
                   ${
                     isMe && !isPast
                     ? `<div class="cancel"
@@ -394,31 +392,34 @@ function handleSlotClick(gid, role){
   const g = __GAME_CACHE.find(x => x.game_id === gid);
   if (!g) return;
 
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
   const isRecord = role.startsWith('REC');
 
-  // ✅ ✅ ✅ 判斷自己（關鍵修正）
-  const isMe = (
-    g.my_position === role
-    || g.records?.[role]?.user_id == s?.user_id
-  );
+  let isMe = false;
 
-  // ✅ 點自己 → 取消
+  if (isRecord){
+    isMe =
+      g.records?.[role]?.user_id &&
+      String(g.records[role].user_id) === String(s.user_id);
+  } else {
+    isMe =
+      g.judges?.[role]?.user_id &&
+      String(g.judges[role].user_id) === String(s.user_id);
+  }
+
   if (isMe){
     isRecord ? cancelRecord(g, role) : cancelJudge(g, role);
     return;
   }
 
-  // ✅ 檢查
   const err = validateSignup(g, role);
   if (err){
     showToast(err,'error');
     return;
   }
 
-  // ✅ 報名
   isRecord ? signupRecord(g, role) : signupJudge(g, role);
 }
-
 
 
 
@@ -448,6 +449,13 @@ function signupJudge(g, role){
      
       g.judges ||= {};   // ✅ 補這行
       g.judges[role] = s.name;
+      g.judges ||= {};
+
+      g.judges[role] = {
+        user_id: s.user_id,
+        name: s.name
+      };
+     
       g.my_position = role;
 
       updateGameCard(g, 'judge');   // ✅ ✅ ✅ 重點（不用 render）
@@ -518,7 +526,8 @@ function cancelJudge(g, role){
 
     if (res.result === 'ok'){
 
-      g.judges[role] = '';
+      //g.judges[role] = '';
+      g.judges[role] = null;
       g.my_position = '';
 
       updateGameCard(g, 'judge');   // ✅ ✅ ✅
