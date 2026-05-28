@@ -123,6 +123,7 @@ function renderGameCard(g, opt={}){
 
               const name = g.judges?.[role];
               const reason = getReason(role,false);
+              const locked = isSameTimeOtherFieldLocked(g);
 
               if (name){
                 // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
@@ -146,8 +147,15 @@ function renderGameCard(g, opt={}){
                 return `<div class="slot"><div class="label">${roleMap(role)}</div><div class="name">—</div></div>`;
               }
 
-              if (reason){
-                return `<div class="slot waiting"><div class="label">${roleMap(role)}</div><div class="name">${reason}</div></div>`;
+              if (reason || locked){
+                return `
+                  <div class="slot waiting">
+                    <div class="label">${roleMap(role)}</div>
+                    <div class="name">
+                      ${locked ? '待位' : reason}
+                    </div>
+                  </div>`;
+
               }
 
               return `
@@ -167,6 +175,7 @@ function renderGameCard(g, opt={}){
 
           const slot = g.records?.[role];
           const reason = getReason(role,true);
+          const locked = isSameTimeOtherFieldLocked(g);
 
           if (slot){
 
@@ -189,8 +198,11 @@ function renderGameCard(g, opt={}){
             return `<div class="slot"><div class="label">${label}</div><div class="name">—</div></div>`;
           }
 
-          if (reason){
-            return `<div class="slot waiting"><div class="label">${label}</div><div class="name">${reason}</div></div>`;
+          if (reason || locked){
+            return `<div class="slot waiting">
+             <div class="label">${label}</div>
+              <div class="name">${locked ? '待位' : reason}</div>
+             </div>`;
           }
 
           return `
@@ -1063,4 +1075,38 @@ function roleTextMap(role){
   };
 
   return map[role] || role;
+}
+
+/* =========================
+ ✅ 同一時間 → 只能在一個場地報名
+========================= */
+function isSameTimeOtherFieldLocked(g){
+
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  if (!g || !s?.user_id) return false;
+
+  const t = getTime(g);
+
+  return __GAME_CACHE.some(x => {
+
+    if (x.game_id === g.game_id) return false;
+    if (x.date !== g.date) return false;
+
+    // ✅ 同時間
+    if (getTime(x) !== t) return false;
+
+    // ✅ 不同場地
+    if ((x.field||'') === (g.field||'')) return false;
+
+    // ✅ 有報名（裁判 or 紀錄）
+    const judgeHit = Object.values(x.judges || {}).some(j =>
+      isMySlot(j, s)
+    );
+
+    const recordHit = Object.values(x.records || {}).some(r =>
+      isMySlot(r, s)
+    );
+
+    return judgeHit || recordHit;
+  });
 }
