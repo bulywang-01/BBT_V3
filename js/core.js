@@ -123,13 +123,9 @@ function renderGameCard(g, opt={}){
               const reason = getReason(role,false);
 
               if (name){
-                const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+                // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
                 const slot = g.judges?.[role];
-                
-                const isMe =
-                  slot &&
-                  typeof slot === 'object' &&
-                  String(slot.user_id) === String(session.user_id);
+                const isMe = isMySlot(slot, session);
 
                 return `
                 <div class="slot">
@@ -171,9 +167,8 @@ function renderGameCard(g, opt={}){
           const reason = getReason(role,true);
 
           if (slot){
-            const isMe =
-              session &&
-              String(slot.user_id) === String(session.user_id);
+
+           const isMe = isMySlot(slot, session);
 
             return `
             <div class="slot">
@@ -229,7 +224,9 @@ function getSameDayOtherFieldGames(g){
     // ✅ ✅ ✅ 判斷「我是否真的有在這場」
     const judgeHit = Object.values(x.judges || {}).some(j =>
       j && typeof j === 'object' &&
-      String(j.user_id) === String(s.user_id)
+      if (isMySlot(j, s)){
+        role = r;
+      }
     );
 
     const recordHit = Object.values(x.records || {}).some(r =>
@@ -269,7 +266,10 @@ function getSameTimeOtherGame(g){
     // ✅ 裁判
     for (let [r,j] of Object.entries(x.judges || {})){
       if (j && typeof j === 'object' &&
-          String(j.user_id) === String(s.user_id)){
+          if (isMySlot(j, s)){
+            role = r;
+          }
+         ){
         role = r;
         break;
       }
@@ -330,11 +330,7 @@ function renderJudgeSlots(g, isPast, session){
         if (name){
 
           const slot = g.judges?.[role];
-          
-          const isMe =
-            slot &&
-            typeof slot === 'object' &&
-            String(slot.user_id) === String(session.user_id);
+          const isMe = isMySlot(slot, session);
 
           return `
             <div class="mobile-pos">
@@ -402,7 +398,8 @@ function renderRecordSlots(g, isPast, session){
 
         // ✅ 有人
         if (slot){
-          const isMe = String(slot.user_id) === String(session.user_id);
+          
+          const isMe = isMySlot(slot, session);
 
           return `
             <div class="record-role ${isMe?'me':'other'}">
@@ -518,33 +515,60 @@ function handleSlotClick(gid, role){
   if (!g) return;
 
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  if (!s || !s.user_id) return;
+
   const isRecord = role.startsWith('REC');
 
-  let isMe = false;
+  // ✅ ✅ ✅ 統一判斷是否為自己（核心）
+  function isMySlot(slot){
 
-  if (isRecord){
-    isMe =
-      g.records?.[role]?.user_id &&
-      String(g.records[role].user_id) === String(s.user_id);
-  } else {
-    isMe =
-      g.judges?.[role]?.user_id &&
-      String(g.judges[role].user_id) === String(s.user_id);
+    if (!slot) return false;
+
+    // ✅ 新格式（object）
+    if (typeof slot === 'object'){
+      return String(slot.user_id) === String(s.user_id);
+    }
+
+    // ✅ 舊格式（string fallback）
+    if (typeof slot === 'string'){
+      return slot === s.name;
+    }
+
+    return false;
   }
 
+  // ✅ 取得 slot
+  const slot = isRecord
+    ? g.records?.[role]
+    : g.judges?.[role];
+
+  const isMe = isMySlot(slot);
+
+  // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
-    isRecord ? cancelRecord(g, role) : cancelJudge(g, role);
+    if (isRecord){
+      cancelRecord(g, role);
+    } else {
+      cancelJudge(g, role);
+    }
     return;
   }
 
+  // ✅ ✅ ✅ 驗證是否可報名
   const err = validateSignup(g, role);
   if (err){
     showToast(err,'error');
     return;
   }
 
-  isRecord ? signupRecord(g, role) : signupJudge(g, role);
+  // ✅ ✅ ✅ 報名
+  if (isRecord){
+    signupRecord(g, role);
+  } else {
+    signupJudge(g, role);
+  }
 }
+
 
 
 
@@ -1025,4 +1049,24 @@ function updateGameCard(g){
     type,
     session
   });
+}
+
+/* =========================
+ ✅ 統一 slot 判斷
+========================= */
+function isMySlot(slot, session){
+
+  if (!slot || !session) return false;
+
+  // ✅ object（新格式）
+  if (typeof slot === 'object'){
+    return String(slot.user_id) === String(session.user_id);
+  }
+
+  // ✅ string（舊資料 fallback）
+  if (typeof slot === 'string'){
+    return slot === session.name;
+  }
+
+  return false;
 }
