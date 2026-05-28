@@ -209,20 +209,33 @@ function renderGameCard(g, opt={}){
 ========================= */
 function getSameDayOtherFieldGames(g){
 
-  if (!g || !g.date) return [];
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+
+  if (!g || !g.date || !s?.user_id) return [];
 
   return __GAME_CACHE.filter(x => {
 
-    if (!x.my_position) return false;
     if (x.game_id === g.game_id) return false;
     if (x.date !== g.date) return false;
 
-    // ✅ 判斷「不衝突」
+    // ✅ ✅ ✅ 判斷「我是否真的有在這場」
+    const judgeHit = Object.values(x.judges || {}).some(j =>
+      j && typeof j === 'object' &&
+      String(j.user_id) === String(s.user_id)
+    );
+
+    const recordHit = Object.values(x.records || {}).some(r =>
+      r && String(r.user_id) === String(s.user_id)
+    );
+
+    if (!judgeHit && !recordHit) return false;
+
+    // ✅ 時間不衝突才提示
     const t1 = new Date(x.date + ' ' + getTime(x)).getTime();
     const t2 = new Date(g.date + ' ' + getTime(g)).getTime();
 
     const overlap =
-      Math.abs(t1 - t2) < ((g.duration || 120)*60000);
+      Math.abs(t1 - t2) < ((g.duration || 120) * 60000);
 
     if (overlap) return false;
 
