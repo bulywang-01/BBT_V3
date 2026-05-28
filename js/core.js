@@ -78,29 +78,49 @@ function renderGameCard(g, opt={}){
       
         // ✅ 本場已有身份
         // ✅ 本場已有身份（只在「跨類型頁面」顯示）
-        if (g.my_position){
+        // ✅ 判斷「本場是否有擔任任何角色（裁判 or 紀錄）」
+        let myRoleInThisGame = null;
         
-          const isMyRecord = g.my_position.startsWith('REC');
+        // ✅ 裁判
+        for (let [r,j] of Object.entries(g.judges || {})){
+          if (isMySlot(j, session)){
+            myRoleInThisGame = r;
+            break;
+          }
+        }
         
-          // ✅ 裁判頁，但你是紀錄 → 顯示
+        // ✅ 紀錄
+        if (!myRoleInThisGame){
+          for (let [r,v] of Object.entries(g.records || {})){
+            if (isMySlot(v, session)){
+              myRoleInThisGame = r;
+              break;
+            }
+          }
+        }
+        
+        // ✅ ✅ ✅ 本場已有身份（跨頁才顯示）
+        if (myRoleInThisGame){
+        
+          const isMyRecord = myRoleInThisGame.startsWith('REC');
+        
+          // ✅ 裁判頁顯示「紀錄」
           if (!isRecordPage && isMyRecord){
             return `
               <div class="row-warning">
-                ⚠️ 本場已擔任${roleTextMap(g.my_position)}
+                ⚠️ 本場已擔任：${roleTextMap(myRoleInThisGame)}
               </div>
             `;
           }
         
-          // ✅ 紀錄頁，但你是裁判 → 顯示（你這個case🔥）
+          // ✅ 紀錄頁顯示「裁判」（👉你這個case🔥）
           if (isRecordPage && !isMyRecord){
             return `
               <div class="row-warning">
-                ⚠️ 本場已擔任${roleTextMap(g.my_position)}
+                ⚠️ 本場已擔任：${roleTextMap(myRoleInThisGame)}
               </div>
             `;
           }
-        
-          // ✅ 同類（裁判在裁判頁 / 紀錄在紀錄頁）→ 不顯示
         }
       
         // ✅ 同時間其他場（裁判 or 紀錄都會抓）
