@@ -385,7 +385,12 @@ function handleSlotClick(gid, role){
   if (!g) return;
 
   const isRecord = role.startsWith('REC');
-  const isMe = g.my_position === role;
+
+  // ✅ ✅ ✅ 判斷自己（關鍵修正）
+  const isMe = (
+    g.my_position === role
+    || g.records?.[role]?.user_id == s?.user_id
+  );
 
   // ✅ 點自己 → 取消
   if (isMe){
@@ -403,6 +408,7 @@ function handleSlotClick(gid, role){
   // ✅ 報名
   isRecord ? signupRecord(g, role) : signupJudge(g, role);
 }
+
 
 
 
