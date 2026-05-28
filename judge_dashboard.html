@@ -583,7 +583,7 @@ function render(){
           <div class="card-grid">
             ${
               categoryMap[cat]
-              .sort((a,b)=>getTime(a).localeCompare(getTime(b)))
+              .sort((a,b)=>timeToMinutes(getTime(a)) - timeToMinutes(getTime(b)))
               .map(g=>renderGameCard(g,{type:'judge',session:s}))
               .join('')
             }
