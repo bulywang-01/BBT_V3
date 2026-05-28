@@ -80,8 +80,14 @@ function renderGameCard(g, opt={}){
     
       if (!hit || isPast || conflict) return '';
     
-      const roleText = roleMap(hit.role)
-        || (hit.role.startsWith('REC') ? '紀錄' : hit.role);
+       const roleText =
+         roleMap(hit.role) ||
+         {
+           REC_MAIN:'紀錄',
+           REC_TRAINEE:'見習',
+           REC_VIDEO:'影像'
+         }[hit.role] ||
+         hit.role;
     
       return `
         <div class="row-warning">
@@ -258,9 +264,9 @@ function getSameTimeOtherGame(g){
     if (x.game_id === g.game_id) continue;
     if (x.date !== g.date) continue;
 
-    // ✅ 判斷是否是我
     let role = null;
 
+    // ✅ 裁判
     for (let [r,j] of Object.entries(x.judges || {})){
       if (j && typeof j === 'object' &&
           String(j.user_id) === String(s.user_id)){
@@ -269,6 +275,7 @@ function getSameTimeOtherGame(g){
       }
     }
 
+    // ✅ 紀錄
     if (!role){
       for (let [r,v] of Object.entries(x.records || {})){
         if (v && String(v.user_id) === String(s.user_id)){
@@ -280,11 +287,14 @@ function getSameTimeOtherGame(g){
 
     if (!role) continue;
 
-    // ✅ ✅ ✅ 同時間才成立（關鍵）
-    if (getTime(x) !== getTime(g)) continue;
+    // ✅ ✅ ✅ 改成時間戳比對（關鍵）
+    const t1 = new Date(x.date + ' ' + getTime(x)).getTime();
+    const t2 = new Date(g.date + ' ' + getTime(g)).getTime();
 
-    // ✅ 不同場地
-    if (x.field === g.field) continue;
+    if (Math.abs(t1 - t2) > 5 * 60 * 1000) continue;
+
+    // ✅ 場地
+    if ((x.field||'').trim() === (g.field||'').trim()) continue;
 
     return {
       game:x,
@@ -294,6 +304,7 @@ function getSameTimeOtherGame(g){
 
   return null;
 }
+
 
 /* =========================
  ✅ 班表：裁判 slot（統一版）
