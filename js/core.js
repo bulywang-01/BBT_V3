@@ -1,7 +1,22 @@
 /*********************************************************
  ✅ 班表主卡片（唯一UI）
 *********************************************************/
-function renderGameCard(g, {type='judge', session=null} = {}){
+function renderGameCard(g, opt={}){
+
+  const session = opt.session || null;
+
+  // ✅ ✅ ✅ 自動判斷頁面（核心封裝）
+  let type = opt.type;
+
+  if (!type){
+    if (document.body.classList.contains('page-record')){
+      type = 'record';
+    } else {
+      type = 'judge';
+    }
+  }
+
+  const isRecordPage = (type === 'record');
 
   const isPast = isPastGame(g.date);
   const judgeRoles = getJudgeRoles(g);
@@ -18,7 +33,6 @@ function renderGameCard(g, {type='judge', session=null} = {}){
   function getReason(targetRole, isRecordSlot){
 
     if (conflict) return '時間衝突';
-
     if (!myRole) return '';
 
     const myIsRecord = myRole.startsWith('REC');
@@ -34,7 +48,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
       }
     }
 
-    // ✅ 跨類（關鍵）
+    // ✅ 跨類
     if (myIsRecord && !targetIsRecord){
       return '紀錄';
     }
@@ -72,15 +86,15 @@ function renderGameCard(g, {type='judge', session=null} = {}){
 
       <!-- ✅ 裁判 -->
       ${
-        type !== 'record'
-        ? judgeRoles.length === 0
+        !isRecordPage
+        ? (
+          judgeRoles.length === 0
           ? `<div class="no-judge">無需裁判</div>`
           : judgeRoles.map(role=>{
 
               const name = g.judges?.[role];
-              const reason = getReason(role, false);
+              const reason = getReason(role,false);
 
-              // ✅ 有人
               if (name){
                 const isMe = g.my_position === role;
 
@@ -91,8 +105,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                   ${
                     isMe && !isPast
                     ? `<div class="cancel"
-                         onclick="handleSlotClick('${g.game_id}','${role}')">
-                         取消</div>`
+                         onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
                     : ''
                   }
                 </div>`;
@@ -102,13 +115,8 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                 return `<div class="slot"><div class="label">${roleMap(role)}</div><div class="name">—</div></div>`;
               }
 
-              // ✅ ✅ ✅ 待位 / 紀錄 / 衝突
               if (reason){
-                return `
-                <div class="slot waiting">
-                  <div class="label">${roleMap(role)}</div>
-                  <div class="name">${reason}</div>
-                </div>`;
+                return `<div class="slot waiting"><div class="label">${roleMap(role)}</div><div class="name">${reason}</div></div>`;
               }
 
               return `
@@ -118,16 +126,16 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                   <div class="btn">報名</div>
                 </div>`;
           }).join('')
-        : ''
+        ) : ''
       }
 
       <!-- ✅ 紀錄 -->
       ${
-        type !== 'judge'
+        isRecordPage
         ? recordRoles.map(([role,label])=>{
 
           const slot = g.records?.[role];
-          const reason = getReason(role, true);
+          const reason = getReason(role,true);
 
           if (slot){
             const isMe =
@@ -141,8 +149,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
               ${
                 isMe && !isPast
                 ? `<div class="cancel"
-                     onclick="handleSlotClick('${g.game_id}','${role}')">
-                     取消</div>`
+                     onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
                 : ''
               }
             </div>`;
@@ -152,13 +159,8 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             return `<div class="slot"><div class="label">${label}</div><div class="name">—</div></div>`;
           }
 
-          // ✅ ✅ ✅ 待位 / 裁判 / 衝突
           if (reason){
-            return `
-            <div class="slot waiting">
-              <div class="label">${label}</div>
-              <div class="name">${reason}</div>
-            </div>`;
+            return `<div class="slot waiting"><div class="label">${label}</div><div class="name">${reason}</div></div>`;
           }
 
           return `
@@ -435,6 +437,8 @@ function signupJudge(g, role){
     if (res.result === 'ok'){
 
       // ✅ ✅ ✅ 直接改資料
+     
+      g.judges ||= {};   // ✅ 補這行
       g.judges[role] = s.name;
       g.my_position = role;
 
@@ -576,23 +580,21 @@ function reloadGames(){
 // ✅ 👉 重畫畫面
 function renderFromCache(){
 
-  const session = getSession(); // ✅ 關鍵
+  const session = getSession();
 
-  const my = __GAME_CACHE.filter(g => g.my_position);
   const list = document.getElementById('my-schedule-list');
-
   if (list){
-    list.innerHTML = my.map(g =>
-      renderGameCard(g,{type:'judge',session})
-    ).join('');
+    list.innerHTML = __GAME_CACHE
+      .filter(g=>g.my_position)
+      .map(g=>renderGameCard(g,session))
+      .join('');
   }
 
   const weekly = document.getElementById('weeklyContent');
-
   if (weekly){
-    weekly.innerHTML = __GAME_CACHE.map(g =>
-      renderGameCard(g,{type:'judge',session})
-    ).join('');
+    weekly.innerHTML = __GAME_CACHE
+      .map(g=>renderGameCard(g,session))
+      .join('');
   }
 }
 
