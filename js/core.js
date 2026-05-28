@@ -12,13 +12,37 @@ function renderGameCard(g, {type='judge', session=null} = {}){
     ['REC_VIDEO','影像']
   ];
 
-  // ✅ ✅ ✅ 核心判斷（全系統唯一來源）
   const conflict = isTimeConflict(g);
-  const hasRole = g.my_position;
+  const myRole = g.my_position;
 
-  function getReason(role){
+  function getReason(targetRole, isRecordSlot){
+
     if (conflict) return '時間衝突';
-    if (hasRole && hasRole !== role) return '其他角色';
+
+    if (!myRole) return '';
+
+    const myIsRecord = myRole.startsWith('REC');
+    const targetIsRecord = isRecordSlot;
+
+    // ✅ 同場同類
+    if (
+      (myIsRecord && targetIsRecord) ||
+      (!myIsRecord && !targetIsRecord)
+    ){
+      if (myRole !== targetRole){
+        return '待位';
+      }
+    }
+
+    // ✅ 跨類（關鍵）
+    if (myIsRecord && !targetIsRecord){
+      return '紀錄';
+    }
+
+    if (!myIsRecord && targetIsRecord){
+      return '裁判';
+    }
+
     return '';
   }
 
@@ -27,14 +51,12 @@ function renderGameCard(g, {type='judge', session=null} = {}){
        id="game-${g.game_id}"
        data-type="${type}">
 
-    <!-- 第一列 -->
     <div class="row-top">
       <div class="left">${formatDateTW(g.date)}</div>
       <div class="center">${g.category||''}</div>
       <div class="right">${g.field||''}</div>
     </div>
 
-    <!-- 第二列 -->
     <div class="row-mid">
       <div class="team">${g.away_team||''}</div>
 
@@ -46,7 +68,6 @@ function renderGameCard(g, {type='judge', session=null} = {}){
       <div class="team">${g.home_team||''}</div>
     </div>
 
-    <!-- 第三列 -->
     <div class="row-bottom">
 
       <!-- ✅ 裁判 -->
@@ -57,18 +78,16 @@ function renderGameCard(g, {type='judge', session=null} = {}){
           : judgeRoles.map(role=>{
 
               const name = g.judges?.[role];
-              const reason = getReason(role);
+              const reason = getReason(role, false);
 
-              // ✅ 已有人
+              // ✅ 有人
               if (name){
                 const isMe = g.my_position === role;
 
                 return `
                 <div class="slot">
                   <div class="label">${roleMap(role)}</div>
-                  <div class="name ${isMe?'me':''}">
-                    ${name}
-                  </div>
+                  <div class="name ${isMe?'me':''}">${name}</div>
                   ${
                     isMe && !isPast
                     ? `<div class="cancel"
@@ -79,16 +98,11 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                 </div>`;
               }
 
-              // ✅ 過期
               if (isPast){
-                return `
-                <div class="slot">
-                  <div class="label">${roleMap(role)}</div>
-                  <div class="name">—</div>
-                </div>`;
+                return `<div class="slot"><div class="label">${roleMap(role)}</div><div class="name">—</div></div>`;
               }
 
-              // ✅ ✅ ✅ 待位（含原因）
+              // ✅ ✅ ✅ 待位 / 紀錄 / 衝突
               if (reason){
                 return `
                 <div class="slot waiting">
@@ -97,7 +111,6 @@ function renderGameCard(g, {type='judge', session=null} = {}){
                 </div>`;
               }
 
-              // ✅ 可報名
               return `
                 <div class="slot action"
                   onclick="handleSlotClick('${g.game_id}','${role}')">
@@ -114,9 +127,8 @@ function renderGameCard(g, {type='judge', session=null} = {}){
         ? recordRoles.map(([role,label])=>{
 
           const slot = g.records?.[role];
-          const reason = getReason(role);
+          const reason = getReason(role, true);
 
-          // ✅ 已有人
           if (slot){
             const isMe =
               session &&
@@ -125,9 +137,7 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             return `
             <div class="slot">
               <div class="label">${label}</div>
-              <div class="name ${isMe?'me':''}">
-                ${slot.name}
-              </div>
+              <div class="name ${isMe?'me':''}">${slot.name}</div>
               ${
                 isMe && !isPast
                 ? `<div class="cancel"
@@ -138,16 +148,11 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             </div>`;
           }
 
-          // ✅ 過期
           if (isPast){
-            return `
-            <div class="slot">
-              <div class="label">${label}</div>
-              <div class="name">—</div>
-            </div>`;
+            return `<div class="slot"><div class="label">${label}</div><div class="name">—</div></div>`;
           }
 
-          // ✅ ✅ ✅ 待位（含原因）
+          // ✅ ✅ ✅ 待位 / 裁判 / 衝突
           if (reason){
             return `
             <div class="slot waiting">
@@ -156,7 +161,6 @@ function renderGameCard(g, {type='judge', session=null} = {}){
             </div>`;
           }
 
-          // ✅ 可報名
           return `
           <div class="slot action"
             onclick="handleSlotClick('${g.game_id}','${role}')">
