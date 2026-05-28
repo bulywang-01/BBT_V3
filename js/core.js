@@ -80,7 +80,7 @@ function renderGameCard(g, opt={}){
           if (g.my_position){
             return `
               <div class="row-warning">
-                ⚠️ 本場已擔任：${roleTextMap(g.my_position)}
+                ⚠️ 本場擔任　${roleTextMap(g.my_position)}
               </div>
             `;
           }
@@ -91,7 +91,7 @@ function renderGameCard(g, opt={}){
           if (other && !isPast){
             return `
               <div class="row-warning">
-                ⚠️ 此時段已擔任：${roleTextMap(other.role)}
+                ⚠️ 在另一場有擔任　${roleTextMap(other.role)}　哦
               </div>
             `;
           }
