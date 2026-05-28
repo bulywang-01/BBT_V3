@@ -74,34 +74,31 @@ function renderGameCard(g, opt={}){
     </div>    
 
     <!-- 警告同場訊息 -->
-      ${(() => {
-      
-        const sameGameRole = g.my_position;
-        const other = getOtherGameSameDay(g);
-      
-        // ✅ 同場已有身份（最優先）
-        if (sameGameRole){
-          return `
-            <div class="row-warning">
-              ⚠️ 本場已擔任：${roleTextMap(sameGameRole)}
-            </div>
-          `;
-        }
-      
-        // ✅ 同一天其它場
-        if (other && !isPast){
-          return `
-            <div class="row-warning">
-              ⚠️ 當日已於其他場擔任：${roleTextMap(other.role)}
-            </div>
-          `;
-        }
-      
-        return '';
-      
-      })()}
-
-
+        ${(() => {
+        
+          // ✅ 同場身份（最優先）
+          if (g.my_position){
+            return `
+              <div class="row-warning">
+                ⚠️ 本場已擔任：${roleTextMap(g.my_position)}
+              </div>
+            `;
+          }
+        
+          // ✅ 同時間其它場
+          const other = getOtherGameSameDay(g);
+        
+          if (other && !isPast){
+            return `
+              <div class="row-warning">
+                ⚠️ 此時段已擔任：${roleTextMap(other.role)}
+              </div>
+            `;
+          }
+        
+          return '';
+        
+        })()}
 
     <div class="row-mid">
       <div class="team">${g.away_team||''}</div>
@@ -258,12 +255,15 @@ function getOtherGameSameDay(g){
 
   for (let x of __GAME_CACHE){
 
+    // ✅ 排除自己
     if (x.game_id === g.game_id) continue;
+
+    // ✅ 同一天
     if (x.date !== g.date) continue;
 
     let role = null;
 
-    // 裁判
+    // ✅ 裁判
     for (let [r,j] of Object.entries(x.judges || {})){
       if (isMySlot(j, s)){
         role = r;
@@ -271,7 +271,7 @@ function getOtherGameSameDay(g){
       }
     }
 
-    // 紀錄
+    // ✅ 紀錄
     if (!role){
       for (let [r,v] of Object.entries(x.records || {})){
         if (isMySlot(v, s)){
@@ -281,13 +281,22 @@ function getOtherGameSameDay(g){
       }
     }
 
+    // ✅ 沒命中 → 下一場
     if (!role) continue;
 
-    return { game:x, role };
+    // ✅ ✅ ✅ 關鍵（你這版要的）
+    // 只在「同時間」顯示 warning
+    if (getTime(x) !== getTime(g)) continue;
+
+    return {
+      game: x,
+      role: role
+    };
   }
 
   return null;
 }
+
 
 
 /* =========================
