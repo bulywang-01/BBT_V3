@@ -106,7 +106,7 @@ function renderGameCard(g, opt={}){
             if (isRecordPage && !isMyRecord){
               return `
                 <div class="row-warning">
-                  ⚠️ 本場已擔任：${roleTextMap(myRoleHere)}
+                  ⚠️ 本場已擔任${roleTextMap(myRoleHere)}
                 </div>
               `;
             }
@@ -115,7 +115,7 @@ function renderGameCard(g, opt={}){
             if (!isRecordPage && isMyRecord){
               return `
                 <div class="row-warning">
-                  ⚠️ 本場已擔任：${roleTextMap(myRoleHere)}
+                  ⚠️ 本場已擔任${roleTextMap(myRoleHere)}
                 </div>
               `;
             }
@@ -127,7 +127,7 @@ function renderGameCard(g, opt={}){
           if (other && !isPast){
             return `
               <div class="row-warning">
-                ⚠️ 此時段已擔任：${roleTextMap(other.role)}
+                ⚠️ 此時段已於另一場地擔任${roleTextMap(other.role)}
               </div>
             `;
           }
