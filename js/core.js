@@ -74,69 +74,67 @@ function renderGameCard(g, opt={}){
     </div>    
 
     <!-- 警告同場訊息　renderGameCard WARNING -->
-      ${(() => {
-      
-        // ✅ 本場已有身份
-        // ✅ 本場已有身份（只在「跨類型頁面」顯示）
-        // ✅ 判斷「本場是否有擔任任何角色（裁判 or 紀錄）」
-        let myRoleInThisGame = null;
+        ${(() => {
         
-        // ✅ 裁判
-        for (let [r,j] of Object.entries(g.judges || {})){
-          if (isMySlot(j, session)){
-            myRoleInThisGame = r;
-            break;
-          }
-        }
+          // ✅ ✅ ✅ 掃本場你擔任的角色（關鍵🔥）
+          let myRoleHere = null;
         
-        // ✅ 紀錄
-        if (!myRoleInThisGame){
-          for (let [r,v] of Object.entries(g.records || {})){
-            if (isMySlot(v, session)){
-              myRoleInThisGame = r;
+          // 👉 裁判
+          for (let [r,j] of Object.entries(g.judges || {})){
+            if (isMySlot(j, session)){
+              myRoleHere = r;
               break;
             }
           }
-        }
         
-        // ✅ ✅ ✅ 本場已有身份（跨頁才顯示）
-        if (myRoleInThisGame){
+          // 👉 紀錄
+          if (!myRoleHere){
+            for (let [r,v] of Object.entries(g.records || {})){
+              if (isMySlot(v, session)){
+                myRoleHere = r;
+                break;
+              }
+            }
+          }
         
-          const isMyRecord = myRoleInThisGame.startsWith('REC');
+          // ✅ ✅ ✅ 本場有角色 → 判斷是否要顯示
+          if (myRoleHere){
         
-          // ✅ 裁判頁顯示「紀錄」
-          if (!isRecordPage && isMyRecord){
+            const isMyRecord = myRoleHere.startsWith('REC');
+        
+            // ✅ 紀錄頁 + 你是裁判 → 顯示（你現在這個case🔥）
+            if (isRecordPage && !isMyRecord){
+              return `
+                <div class="row-warning">
+                  ⚠️ 本場已擔任：${roleTextMap(myRoleHere)}
+                </div>
+              `;
+            }
+        
+            // ✅ 裁判頁 + 你是紀錄 → 顯示
+            if (!isRecordPage && isMyRecord){
+              return `
+                <div class="row-warning">
+                  ⚠️ 本場已擔任：${roleTextMap(myRoleHere)}
+                </div>
+              `;
+            }
+          }
+        
+          // ✅ ✅ ✅ 再判斷「同時間其他場」
+          const other = getOtherGameSameDay(g);
+        
+          if (other && !isPast){
             return `
               <div class="row-warning">
-                ⚠️ 本場已擔任：${roleTextMap(myRoleInThisGame)}
+                ⚠️ 此時段已擔任：${roleTextMap(other.role)}
               </div>
             `;
           }
         
-          // ✅ 紀錄頁顯示「裁判」（👉你這個case🔥）
-          if (isRecordPage && !isMyRecord){
-            return `
-              <div class="row-warning">
-                ⚠️ 本場已擔任：${roleTextMap(myRoleInThisGame)}
-              </div>
-            `;
-          }
-        }
-      
-        // ✅ 同時間其他場（裁判 or 紀錄都會抓）
-        const other = getOtherGameSameDay(g);
-      
-        if (other && !isPast){
-          return `
-            <div class="row-warning">
-              ⚠️ 同時段在另一場地擔任${roleTextMap(other.role)}
-            </div>
-          `;
-        }
-      
-        return '';
-      
-      })()}
+          return '';
+        
+        })()}
 
     <div class="row-mid">
       <div class="team">${g.away_team||''}</div>
