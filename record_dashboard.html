@@ -300,7 +300,7 @@ body {
 
 
 <!-- 共用 Header -->
-<body data-page-title="裁判報名">
+<body data-page-title="紀錄報名" class="page-record">
 
 
 <script src="js/auth.js"></script>
@@ -601,7 +601,7 @@ function render(){
             <div class="card-grid">
               ${
                 finalList.map(g=>renderGameCard(g,{
-                  type:'judge',
+                  type:'record',
                   session:s
                 })).join('')
               }
@@ -631,7 +631,7 @@ function render(){
               <div class="card-grid">
                 ${
                   sorted.map(g=>renderGameCard(g,{
-                    type:'judge',
+                    type:'record',
                     session:s
                   })).join('')
                 }
