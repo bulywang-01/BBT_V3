@@ -80,7 +80,7 @@ function renderGameCard(g, opt={}){
         if (g.my_position){
           return `
             <div class="row-warning">
-              ⚠️ 本場已擔任${roleTextMap(g.my_position)}
+              ⚠️ 本場賽事擔任${roleTextMap(g.my_position)}
             </div>
           `;
         }
@@ -91,7 +91,7 @@ function renderGameCard(g, opt={}){
         if (other && !isPast){
           return `
             <div class="row-warning">
-              ⚠️ 此時段在另一場擔任${roleTextMap(other.role)}
+              ⚠️ 同時段在另一場地擔任${roleTextMap(other.role)}
             </div>
           `;
         }
@@ -1052,10 +1052,19 @@ function isMySlot(slot, session){
 
   // ✅ object（新格式）
   if (typeof slot === 'object'){
-    return String(slot.user_id) === String(session.user_id);
+
+    // ✅ 有 user_id → 正常比
+    if (slot.user_id){
+      return String(slot.user_id) === String(session.user_id);
+    }
+
+    // ✅ ❗補強：只有 name（你的case🔥）
+    if (slot.name){
+      return slot.name === session.name;
+    }
   }
 
-  // ✅ string（舊資料 fallback）
+  // ✅ string（舊資料）
   if (typeof slot === 'string'){
     return slot === session.name;
   }
