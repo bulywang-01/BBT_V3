@@ -73,32 +73,32 @@ function renderGameCard(g, opt={}){
       <div class="right">${g.field||''}</div>
     </div>    
 
-    <!-- 警告同場訊息 -->
-        ${(() => {
-        
-          // ✅ 同場身份（最優先）
-          if (g.my_position){
-            return `
-              <div class="row-warning">
-                ⚠️ 本場擔任${roleTextMap(g.my_position)}
-              </div>
-            `;
-          }
-        
-          // ✅ 同時間其它場
-          const other = getOtherGameSameDay(g);
-        
-          if (other && !isPast){
-            return `
-              <div class="row-warning">
-                ⚠️ 在另一場地擔任${roleTextMap(other.role)}
-              </div>
-            `;
-          }
-        
-          return '';
-        
-        })()}
+    <!-- 警告同場訊息　renderGameCard WARNING -->
+      ${(() => {
+      
+        // ✅ 本場已有身份
+        if (g.my_position){
+          return `
+            <div class="row-warning">
+              ⚠️ 本場已擔任${roleTextMap(g.my_position)}
+            </div>
+          `;
+        }
+      
+        // ✅ 同時間其他場（裁判 or 紀錄都會抓）
+        const other = getOtherGameSameDay(g);
+      
+        if (other && !isPast){
+          return `
+            <div class="row-warning">
+              ⚠️ 此時段在另一場擔任${roleTextMap(other.role)}
+            </div>
+          `;
+        }
+      
+        return '';
+      
+      })()}
 
     <div class="row-mid">
       <div class="team">${g.away_team||''}</div>
@@ -128,7 +128,7 @@ function renderGameCard(g, opt={}){
               if (name){
                 // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
                 const slot = g.judges?.[role];
-                const isMe = isMySlot(slot, s);
+                const isMe = isMySlot(slot, session);
 
                 return `
                 <div class="slot">
@@ -179,7 +179,7 @@ function renderGameCard(g, opt={}){
 
           if (slot){
 
-           const isMe = isMySlot(slot, s);
+           const isMe = isMySlot(slot, session);
 
             return `
             <div class="slot">
@@ -335,7 +335,7 @@ function renderJudgeSlots(g, isPast, session){
         if (name){
 
           const slot = g.judges?.[role];
-          const isMe = isMySlot(slot, s);
+          const isMe = isMySlot(slot, session);
 
           return `
             <div class="mobile-pos">
@@ -404,7 +404,7 @@ function renderRecordSlots(g, isPast, session){
         // ✅ 有人
         if (slot){
           
-          const isMe = isMySlot(slot, s);
+          const isMe = isMySlot(slot, session);
 
           return `
             <div class="record-role ${isMe?'me':'other'}">
@@ -528,7 +528,7 @@ function handleSlotClick(gid, role){
     ? g.records?.[role]
     : g.judges?.[role];
 
-  const isMe = isMySlot(slot, s);
+  const isMe = isMySlot(slot, session);
 
   // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
