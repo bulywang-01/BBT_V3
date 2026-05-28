@@ -125,7 +125,7 @@ function renderGameCard(g, opt={}){
               if (name){
                 // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
                 const slot = g.judges?.[role];
-                const isMe = isMySlot(slot, session);
+                const isMe = isMySlot(slot, s);
 
                 return `
                 <div class="slot">
@@ -168,7 +168,7 @@ function renderGameCard(g, opt={}){
 
           if (slot){
 
-           const isMe = isMySlot(slot, session);
+           const isMe = isMySlot(slot, s);
 
             return `
             <div class="slot">
@@ -212,7 +212,7 @@ function renderGameCard(g, opt={}){
 ========================= */
 function getSameDayOtherFieldGames(g){
 
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!g || !g.date || !s?.user_id) return [];
 
   return __GAME_CACHE.filter(x => {
@@ -248,7 +248,7 @@ function getSameDayOtherFieldGames(g){
 ========================= */
 function getSameTimeOtherGame(g){
 
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!g || !g.date || !s?.user_id) return null;
 
   for (let x of __GAME_CACHE){
@@ -319,7 +319,7 @@ function renderJudgeSlots(g, isPast, session){
         if (name){
 
           const slot = g.judges?.[role];
-          const isMe = isMySlot(slot, session);
+          const isMe = isMySlot(slot, s);
 
           return `
             <div class="mobile-pos">
@@ -388,7 +388,7 @@ function renderRecordSlots(g, isPast, session){
         // ✅ 有人
         if (slot){
           
-          const isMe = isMySlot(slot, session);
+          const isMe = isMySlot(slot, s);
 
           return `
             <div class="record-role ${isMe?'me':'other'}">
@@ -475,7 +475,7 @@ function renderMobileRecord(list, session){
 /*********************************************************
  * ✅ ✅ ✅ 班表名字高亮
 *********************************************************/
-function highlight(name){
+function highlight(name, session){
 
   if (!name) return '';
 
@@ -494,7 +494,6 @@ function highlight(name){
   return `<span style="white-space:nowrap;">${name}</span>`;
 }
 
-
 /*********************************************************
  * ✅ 報名系統完整版本 - slot 點擊判斷（核心）
 *********************************************************/
@@ -503,35 +502,17 @@ function handleSlotClick(gid, role){
   const g = __GAME_CACHE.find(x => x.game_id === gid);
   if (!g) return;
 
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!s || !s.user_id) return;
 
   const isRecord = role.startsWith('REC');
-
-  // ✅ ✅ ✅ 統一判斷是否為自己（核心）
-  function isMySlot(slot){
-
-    if (!slot) return false;
-
-    // ✅ 新格式（object）
-    if (typeof slot === 'object'){
-      return String(slot.user_id) === String(s.user_id);
-    }
-
-    // ✅ 舊格式（string fallback）
-    if (typeof slot === 'string'){
-      return slot === s.name;
-    }
-
-    return false;
-  }
 
   // ✅ 取得 slot
   const slot = isRecord
     ? g.records?.[role]
     : g.judges?.[role];
 
-  const isMe = isMySlot(slot);
+  const isMe = isMySlot(slot, s);
 
   // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
@@ -1030,7 +1011,8 @@ function updateGameCard(g){
 
   const type = el.dataset.type || 'record';
 
-  const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+  // ✅ ✅ ✅ 用統一來源
+  const session = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
 
   el.classList.add('loading');
 
@@ -1039,6 +1021,7 @@ function updateGameCard(g){
     session
   });
 }
+
 
 /* =========================
  ✅ 統一 slot 判斷
