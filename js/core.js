@@ -1066,12 +1066,12 @@ function roleTextMap(role){
 
   const map = {
     PU:'主審',
-    U1:'一壘',
-    U2:'二壘',
-    U3:'三壘',
-    REC_MAIN:'紀錄',
-    REC_TRAINEE:'見習',
-    REC_VIDEO:'影像'
+    U1:'一壘審',
+    U2:'二壘審',
+    U3:'三壘審',
+    REC_MAIN:'紀錄員',
+    REC_TRAINEE:'見習紀錄員',
+    REC_VIDEO:'影像紀錄員'
   };
 
   return map[role] || role;
