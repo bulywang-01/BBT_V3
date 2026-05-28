@@ -73,7 +73,7 @@ function renderGameCard(g, opt={}){
       <div class="right">${g.field||''}</div>
     </div>    
 
-    // 警告同場訊息
+    <!-- 警告同場訊息 -->
     ${(() => {
     
       const hit = getSameTimeOtherGame(g);
