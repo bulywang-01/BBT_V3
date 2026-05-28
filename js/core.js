@@ -260,17 +260,22 @@ function getSameDayOtherFieldGames(g){
 /* =========================
  ✅ 同時間另一場（提示用）
 ========================= */
+function toMinutes(t){
+  if (!t) return 0;
+  const [h,m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
 function getOtherGameSameDay(g){
 
   const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!g || !g.date || !s?.user_id) return null;
 
+  const t = toMinutes(getTime(g));
+
   for (let x of __GAME_CACHE){
 
-    // ✅ 排除自己
     if (x.game_id === g.game_id) continue;
-
-    // ✅ 同一天
     if (x.date !== g.date) continue;
 
     let role = null;
@@ -293,12 +298,12 @@ function getOtherGameSameDay(g){
       }
     }
 
-    // ✅ 沒命中 → 下一場
     if (!role) continue;
 
-    // ✅ ✅ ✅ 關鍵（你這版要的）
-    // 只在「同時間」顯示 warning
-    if (getTime(x) !== getTime(g)) continue;
+    // ✅ ✅ ✅ 用分鐘比（重要）
+    const t2 = toMinutes(getTime(x));
+
+    if (Math.abs(t2 - t) > 5) continue; // 允許5分鐘誤差
 
     return {
       game: x,
@@ -308,7 +313,6 @@ function getOtherGameSameDay(g){
 
   return null;
 }
-
 
 
 /* =========================
@@ -1093,7 +1097,11 @@ function isSameTimeOtherFieldLocked(g){
     if (x.date !== g.date) return false;
 
     // ✅ 同時間
-    if (getTime(x) !== t) return false;
+    const t1 = toMinutes(getTime(g));
+    const t2 = toMinutes(getTime(x));
+    
+    if (Math.abs(t1 - t2) > 5) return false;
+
 
     // ✅ 不同場地
     if ((x.field||'') === (g.field||'')) return false;
