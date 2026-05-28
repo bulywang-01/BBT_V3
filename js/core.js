@@ -262,7 +262,7 @@ function getSameDayOtherFieldGames(g){
 ========================= */
 function getOtherGameSameDay(g){
 
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!g || !g.date || !s?.user_id) return null;
 
   for (let x of __GAME_CACHE){
@@ -1082,7 +1082,7 @@ function roleTextMap(role){
 ========================= */
 function isSameTimeOtherFieldLocked(g){
 
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!g || !s?.user_id) return false;
 
   const t = getTime(g);
