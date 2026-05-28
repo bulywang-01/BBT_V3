@@ -540,16 +540,15 @@ function render(){
 
   const dateMap = {};
 
-  // ✅ ✅ ✅ 正確位置（重點）
+  // ✅ 分日期
   games.forEach(g=>{
 
     if (!shouldRenderGame(g)) return;
 
-    // ✅ ✅ ✅ 月份過濾（修這裡）
+    // ✅ 月份過濾
     if (window.currentMonth !== null){
       const d = new Date(g.date.replace(/\//g,'-'));
-      const m = d.getMonth()+1;
-
+      const m = d.getMonth() + 1;
       if (m !== window.currentMonth) return;
     }
 
@@ -557,8 +556,9 @@ function render(){
     dateMap[g.date].push(g);
   });
 
+  // ✅ 日期排序
   Object.keys(dateMap)
-    .sort((a,b)=>new Date(a)-new Date(b))
+    .sort((a,b)=>new Date(a) - new Date(b))
     .forEach(date=>{
 
       root.innerHTML += `
@@ -569,31 +569,82 @@ function render(){
 
       const list = dateMap[date];
 
-      const categoryMap = {};
+      // ✅ ✅ ✅ 場地分組（核心）
+      const fieldMap = {};
 
       list.forEach(g=>{
-        const cat = g.category || '未分類';
-        if (!categoryMap[cat]) categoryMap[cat] = [];
-        categoryMap[cat].push(g);
+        const field = g.field || '未分類場地';
+        if (!fieldMap[field]) fieldMap[field] = [];
+        fieldMap[field].push(g);
       });
 
-      Object.keys(categoryMap).forEach(cat=>{
+      // ✅ ✅ ✅ 每個場地處理
+      Object.keys(fieldMap).forEach(field=>{
 
-        root.innerHTML += `
-          <div class="category-title">${cat}</div>
-          <div class="card-grid">
-            ${
-              categoryMap[cat]
-              .sort((a,b)=>getTime(a).localeCompare(getTime(b)))
-              .map(g=>renderGameCard(g,{type:'record',session:s}))
-              .join('')
-            }
-          </div>
-        `;
+        const gamesInField = fieldMap[field];
+
+        // ✅ 是否多組別
+        const hasMultiCategory =
+          new Set(gamesInField.map(x=>x.category)).size > 1;
+
+        let finalList = [];
+
+        if (hasMultiCategory){
+
+          // ✅ ✅ ✅ 同場地不同組 → 全部依時間排序（關鍵）
+          finalList = gamesInField.sort((a,b)=>
+            timeToMinutes(getTime(a)) - timeToMinutes(getTime(b))
+          );
+
+          root.innerHTML += `
+            <div class="category-title">${field}</div>
+            <div class="card-grid">
+              ${
+                finalList.map(g=>renderGameCard(g,{
+                  type:'judge',
+                  session:s
+                })).join('')
+              }
+            </div>
+          `;
+
+        } else {
+
+          // ✅ ✅ ✅ 單一組別 → 保留 category 分組
+          const categoryMap = {};
+
+          gamesInField.forEach(g=>{
+            const cat = g.category || '未分類';
+            if (!categoryMap[cat]) categoryMap[cat] = [];
+            categoryMap[cat].push(g);
+          });
+
+          Object.keys(categoryMap).forEach(cat=>{
+
+            const sorted = categoryMap[cat]
+              .sort((a,b)=>
+                timeToMinutes(getTime(a)) - timeToMinutes(getTime(b))
+              );
+
+            root.innerHTML += `
+              <div class="category-title">${cat}</div>
+              <div class="card-grid">
+                ${
+                  sorted.map(g=>renderGameCard(g,{
+                    type:'judge',
+                    session:s
+                  })).join('')
+                }
+              </div>
+            `;
+          });
+        }
+
       });
 
     });
 }
+
 
 // ✅ 裁判頁手機版：依 日期 → 組別 → 場次 分組
 function groupGamesForMobile(games) {
