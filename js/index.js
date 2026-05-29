@@ -657,7 +657,51 @@ function renderHomeCard(g){
 
   return `
     <div class="game-card ${colorClass}">
-      ${renderGameCard(g)}
+
+      <div class="row-top">
+        <div>${formatDateTW(g.date)}</div>
+        <div class="center">${g.category||''}</div>
+        <div class="right">${g.field||''}</div>
+      </div>
+
+      <div class="row-mid">
+        <div class="team">${g.away_team||''}</div>
+
+        <div class="center-box">
+          <div class="game-code">${g.game_code||''}</div>
+          <div class="time">${getTime(g)}</div>
+        </div>
+
+        <div class="team">${g.home_team||''}</div>
+      </div>
+
+      <!-- ✅ ✅ ✅ 6欄（裁判3 + 紀錄3） -->
+      <div class="row-all">
+        <div class="row-inner">
+
+          <!-- ✅ 職稱 -->
+          <div class="row-line header">
+            <div class="col">主審</div>
+            <div class="col">一壘</div>
+            <div class="col">三壘</div>
+            <div class="col">紀錄</div>
+            <div class="col">見習</div>
+            <div class="col">影像</div>
+          </div>
+
+          <!-- ✅ 名字 -->
+          <div class="row-line values">
+            <div class="col">${safeName(g.judges?.PU) || '—'}</div>
+            <div class="col">${safeName(g.judges?.U1) || '—'}</div>
+            <div class="col">${safeName(g.judges?.U3) || '—'}</div>
+            <div class="col">${safeName(g.records?.REC_MAIN) || '—'}</div>
+            <div class="col">${safeName(g.records?.REC_TRAINEE) || '—'}</div>
+            <div class="col">${safeName(g.records?.REC_VIDEO) || '—'}</div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   `;
 }
