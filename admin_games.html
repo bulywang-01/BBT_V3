@@ -1191,12 +1191,21 @@ function addRow(){
       <input placeholder="場地" data="field">
       <input placeholder="客隊" data="away">
       <input placeholder="主隊" data="home">
+
+      <!-- ✅ status -->
+      <select data="status">
+        <option value="0">正常</option>
+        <option value="1">延賽</option>
+        <option value="2">停賽</option>
+      </select>
     </div>
+
     <button onclick="this.parentElement.remove()">取消</button>
   `;
 
   wrap.appendChild(div);
 }
+
 
 // 批次送出
 function saveAll(){
@@ -1217,14 +1226,14 @@ function saveAll(){
   function next(){
 
     if (i >= rows.length){
+
       hideSaving();
-      showToast(`✅ ${success} 成功 / ❌ ${fail} 失敗`);
+      showToast(`✅ ${success} 成功 / ❌ ${fail} 失敗`,3000);
       loadGames();
       return;
     }
 
     const r = rows[i];
-
     const get = k => r.querySelector(`[data="${k}"]`)?.value || '';
 
     const data = {
@@ -1234,15 +1243,21 @@ function saveAll(){
       time:get('time'),
       field:get('field'),
       away_team:get('away'),
-      home_team:get('home')
+      home_team:get('home'),
+      status:get('status') || '0'
     };
 
     showSaving(`儲存中 (${i+1} / ${rows.length})`);
 
-    if (!data.date || !data.time){
+    // ✅ ✅ ✅ 驗證
+    const err = validateGame(data);
+
+    if (err){
       fail++;
-      markRow(r,'error','缺日期/時間');
-      i++; next(); return;
+      markRow(r,'error',err);
+      i++;
+      next();
+      return;
     }
 
     callApi(data,function(res){
@@ -1252,7 +1267,7 @@ function saveAll(){
         markRow(r,'success');
       }else{
         fail++;
-        markRow(r,'error','API錯誤');
+        markRow(r,'error',res?.message || 'API錯誤');
       }
 
       i++;
@@ -1262,6 +1277,7 @@ function saveAll(){
 
   next();
 }
+
 
 // 失敗可單筆送出
 function retryRow(row){
@@ -1331,6 +1347,47 @@ function markRow(row,type,msg=''){
   }
 }
 
+// 驗證function
+function validateGame(data){
+
+  // ✅ 場次
+  if (!data.game_code){
+    return '請填寫場次';
+  }
+
+  // ✅ 日期
+  if (!data.date){
+    return '日期不可空白';
+  }
+
+  // ✅ 時間
+  if (!data.time){
+    return '時間不可空白';
+  }
+
+  // ✅ 時間格式檢查
+  if (!/^\d{2}:\d{2}$/.test(data.time)){
+    return '時間格式錯誤（HH:mm）';
+  }
+
+  const [hh, mm] = data.time.split(':').map(Number);
+
+  if (hh < 0 || hh > 23 || mm < 0 || mm > 59){
+    return '時間不合理';
+  }
+
+  // ✅ 場地
+  if (!data.field){
+    return '場地不可空白';
+  }
+
+  // ✅ status
+  if (!['0','1','2'].includes(data.status)){
+    return '狀態錯誤';
+  }
+
+  return '';
+}
 
 </script>
 
