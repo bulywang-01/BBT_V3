@@ -1074,15 +1074,30 @@ function renderGames(list){
   // 日期時間正確呈現
   const rawList = list.map(g => {
   
-    const d = g.date || g._date || '';
-    const t = g.time || g.time_range || '';
+    let d = '';
+    let t = '';
+  
+    // ✅ 日期 fallback
+    if (g.date) {
+      d = g.date;
+    } else if (g._date) {
+      d = g._date;
+    }
+  
+    // ✅ 時間 fallback（這次關鍵）
+    if (g.time) {
+      t = g.time;
+    } else if (g.time_range) {
+      t = g.time_range;
+    }
   
     return {
       ...g,
-      _date: normalizeDate(d),
-      _time: normalizeTime(t)
+      _date: d ? normalizeDate(d) : '',
+      _time: t ? normalizeTime(t) : ''
     };
   });
+
 
   const filtered = filterGames(rawList);  // ✅ 改名字
 
@@ -1114,8 +1129,8 @@ function renderGames(list){
     html += `
       <tr>
         <td>${g.game_code || ''}</td>
-        <td>${g._date}</td>
-        <td>${g._time}</td>
+        <td>${g._date || '-'}</td>
+        <td>${g._time || '-'}</td>
         <td>${g.field || ''}</td>
         <td>${g.away_team || ''} vs ${g.home_team || ''}</td>
         <td>
