@@ -558,8 +558,7 @@ function loadGames() {
 
   showLoading('賽事資料載入中...');
 
-  callApiPost({ action: 'getGames' })
-    .then(res => {
+  callApi({ action:'getGames' }, function(res){
 
       try {
 
