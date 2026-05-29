@@ -1146,6 +1146,8 @@ function renderGames(list){
       <th>場次</th>
       <th>日期</th>
       <th>時間</th>
+      <th>時長</th>
+      <th>賽事</th>
       <th>場地</th>
       <th>組別</th>
       <th>對戰</th>
@@ -1164,6 +1166,8 @@ function renderGames(list){
         <td>${g.game_code || ''}</td>
         <td>${g._date || '-'}</td>
         <td>${g._time || '-'}</td>
+        <td>${g.duration ?? '-'}</td>
+        <td>${g.tournament || '-'}</td>
         <td>${g.field || ''}</td>
         <td>${g.category || '-'}</td>
         <td>${g.away_team || ''} vs ${g.home_team || ''}</td>
@@ -1546,13 +1550,26 @@ function editRow(id){
   const category  = cells[4].textContent.trim();
   const teams     = cells[5].textContent.trim();
   const umpire    = cells[6].textContent.trim();
-
+  const duration = cells[7].textContent.trim();
+  const tournament = cells[8].textContent.trim();
   const [away, home] = teams.split(' vs ');
 
   tr.innerHTML = `
     <td><input id="e_code_${id}" value="${game_code}"></td>
     <td><input type="date" id="e_date_${id}" value="${date !== '-' ? date : ''}"></td>
     <td><input type="time" id="e_time_${id}" value="${time !== '-' ? time : ''}"></td>
+    
+    <td>
+      <input type="number" min="0" max="300"
+        id="e_duration_${id}"
+        value="${duration !== '-' ? duration : ''}">
+    </td>
+    
+    <td>
+      <input id="e_tournament_${id}"
+        value="${tournament !== '-' ? tournament : ''}">
+    </td>
+
     <td><input id="e_field_${id}" value="${field}"></td>
     <td><input id="e_category_${id}" value="${category !== '-' ? category : ''}"></td>
     <td>
@@ -1572,10 +1589,19 @@ function editRow(id){
 // 編輯後儲存
 function saveRow(id){
 
+  const durationVal = Number(document.getElementById(`e_duration_${id}`).value);
+  
+  if (durationVal < 0 || durationVal > 300){
+    alert('比賽時間請輸入 0～300 分鐘');
+    return;
+  }
+
   const data = [
     ['game_code', document.getElementById(`e_code_${id}`).value],
     ['date', document.getElementById(`e_date_${id}`).value],
     ['time', document.getElementById(`e_time_${id}`).value],
+    ['duration', document.getElementById(`e_duration_${id}`).value],
+    ['tournament', document.getElementById(`e_tournament_${id}`).value],
     ['field', document.getElementById(`e_field_${id}`).value],
     ['category', document.getElementById(`e_category_${id}`).value],
     ['away_team', document.getElementById(`e_away_${id}`).value],
