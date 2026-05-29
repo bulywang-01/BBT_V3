@@ -154,6 +154,33 @@
       border: 1px solid #d6a300;
     }
 
+    /* 比賽狀態呈現 */
+    .status-badge{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:600;
+    }
+    
+    /* ✅ 正常（綠） */
+    .status-0{
+      background:#dcfce7;
+      color:#166534;
+    }
+    
+    /* ✅ 延賽（黃） */
+    .status-1{
+      background:#fef9c3;
+      color:#854d0e;
+    }
+    
+    /* ✅ 停賽（灰） */
+    .status-2{
+      background:#e5e7eb;
+      color:#374151;
+    }
+
   </style>
 </head>
 
@@ -988,6 +1015,16 @@ function normalizeDateValue(d) {
 
 // 115.5.29 新增
 
+// 賽事狀態
+function statusText(s){
+
+  if (s == 1 || s === '1' || s === '延賽') return '延賽';
+  if (s == 2 || s === '2' || s === '停賽') return '停賽';
+
+  return '正常';
+}
+
+
 // 過濾：本週/本月/顯示已完成
 function filterGames(list){
 
@@ -1067,7 +1104,11 @@ function renderGames(res){
         <td>${g._time}</td>
         <td>${g.field || ''}</td>
         <td>${g.away_team || ''} vs ${g.home_team || ''}</td>
-        <td>${statusText(g.status)}</td>
+        <td>
+          <span class="status-badge status-${g.status || '0'}">
+            ${statusText(g.status)}
+          </span>
+        </td>
         <td>
           <button onclick="deleteGame('${g.game_id}')">刪除</button>
         </td>
