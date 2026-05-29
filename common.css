@@ -386,3 +386,97 @@ body{
     grid-template-columns:1fr;
   }
 }
+
+/* ✅ slot 卡片（整體升級） */
+.slot {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 8px 6px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ✅ label（主審 / 紀錄） */
+.slot .label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+/* ✅ 名字（一般） */
+.slot .name {
+  width: 100%;
+
+  background: #f9fafb;
+  border-radius: 10px;
+
+  padding: 6px 4px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  /* ✅ ✅ ✅ 長名字處理（關鍵🔥） */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  text-align: center;
+}
+
+/* ✅ 自己（高亮） */
+.slot .name.me {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* ✅ ✅ ✅ 待位（明顯區分🔥） */
+.slot.waiting {
+  background: #f3f4f6;
+}
+
+.slot.waiting .name {
+  background: #e5e7eb;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ✅ 取消按鈕 */
+.slot .cancel {
+  margin-top: 6px;
+  font-size: 12px;
+
+  color: #dc2626;
+  background: #fee2e2;
+
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  cursor: pointer;
+}
+
+/* ✅ ✅ ✅ 高一致性（每格等高🔥） */
+.row-bottom {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.slot {
+  min-height: 70px;   /* ✅ 防大小不一致 */
+}
+
+/* ✅ ✅ ✅ 名字太長 → 自動縮字（進階🔥） */
+.slot .name {
+  display: block;
+  max-width: 100%;
+}
+
+/* ✅ 超長名字縮小字體（進階版） */
+.slot .name.long {
+  font-size: 12px;
+}
