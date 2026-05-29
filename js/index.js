@@ -467,7 +467,7 @@ function openWeeklySchedule(){
             `;
 
             /************* ✅ ✅ ✅ 只顯示卡片（組別不再外顯） *************/
-            html += list.map(g => renderGameCard(g)).join('');
+            html += list.map(g => renderWeeklyCard(g)).join('');
 
           });
 
@@ -697,6 +697,54 @@ function renderHomeCard(g){
             <div class="col">${safeName(g.records?.REC_MAIN) || '—'}</div>
             <div class="col">${safeName(g.records?.REC_TRAINEE) || '—'}</div>
             <div class="col">${safeName(g.records?.REC_VIDEO) || '—'}</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+
+function renderWeeklyCard(g){
+
+  return `
+    <div class="weekly-card">
+
+      <div class="game-line-1">
+        <span class="date">${formatDateTW(g.date)}</span>
+        <span class="group">${g.category||''}</span>
+        <span class="code">${g.game_code||''}</span>
+      </div>
+
+      <div class="game-line-2">
+        ${g.away_team || ''} <span>vs</span> ${g.home_team || ''}
+      </div>
+
+      <div class="game-time">${getTime(g)}</div>
+      <div class="game-field">📍 ${g.field || ''}</div>
+
+      <!-- ✅ ✅ ✅ 6欄 -->
+      <div class="row-all">
+        <div class="row-inner">
+        
+          <div class="row-line header">
+            <div class="col">主審</div>
+            <div class="col">一壘</div>
+            <div class="col">三壘</div>
+            <div class="col">紀錄</div>
+            <div class="col">見習</div>
+            <div class="col">影像</div>
+          </div>
+
+          <div class="row-line values">
+            <div class="col">${safeName(g.judges?.PU)}</div>
+            <div class="col">${safeName(g.judges?.U1)}</div>
+            <div class="col">${safeName(g.judges?.U3)}</div>
+            <div class="col">${safeName(g.records?.REC_MAIN)}</div>
+            <div class="col">${safeName(g.records?.REC_TRAINEE)}</div>
+            <div class="col">${safeName(g.records?.REC_VIDEO)}</div>
           </div>
 
         </div>
