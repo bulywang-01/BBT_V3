@@ -1077,7 +1077,7 @@ function renderGames(list){
     _time: normalizeTime(g.time)
   }));
 
-  const list = filterGames(rawList); // ✅ 不再重複宣告
+  const filtered = filterGames(rawList);  // ✅ 改名字
 
   const container = document.getElementById('tableArea');
   container.innerHTML = '';
