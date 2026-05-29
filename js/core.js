@@ -169,7 +169,7 @@ function renderGameCard(g, opt={}){
                 return `
                 <div class="slot">
                   <div class="label">${roleMap(role)}</div>
-                  <div class="name ${isMe?'me':''}">${typeof slot === 'object' ? slot.name : slot}</div>
+                  <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${typeof slot === 'object' ? slot.name : slot}</div>
                   ${
                     isMe && !isPast
                     ? `<div class="cancel"
@@ -220,7 +220,7 @@ function renderGameCard(g, opt={}){
             return `
             <div class="slot">
               <div class="label">${label}</div>
-              <div class="name ${isMe?'me':''}">${slot.name}</div>
+              <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${slot.name}</div>
               ${
                 isMe && !isPast
                 ? `<div class="cancel"
