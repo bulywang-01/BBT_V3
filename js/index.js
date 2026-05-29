@@ -712,20 +712,27 @@ function renderWeeklyCard(g){
   return `
     <div class="weekly-card">
 
-      <div class="game-line-1">
-        <span class="date">${formatDateTW(g.date)}</span>
-        <span class="group">${g.category||''}</span>
-        <span class="code">${g.game_code||''}</span>
+      <!-- ✅ ✅ ✅ 上半部（改成我的班表風格） -->
+      <div class="row-top">
+        <div class="left">${formatDateTW(g.date)}</div>
+        <div class="center">${g.category||''}</div>
+        <div class="right">
+          <span class="field-tag">${g.field||''}</span>
+        </div>
       </div>
 
-      <div class="game-line-2">
-        ${g.away_team || ''} <span>vs</span> ${g.home_team || ''}
+      <div class="row-mid">
+        <div class="team">${g.away_team||''}</div>
+
+        <div class="center-box">
+          <div class="game-code">${g.game_code||''}</div>
+          <div class="time">${getTime(g)}</div>
+        </div>
+
+        <div class="team">${g.home_team||''}</div>
       </div>
 
-      <div class="game-time">${getTime(g)}</div>
-      <div class="game-field">📍 ${g.field || ''}</div>
-
-      <!-- ✅ ✅ ✅ 6欄 -->
+      <!-- ✅ ✅ ✅ 名單（維持你現在6欄） -->
       <div class="row-all">
         <div class="row-inner">
         
