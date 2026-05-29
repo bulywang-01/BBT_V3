@@ -1074,27 +1074,34 @@ function renderGames(list){
   // 日期時間正確呈現
   const rawList = list.map(g => {
   
-    let d = '';
-    let t = '';
+    let _date = '';
+    let _time = '';
   
-    // ✅ 日期 fallback
+    // ✅ 日期（Date物件）
     if (g.date) {
-      d = g.date;
-    } else if (g._date) {
-      d = g._date;
+      const d = new Date(g.date);
+      if (!isNaN(d)) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        _date = `${y}-${m}-${dd}`;
+      }
     }
   
-    // ✅ 時間 fallback（這次關鍵）
+    // ✅ 時間（Excel time 1899）
     if (g.time) {
-      t = g.time;
-    } else if (g.time_range) {
-      t = g.time_range;
+      const t = new Date(g.time);
+      if (!isNaN(t)) {
+        const hh = String(t.getHours()).padStart(2, '0');
+        const mm = String(t.getMinutes()).padStart(2, '0');
+        _time = `${hh}:${mm}`;
+      }
     }
   
     return {
       ...g,
-      _date: d ? normalizeDate(d) : '',
-      _time: t ? normalizeTime(t) : ''
+      _date,
+      _time
     };
   });
 
