@@ -184,12 +184,22 @@ body{
 }
 
 .slot.action{
-  background: #2563eb;
   border-radius: 10px;
   padding: 6px 0;
   transition: 0.2s;
   display: block;          /* ✅ 關鍵 */
   width: 100%;             /* ✅ 吃滿整格 */
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  color: #fff;
+  padding: 10px 0;
+  border-radius: 14px;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+
+  /* ✅ 立體感 */
+  box-shadow: 0 3px 0 #1e40af;
+  transition: all 0.12s ease-in-out;
 }
 
 .slot.action .btn {
@@ -211,6 +221,15 @@ body{
 
   /* ✅ 動畫 */
   transition: all 0.12s ease-in-out;
+}
+
+.slot.action .label {
+  color: rgba(255,255,255,0.8);
+}
+
+.slot.action:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1e40af;
 }
 
 .slot.action:active .btn {
