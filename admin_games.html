@@ -1263,11 +1263,45 @@ function saveAll(){
   next();
 }
 
+// 失敗可單筆送出
+function retryRow(row){
+
+  row.style.background = '';
+  const err = row.querySelector('.err');
+  if (err) err.remove();
+
+  const get = k => row.querySelector(`[data="${k}"]`)?.value || '';
+
+  const data = {
+    action:'createGame',
+    game_code:get('code'),
+    date:get('date'),
+    time:get('time'),
+    field:get('field'),
+    away_team:get('away'),
+    home_team:get('home')
+  };
+
+  callApi(data,function(res){
+
+    if (res && res.result === 'ok'){
+      markRow(row,'success');
+    }else{
+      markRow(row,'error','重送失敗');
+    }
+  });
+}
+
 // 標記（成功 / 失敗）
 function markRow(row,type,msg=''){
 
   if (type==='success'){
     row.style.background='#dcfce7';
+
+    // ✅ 1秒後自動消失
+    setTimeout(()=>{
+      row.remove();
+    },1000);
   }
 
   if (type==='error'){
@@ -1282,8 +1316,21 @@ function markRow(row,type,msg=''){
       row.appendChild(el);
     }
     el.textContent=msg;
+
+    // ✅ 加重送按鈕（重要）
+    if (!row.querySelector('.retry-btn')){
+      const btn = document.createElement('button');
+      btn.textContent = '重送';
+      btn.className = 'retry-btn';
+      btn.style.marginTop = '6px';
+
+      btn.onclick = ()=>retryRow(row);
+
+      row.appendChild(btn);
+    }
   }
 }
+
 
 </script>
 
