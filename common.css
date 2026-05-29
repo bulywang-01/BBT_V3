@@ -68,15 +68,37 @@ body{
 ========================= */
 .game-card{
   background:#fff;
-  border-radius:14px;
+  border-radius:16px;
   padding:16px;
   margin:14px;
-  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+  box-shadow:0 4px 14px rgba(0,0,0,0.08);
 }
 
-.expired{
-  background:#f3f4f6;
-  opacity:0.8;
+/* =========================
+ ✅ 上方資訊
+========================= */
+.row-top{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  font-size:14px;
+}
+
+.row-top .center{
+  text-align:center;
+  font-weight:700;
+}
+
+.row-top .right{
+  justify-self:end;
+
+  background:#6b7280;
+  color:#fff;
+
+  padding:3px 10px;
+  border-radius:999px;
+
+  font-size:12px;
 }
 
 /* =========================
@@ -86,17 +108,19 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
-  margin:10px 0;
+  margin:12px 0;
 }
 
 .team{
   flex:1;
-  background:#f0f2f6;
+  background:#f1f5f9;
   border-radius:12px;
   padding:12px;
+
   text-align:center;
   font-size:16px;
   font-weight:700;
+
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -113,80 +137,61 @@ body{
 }
 
 /* =========================
- ✅ row-top（修正置中）
-========================= */
-.row-top{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items:center;
-  font-size:14px;
-}
-
-.row-top .center{
-  text-align:center;
-  font-weight:600;
-}
-
-.row-top .right{
-  justify-self:end;
-  background:#6b7280;
-  color:#fff;
-  padding:3px 8px;
-  border-radius:999px;
-  font-size:12px;
-}
-
-/* =========================
- ✅ WARNING
+ ✅ 警告
 ========================= */
 .row-warning{
-  margin-top:8px;
-  background:#fff7ed;
-  border:1px solid #fdba74;
+  margin-top:10px;
+  padding:8px 10px;
+
   border-radius:10px;
-  padding:6px 10px;
+  background:#fff7ed;
+
+  border:1px solid #fdba74;
   font-size:13px;
 }
 
 /* =========================
- ✅ SLOT（最終整合）
+ ✅ SLOT（核心UI🔥）
 ========================= */
 .row-bottom{
   display:grid;
-  grid-template-columns: repeat(3,1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
 
+/* ✅ 格子 */
 .slot{
-  background:#ffffff;
-  border-radius:12px;
-  padding:8px;
-
   display:flex;
   flex-direction:column;
-  align-items:center;
   justify-content:center;
+  align-items:center;
 
-  min-height:70px;
+  background:#fff;
+  border-radius:14px;
+  padding:10px;
 
-  box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  min-height:78px;
+
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+
+  transition:.15s;
 }
 
-/* label */
+/* ✅ label */
 .slot .label{
   font-size:12px;
   color:#6b7280;
 }
 
-/* 名字 */
+/* ✅ 名字 */
 .slot .name{
   width:100%;
-  margin-top:4px;
+  margin-top:6px;
 
-  background:#f3f4f6;
+  padding:6px 6px;
   border-radius:8px;
 
-  padding:6px 4px;
+  background:#f3f4f6;
 
   font-size:14px;
   font-weight:600;
@@ -198,13 +203,15 @@ body{
   text-align:center;
 }
 
-/* 自己 */
+/* ✅ 自己 */
 .slot .name.me{
   background:#dbeafe;
   color:#1d4ed8;
 }
 
-/* 待位 */
+/* =========================
+ ✅ 待位
+========================= */
 .slot.waiting{
   background:#f3f4f6;
 }
@@ -215,11 +222,16 @@ body{
   font-weight:500;
 }
 
-/* ✅ ✅ ✅ 報名按鈕（唯一版本） */
+/* =========================
+ ✅ ✅ ✅ 報名按鈕（最終版🔥）
+========================= */
 .slot.action{
   background:linear-gradient(180deg,#3b82f6,#2563eb);
   color:#fff;
+
   cursor:pointer;
+
+  box-shadow:0 4px 0 #1e40af;
 }
 
 .slot.action .label{
@@ -227,41 +239,43 @@ body{
 }
 
 .slot.action .btn{
-  font-weight:700;
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:1px;
 }
 
-/* ✅ 點擊效果 */
+/* ✅ hover */
+.slot.action:hover{
+  filter:brightness(1.05);
+}
+
+/* ✅ 按壓 */
 .slot.action:active{
-  transform:translateY(2px);
+  transform:translateY(3px);
   box-shadow:0 1px 0 #1e40af;
 }
 
-/* ✅ 取消 */
+/* =========================
+ ✅ 取消
+========================= */
 .cancel{
   margin-top:6px;
   font-size:12px;
-  color:#dc2626;
+
   background:#fee2e2;
-  padding:2px 8px;
+  color:#dc2626;
+
+  padding:3px 10px;
   border-radius:999px;
 }
 
 /* =========================
- ✅ 卡片 grid
-========================= */
-.card-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-  gap:16px;
-  padding:0 16px 10px;
-}
-
-/* =========================
- ✅ 響應式
+ ✅ RWD
 ========================= */
 @media(max-width:768px){
-  .card-grid{
-    grid-template-columns:1fr;
+
+  .row-bottom{
+    gap:8px;
   }
 
   .team{
