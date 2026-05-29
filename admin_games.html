@@ -1111,7 +1111,7 @@ function renderGames(list){
   const container = document.getElementById('tableArea');
   container.innerHTML = '';
 
-  if (!list.length){
+  if (!filtered.length){
     container.innerHTML = `<div class="panel">沒有資料</div>`;
     return;
   }
@@ -1132,7 +1132,7 @@ function renderGames(list){
   </thead><tbody>
   `;
 
-  list.forEach(g=>{
+  filtered.forEach(g=>{
     html += `
       <tr>
         <td>${g.game_code || ''}</td>
