@@ -286,3 +286,83 @@ body{
     font-size:16px;
   }
 }
+
+
+/* 115.05.29 新增 */
+
+/* =========================
+ ✅ ✅ ✅ FINAL PATCH（手感強化）
+========================= */
+
+/* ✅ slot hover（桌機很重要） */
+.slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+/* ✅ 名單卡片更立體 */
+.slot .name {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+/* ✅ 自己更跳 */
+.slot .name.me {
+  background: linear-gradient(135deg,#dbeafe,#bfdbfe);
+  border: 1px solid #93c5fd;
+}
+
+/* ✅ 待位更「禁用感」 */
+.slot.waiting {
+  opacity: 0.75;
+}
+
+.slot.waiting .name {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+/* ✅ ✅ ✅ 報名按鈕再升級（關鍵🔥） */
+.slot.action {
+  background: linear-gradient(180deg,#3b82f6,#2563eb);
+  color: #fff;
+
+  box-shadow: 
+    0 4px 0 #1e40af,
+    0 8px 14px rgba(37,99,235,0.35);
+
+  transition: all .12s ease;
+}
+
+/* ✅ hover 提升 */
+.slot.action:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 0 #1e40af,
+    0 10px 18px rgba(37,99,235,0.4);
+}
+
+/* ✅ 按下 */
+.slot.action:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #1e40af;
+}
+
+/* ✅ 文字更有按鈕感 */
+.slot.action .btn {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+/* ✅ 警告更明顯 */
+.row-warning {
+  background: linear-gradient(180deg,#fff7ed,#ffedd5);
+}
+
+/* ✅ 卡片 hover（整張） */
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+  transition: .15s;
+}
