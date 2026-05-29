@@ -1071,11 +1071,18 @@ function filterGames(list){
 
 function renderGames(list){
 
-  const rawList = list.map(g => ({
-    ...g,
-    _date: normalizeDate(g.date),
-    _time: normalizeTime(g.time)
-  }));
+  // 日期時間正確呈現
+  const rawList = list.map(g => {
+  
+    const d = g.date || g._date || '';
+    const t = g.time || g.time_range || '';
+  
+    return {
+      ...g,
+      _date: normalizeDate(d),
+      _time: normalizeTime(t)
+    };
+  });
 
   const filtered = filterGames(rawList);  // ✅ 改名字
 
