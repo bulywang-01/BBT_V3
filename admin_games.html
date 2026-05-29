@@ -238,7 +238,7 @@
         顯示已完成
       </label>
   
-      <input id="searchInput" placeholder="搜尋賽事 / 場地 / 球隊">
+      <!-- <input id="searchInput" placeholder="搜尋賽事 / 場地 / 球隊"> -->
   
     </div>
   </div>
@@ -1027,49 +1027,36 @@ function filterGames(list){
 
 function renderGames(res){
 
-  
-  const list = filterGames(rawList);
-
-  const container = document.getElementById('tableArea');
-  container.innerHTML = '';
-
-  if (!res || res.result !== 'ok'){
-    container.innerHTML = `<div class="panel">⚠️ API異常</div>`;
-    return;
-  }
-
-  const games = res.games || [];
-
-  if (!games.length){
-    container.innerHTML = `<div class="panel">目前沒有賽事</div>`;
-    return;
-  }
-
-  const list = games.map(g => ({
+  const rawList = (res.games || []).map(g => ({
     ...g,
     _date: normalizeDate(g.date),
     _time: normalizeTime(g.time)
   }));
 
-  list.sort((a,b)=>
-    new Date(a._date + 'T' + a._time)
-  - new Date(b._date + 'T' + b._time)
-  );
+  const list = filterGames(rawList); // ✅ 不再重複宣告
+
+  const container = document.getElementById('tableArea');
+  container.innerHTML = '';
+
+  if (!list.length){
+    container.innerHTML = `<div class="panel">沒有資料</div>`;
+    return;
+  }
 
   let html = `
   <div class="panel">
-    <table class="styled-table">
-    <thead>
+  <table class="styled-table">
+  <thead>
     <tr>
       <th>場次</th>
       <th>日期</th>
       <th>時間</th>
       <th>場地</th>
       <th>對戰</th>
+      <th>狀態</th>
       <th>操作</th>
     </tr>
-    </thead>
-    <tbody>
+  </thead><tbody>
   `;
 
   list.forEach(g=>{
@@ -1080,6 +1067,7 @@ function renderGames(res){
         <td>${g._time}</td>
         <td>${g.field || ''}</td>
         <td>${g.away_team || ''} vs ${g.home_team || ''}</td>
+        <td>${statusText(g.status)}</td>
         <td>
           <button onclick="deleteGame('${g.game_id}')">刪除</button>
         </td>
@@ -1087,10 +1075,11 @@ function renderGames(res){
     `;
   });
 
-  html += `</tbody></table></div>`;
+  html += '</tbody></table></div>';
 
   container.innerHTML = html;
 }
+
 
 
 // 115.5.29新增
