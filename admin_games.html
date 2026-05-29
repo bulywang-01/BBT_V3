@@ -1497,7 +1497,9 @@ function addRow(){
 // 批次送出
 function saveAll(){
 
-!rows.length){  const rows = document.querySelectorAll('#newList .new-game-row');
+  const rows = document.querySelectorAll('#newList .new-game-row');
+
+  if (!rows.length){
     alert('沒有資料');
     return;
   }
@@ -1528,14 +1530,14 @@ function saveAll(){
     };
 
     if (!data.date || !data.time){
-      alert('日期時間必填');
+      alert('第 ' + (i+1) + ' 筆：日期時間必填');
       return;
     }
 
     callApi(data,function(res){
 
-      if (res.result !== 'ok'){
-        alert('失敗在第'+(i+1));
+      if (!res || res.result !== 'ok'){
+        alert('❌ 第 ' + (i+1) + ' 筆失敗');
         return;
       }
 
@@ -1548,8 +1550,6 @@ function saveAll(){
 
   next();
 }
-
-
 </script>
 
 <!-- Loading Overlay -->
