@@ -184,14 +184,20 @@ body{
 }
 
 .slot.action{
-  background:#e3f2fd;
-  border:2px dashed #1976d2;
-  cursor:pointer;
-  transition:0.2s;
+  background: #2563eb;
+  border-radius: 10px;
+  padding: 6px 0;
+  transition: 0.2s;
 }
 
-.slot.action:hover{
-  background:#d0e7ff;
+.slot.action .btn {
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.slot.action:hover {
+  background: #1d4ed8;
 }
 
 .slot.disabled{
@@ -224,11 +230,12 @@ body{
   }
 
   .team{
-    font-size:14px;
+    font-size:16px;
+    font-weight: 800;
   }
 
   .center .time{
-    font-size:16px;
+    font-size:17px;
   }
 }
 
