@@ -417,7 +417,7 @@ function callApiAdminBatch(params, callback) {
   qs.set('callback', cbname);
 
   const script = document.createElement('script');
-  script.src = API_URL + '?' + qs.toString();
+  script.src = API_BASE + '?' + qs.toString();
 
   window[cbname] = function (res) {
     try {
@@ -1138,7 +1138,7 @@ function confirmImport() {
 
   showLoading('賽事匯入中，請稍候…');
 
-  fetch(API_URL, {
+  fetch(API_BASE, {
     method: 'POST',
     headers: {
       // ✅ 注意：這一行一定要有
@@ -1294,7 +1294,7 @@ function outputJSON(obj) {
 }
 
 function callApiPost(payload) {
-  return fetch(API_URL, {
+  return fetch(API_BASE, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8'
