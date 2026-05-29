@@ -1071,33 +1071,12 @@ function filterGames(list){
 
 function renderGames(list){
 
-  // 日期時間正確呈現
+  // ✅ 先處理日期時間（後端已是字串，這裡只做保險）
   const rawList = list.map(g => {
-  
-    let _date = '';
-    let _time = '';
-  
-    // ✅ 日期（Date物件）
-    if (g.date) {
-      const d = new Date(g.date);
-      if (!isNaN(d)) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        _date = `${y}-${m}-${dd}`;
-      }
-    }
-  
-    // ✅ 時間（Excel time 1899）
-    if (g.time) {
-      const t = new Date(g.time);
-      if (!isNaN(t)) {
-        const hh = String(t.getHours()).padStart(2, '0');
-        const mm = String(t.getMinutes()).padStart(2, '0');
-        _time = `${hh}:${mm}`;
-      }
-    }
-  
+
+    let _date = g.date || '';
+    let _time = g.time || '';
+
     return {
       ...g,
       _date,
@@ -1105,8 +1084,32 @@ function renderGames(list){
     };
   });
 
+  // ✅ ✅ 排序（重點）
+  rawList.sort((a, b) => {
 
-  const filtered = filterGames(rawList);  // ✅ 改名字
+    // 1️⃣ 日期
+    if (a._date !== b._date){
+      return a._date.localeCompare(b._date);
+    }
+
+    // 2️⃣ 同場地不同組 → 先比時間
+    if (a.field === b.field){
+      if (a._time !== b._time){
+        return a._time.localeCompare(b._time);
+      }
+    }
+
+    // 3️⃣ 組別
+    if ((a.category || '') !== (b.category || '')){
+      return (a.category || '').localeCompare(b.category || '');
+    }
+
+    // 4️⃣ 時間
+    return a._time.localeCompare(b._time);
+  });
+
+  // ✅ 篩選
+  const filtered = filterGames(rawList);
 
   const container = document.getElementById('tableArea');
   container.innerHTML = '';
@@ -1125,23 +1128,28 @@ function renderGames(list){
       <th>日期</th>
       <th>時間</th>
       <th>場地</th>
+      <th>組別</th>
       <th>對戰</th>
+      <th>裁判數</th>
       <th>狀態</th>
       <th>操作</th>
     </tr>
   </thead><tbody>
   `;
 
-  filtered.forEach(g=>{
+  filtered.forEach(g => {
+
     html += `
       <tr>
         <td>${g.game_code || ''}</td>
         <td>${g._date || '-'}</td>
         <td>${g._time || '-'}</td>
         <td>${g.field || ''}</td>
+        <td>${g.category || '-'}</td>
         <td>${g.away_team || ''} vs ${g.home_team || ''}</td>
+        <td>${g.umpire_count ?? '-'}</td>
         <td>
-          <span class="status-badge status-${g.status || '0'}">
+          <span class="status-badge status-${g.status || 0}">
             ${statusText(g.status)}
           </span>
         </td>
