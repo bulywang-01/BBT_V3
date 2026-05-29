@@ -534,14 +534,22 @@ function loadGames(){
 
   callApi({ action:'getGames' }, function(res){
 
-    console.log('games=',res);
+    const container = document.getElementById('gamesContainer');
 
-    renderGames(res);     // ✅ 表格
-    renderCreateArea();   // ✅ 新增（永遠有）
+    // ✅ 永遠先畫新增區
+    container.innerHTML = `
+      <div id="createArea"></div>
+      <div id="tableArea"></div>
+    `;
+
+    renderCreateArea();
+
+    renderGames(res);
 
     hideLoading();
   });
 }
+
 
 
 // 儲存功能
@@ -979,9 +987,50 @@ function normalizeDateValue(d) {
 
 
 // 115.5.29 新增
+
+// 過濾：本週/本月/顯示已完成
+function filterGames(list){
+
+  const mode = document.querySelector('input[name="range"]:checked')?.value || 'all';
+  const showFinished = document.getElementById('showExpired')?.checked;
+
+  const now = new Date();
+
+  return list.filter(g => {
+
+    const dt = new Date(g.date + 'T' + g.time);
+
+    // ✅ 已完成
+    if (!showFinished && dt < now){
+      return false;
+    }
+
+    if (mode === 'week'){
+      const start = new Date();
+      start.setDate(now.getDate() - now.getDay());
+      start.setHours(0,0,0,0);
+
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+
+      return dt >= start && dt < end;
+    }
+
+    if (mode === 'month'){
+      return dt.getMonth() === now.getMonth()
+          && dt.getFullYear() === now.getFullYear();
+    }
+
+    return true;
+  });
+}
+
 function renderGames(res){
 
-  const container = document.getElementById('gamesContainer');
+  
+  const list = filterGames(rawList);
+
+  const container = document.getElementById('tableArea');
   container.innerHTML = '';
 
   if (!res || res.result !== 'ok'){
