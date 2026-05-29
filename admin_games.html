@@ -1560,7 +1560,7 @@ function editRow(id){
       vs
       <input style="width:45%" id="e_home_${id}" value="${home || ''}">
     </td>
-    <td><input type="number" id="e_umpire_${id}" value="${umpire !== '-' ? umpire : 0}"></td>
+    <td><input type="number" min="0" max="4" step="1" id="e_umpire_${id}" value="${umpire !== '-' ? umpire : 0}"></td>
 
     <td colspan="2">
       <button onclick="saveRow(${id})">✅ 儲存</button>
