@@ -193,16 +193,33 @@ body{
 }
 
 .slot.action .btn {
-  letter-spacing: 1px;
-  display: block;          /* ✅ 變成整塊 */
-  width: 100%;             /* ✅ 撐滿 */
-  background: #2563eb;
+  display: block;
+  width: 100%;
+
+  background: linear-gradient(180deg, #3b82f6, #2563eb); /* ✅ 漸層 */
   color: #fff;
-  padding: 6px 0;          /* ✅ 上下撐高 */
-  border-radius: 12px;     /* ✅ 更圓滑 */
+
+  padding: 10px 0;
+  border-radius: 12px;
+
   text-align: center;
   font-size: 14px;
   font-weight: 600;
+
+  /* ✅ 立體感 */
+  box-shadow: 0 3px 0 #1e40af;
+
+  /* ✅ 動畫 */
+  transition: all 0.12s ease-in-out;
+}
+
+.slot.action:active .btn {
+  transform: translateY(2px);     /* ✅ 往下壓 */
+  box-shadow: 0 1px 0 #1e40af;    /* ✅ 陰影變短 */
+}
+
+.slot.action:hover .btn {
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
 }
 
 .slot.action:hover {
@@ -212,6 +229,16 @@ body{
 .slot.disabled{
   background:#f3f4f6;
   color:#aaa;
+}
+
+.slot.waiting .name {
+  background: #e5e7eb;
+  color: #6b7280;
+
+  padding: 8px 0;
+  border-radius: 10px;
+
+  text-align: center;
 }
 
 /* =========================
