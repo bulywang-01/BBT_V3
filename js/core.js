@@ -2,15 +2,30 @@
  ✅ 班表主卡片（唯一UI）
 *********************************************************/
 function renderGameCard(g, opt={}){
+
+
   const session = opt.session || null;
 
+
+  // ✅ ✅ ✅ 自動判斷頁面（核心封裝）
   let type = opt.type;
+
+
   if (!type){
-    type = document.body.classList.contains('page-record') ? 'record' : 'judge';
+    if (document.body.classList.contains('page-record')){
+      type = 'record';
+    } else {
+      type = 'judge';
+    }
   }
+
+
+  const isRecordPage = (type === 'record');
+
 
   const isPast = isPastGame(g.date);
   const judgeRoles = getJudgeRoles(g);
+
 
   const recordRoles = [
     ['REC_MAIN','紀錄'],
@@ -18,195 +33,257 @@ function renderGameCard(g, opt={}){
     ['REC_VIDEO','影像']
   ];
 
+
   const conflict = isTimeConflict(g);
   const myRole = g.my_position;
 
-  function getReason(targetRole, isRecord){
+
+  function getReason(targetRole, isRecordSlot){
+  
     if (conflict) return '時間衝突';
+  
     if (!myRole) return '';
-
+  
     const myIsRecord = myRole.startsWith('REC');
-
-    if (!myIsRecord && !isRecord && myRole !== targetRole){
-      return '待位';
+  
+    // ✅ ✅ ✅ 裁判 VS 裁判（維持）
+    if (!myIsRecord && !isRecordSlot){
+      if (myRole !== targetRole){
+        return '待位';
+      }
     }
-
-    if (myIsRecord && !isRecord) return '紀錄';
-    if (!myIsRecord && isRecord) return '裁判';
-
+  
+    // ✅ ✅ ✅ 紀錄 VS 紀錄（放開，不限制）
+    if (myIsRecord && isRecordSlot){
+      return '';  // ✅ 不限制 ✅
+    }
+  
+    // ✅ ✅ ✅ 裁判 vs 紀錄（互斥）
+    if (myIsRecord && !isRecordSlot){
+      return '紀錄';
+    }
+  
+    if (!myIsRecord && isRecordSlot){
+      return '裁判';
+    }
+  
     return '';
   }
 
+
   return `
   <div class="game-card ${isPast?'expired-card':''}"
-       id="game-${g.game_id}">
+       id="game-${g.game_id}"
+       data-type="${type}">
 
-    <!-- ✅ TOP -->
+
     <div class="row-top">
-      <div>${formatDateTW(g.date)}</div>
+      <div class="left">${formatDateTW(g.date)}</div>
       <div class="center">${g.category||''}</div>
       <div class="right">${g.field||''}</div>
-    </div>
+    </div>    
 
-    <!-- ✅ WARNING -->
-    ${(() => {
 
-      let myRoleHere = null;
+    <!-- 警告同場訊息　renderGameCard WARNING -->
+        ${(() => {
+        
+          // ✅ ✅ ✅ 掃本場你擔任的角色（關鍵🔥）
+          let myRoleHere = null;
+        
+          // 👉 裁判
+          for (let [r,j] of Object.entries(g.judges || {})){
+            if (isMySlot(j, session)){
+              myRoleHere = r;
+              break;
+            }
+          }
+        
+          // 👉 紀錄
+          if (!myRoleHere){
+            for (let [r,v] of Object.entries(g.records || {})){
+              if (isMySlot(v, session)){
+                myRoleHere = r;
+                break;
+              }
+            }
+          }
+        
+          // ✅ ✅ ✅ 本場有角色 → 判斷是否要顯示
+          if (myRoleHere){
+        
+            const isMyRecord = myRoleHere.startsWith('REC');
+        
+            // ✅ 紀錄頁 + 你是裁判 → 顯示（你現在這個case🔥）
+            if (isRecordPage && !isMyRecord){
+              return `
+                <div class="row-warning">
+                  ⚠️ 本場已擔任${roleTextMap(myRoleHere)}
+                </div>
+              `;
+            }
+        
+            // ✅ 裁判頁 + 你是紀錄 → 顯示
+            if (!isRecordPage && isMyRecord){
+              return `
+                <div class="row-warning">
+                  ⚠️ 本場已擔任${roleTextMap(myRoleHere)}
+                </div>
+              `;
+            }
+          }
+        
+          // ✅ ✅ ✅ 再判斷「同時間其他場」
+          const other = getOtherGameSameDay(g);
+        
+          if (other && !isPast){
+            return `
+              <div class="row-warning">
+                ⚠️ 此時段已於另一場地擔任${roleTextMap(other.role)}
+              </div>
+            `;
+          }
+        
+          return '';
+        
+        })()}
 
-      for (let [r,j] of Object.entries(g.judges || {})){
-        if (isMySlot(j, session)){ myRoleHere = r; break; }
-      }
 
-      if (!myRoleHere){
-        for (let [r,v] of Object.entries(g.records || {})){
-          if (isMySlot(v, session)){ myRoleHere = r; break; }
-        }
-      }
-
-      if (myRoleHere){
-        return `
-        <div class="row-warning">
-          ⚠️ 本場已擔任${roleTextMap(myRoleHere)}
-        </div>`;
-      }
-
-      const other = getOtherGameSameDay(g);
-      if (other && !isPast){
-        return `
-        <div class="row-warning">
-          ⚠️ 此時段已於另一場地擔任${roleTextMap(other.role)}
-        </div>`;
-      }
-
-      return '';
-    })()}
-
-    <!-- ✅ 中間 -->
     <div class="row-mid">
       <div class="team">${g.away_team||''}</div>
+
 
       <div class="center-box">
         <div class="game-code">${g.game_code||''}</div>
         <div class="time">${getTime(g)}</div>
       </div>
 
+
       <div class="team">${g.home_team||''}</div>
     </div>
 
-    <!-- ✅ ✅ ✅ 核心：裁判 + 紀錄雙列 -->
+
     <div class="row-bottom">
 
-      <!-- ✅ 裁判列 -->
-      <div class="slot-row">
-        ${
-          judgeRoles.map(role=>{
 
-            const slot = g.judges?.[role];
-            const reason = getReason(role,false);
-            const locked = isSameTimeOtherFieldLocked(g);
+      <!-- ✅ 裁判 -->
+      ${
+        !isRecordPage
+        ? (
+          judgeRoles.length === 0
+          ? `<div class="no-judge">無需裁判</div>`
+          : judgeRoles.map(role=>{
 
-            if (slot){
-              const isMe = isMySlot(slot, session);
-              const name = typeof slot === 'object' ? slot.name : slot;
+
+              const name = g.judges?.[role];
+              const reason = getReason(role,false);
+              const locked = isSameTimeOtherFieldLocked(g);
+
+
+              if (name){
+                // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
+                const slot = g.judges?.[role];
+                const isMe = isMySlot(slot, session);
+
+
+                return `
+                <div class="slot">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${typeof slot === 'object' ? slot.name : slot}</div>
+                  ${
+                    isMe && !isPast
+                    ? `<div class="cancel"
+                         onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
+                    : ''
+                  }
+                </div>`;
+              }
+
+
+              if (isPast){
+                return `<div class="slot"><div class="label">${roleMap(role)}</div><div class="name">—</div></div>`;
+              }
+
+
+              if (reason || locked){
+                return `
+                  <div class="slot waiting">
+                    <div class="label">${roleMap(role)}</div>
+                    <div class="name">
+                      ${locked ? '待位' : reason}
+                    </div>
+                  </div>`;
+
+
+              }
+
 
               return `
-              <div class="slot">
-                <div class="label">${roleMap(role)}</div>
-                <div class="name ${isMe?'me':''} ${name.length>10?'long':''}">
-                  ${name}
-                </div>
-                ${
-                  isMe && !isPast
-                  ? `<div class="cancel"
-                       onclick="handleSlotClick('${g.game_id}','${role}')">
-                       取消
-                     </div>`
-                  : ''
-                }
-              </div>`;
-            }
-
-            if (isPast){
-              return `
-              <div class="slot">
-                <div class="label">${roleMap(role)}</div>
-                <div class="name">—</div>
-              </div>`;
-            }
-
-            if (reason || locked){
-              return `
-              <div class="slot waiting">
-                <div class="label">${roleMap(role)}</div>
-                <div class="name">${locked?'待位':reason}</div>
-              </div>`;
-            }
-
-            return `
-            <div class="slot action"
-              onclick="handleSlotClick('${g.game_id}','${role}')">
-              <div class="label">${roleMap(role)}</div>
-              <div class="btn">報名</div>
-            </div>`;
+                <div class="slot action"
+                  onclick="handleSlotClick('${g.game_id}','${role}')">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="btn"> 報名　</div>
+                </div>`;
           }).join('')
-        }
-      </div>
+        ) : ''
+      }
 
-      <!-- ✅ ✅ ✅ 紀錄列 -->
-      <div class="slot-row record">
-        ${
-          recordRoles.map(([role,label])=>{
 
-            const slot = g.records?.[role];
-            const reason = getReason(role,true);
-            const locked = isSameTimeOtherFieldLocked(g);
+      <!-- ✅ 紀錄 -->
+      ${
+        isRecordPage
+        ? recordRoles.map(([role,label])=>{
 
-            if (slot){
-              const isMe = isMySlot(slot, session);
-              const name = slot.name;
 
-              return `
-              <div class="slot">
-                <div class="label">${label}</div>
-                <div class="name ${isMe?'me':''} ${name.length>10?'long':''}">
-                  ${name}
-                </div>
-                ${
-                  isMe && !isPast
-                  ? `<div class="cancel"
-                       onclick="handleSlotClick('${g.game_id}','${role}')">
-                       取消
-                     </div>`
-                  : ''
-                }
-              </div>`;
-            }
+          const slot = g.records?.[role];
+          const reason = getReason(role,true);
+          const locked = isSameTimeOtherFieldLocked(g);
 
-            if (isPast){
-              return `
-              <div class="slot">
-                <div class="label">${label}</div>
-                <div class="name">—</div>
-              </div>`;
-            }
 
-            if (reason || locked){
-              return `
-              <div class="slot waiting">
-                <div class="label">${label}</div>
-                <div class="name">${locked?'待位':reason}</div>
-              </div>`;
-            }
+          if (slot){
+
+
+           const isMe = isMySlot(slot, session);
+
 
             return `
-            <div class="slot action"
-              onclick="handleSlotClick('${g.game_id}','${role}')">
+            <div class="slot">
               <div class="label">${label}</div>
-              <div class="btn">報名</div>
+              <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${slot.name}</div>
+              ${
+                isMe && !isPast
+                ? `<div class="cancel"
+                     onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
+                : ''
+              }
             </div>`;
-          }).join('')
-        }
-      </div>
+          }
+
+
+          if (isPast){
+            return `<div class="slot"><div class="label">${label}</div><div class="name">—</div></div>`;
+          }
+
+
+          if (reason || locked){
+            return `<div class="slot waiting">
+             <div class="label">${label}</div>
+              <div class="name">${locked ? '待位' : reason}</div>
+             </div>`;
+          }
+
+
+          return `
+          <div class="slot action"
+            onclick="handleSlotClick('${g.game_id}','${role}')">
+            <div class="label">${label}</div>
+            <div class="btn"> 報名　</div>
+          </div>`;
+
+
+        }).join('')
+        : ''
+      }
+
 
     </div>
   </div>
