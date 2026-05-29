@@ -568,7 +568,7 @@ function handleSlotClick(gid, role){
     ? g.records?.[role]
     : g.judges?.[role];
 
-  const isMe = isMySlot(slot, session);
+  const isMe = isMySlot(slot, s);
 
   // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
