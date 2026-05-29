@@ -556,6 +556,8 @@ function isInThisWeekByDateStr(dateStr) {
 
 function loadGames() {
 
+  console.log('getGames res=', res);
+
   showLoading('賽事資料載入中...');
 
   callApi({ action:'getGames' }, function(res){
