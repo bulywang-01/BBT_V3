@@ -198,7 +198,7 @@ function renderGameCard(g, opt={}){
                 <div class="slot action"
                   onclick="handleSlotClick('${g.game_id}','${role}')">
                   <div class="label">${roleMap(role)}</div>
-                  <div class="btn">　報名　　</div>
+                  <div class="btn"> 報名　</div>
                 </div>`;
           }).join('')
         ) : ''
@@ -224,7 +224,7 @@ function renderGameCard(g, opt={}){
               ${
                 isMe && !isPast
                 ? `<div class="cancel"
-                     onclick="handleSlotClick('${g.game_id}','${role}')">　取消　　</div>`
+                     onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
                 : ''
               }
             </div>`;
@@ -245,7 +245,7 @@ function renderGameCard(g, opt={}){
           <div class="slot action"
             onclick="handleSlotClick('${g.game_id}','${role}')">
             <div class="label">${label}</div>
-            <div class="btn">　報名　　</div>
+            <div class="btn"> 報名　</div>
           </div>`;
 
         }).join('')
@@ -387,7 +387,7 @@ function renderJudgeSlots(g, isPast, session){
                 isMe && !isPast
                 ? `<div class="mobile-cancel"
                      onclick="handleSlotClick('${g.game_id}','${role}')">
-                     　取消　　</div>`
+                     取消</div>`
                 : ``
               }
             </div>
@@ -413,7 +413,7 @@ function renderJudgeSlots(g, isPast, session){
           <div class="mobile-pos">
             <div class="mobile-pos-btn"
               onclick="handleSlotClick('${g.game_id}','${role}')">
-              　報名　　
+               報名　
             </div>
           </div>
         `;
@@ -453,7 +453,7 @@ function renderRecordSlots(g, isPast, session){
                 isMe && !isPast
                 ? `<div class="cancel-btn"
                      onclick="handleSlotClick('${g.game_id}','${role}')">
-                     　取消　　
+                     取消
                    </div>`
                 : ''
               }
