@@ -631,7 +631,8 @@ function signupJudge(g, role){
      
       g.my_position = role;
 
-      updateGameCard(g, 'judge');   // ✅ ✅ ✅ 重點（不用 render）
+      // updateGameCard(g, 'judge');   // ✅ ✅ ✅ 重點（不用 render）
+      updateAffectedCards(g);
 
       showToast('✅ 已報名','success');
 
@@ -670,7 +671,8 @@ function signupRecord(g, role){
 
       g.my_position = role;
 
-      updateGameCard(g);
+      // updateGameCard(g);
+      updateAffectedCards(g);
 
       showToast('✅ 已報名','success');
 
@@ -705,6 +707,9 @@ function cancelJudge(g, role){
 
       updateGameCard(g, 'judge');   // ✅ ✅ ✅
 
+      //reloadCurrentView();
+      updateAffectedCards(g)
+     
       showToast('✅ 已取消','success');
 
     } else {
@@ -739,6 +744,9 @@ function cancelRecord(g, role){
       g.my_position = '';
 
       updateGameCard(g);
+
+      //reloadCurrentView();
+      updateAffectedCards(g)
 
       showToast('✅ 已取消','success');
 
@@ -909,7 +917,7 @@ function showToast(msg, type='normal'){
   `;
 
   setTimeout(()=> el.style.opacity = 1, 10);
-  setTimeout(()=> el.style.opacity = 0, 2200);
+  setTimeout(()=> el.style.opacity = 0, 4000);
 }
 
 
@@ -1017,6 +1025,7 @@ function roleMap(r){
 /* =========================
  ✅ 統一 reload（裁判/紀錄共用）
 ========================= */
+// 整頁重整
 function reloadCurrentView(){
 
   const now = new Date();
@@ -1046,6 +1055,30 @@ function reloadCurrentView(){
       loadGames();
     }
   }
+}
+
+//局部重整
+function updateAffectedCards(targetGame){
+
+  const session = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
+  if (!targetGame) return;
+
+  const t1 = toMinutes(getTime(targetGame));
+
+  __GAME_CACHE.forEach(g => {
+
+    // ✅ 同一天
+    if (g.date !== targetGame.date) return;
+
+    const t2 = toMinutes(getTime(g));
+
+    // ✅ 同時間（±5分鐘）
+    if (Math.abs(t1 - t2) > 5) return;
+
+    // ✅ 更新這些卡片
+    updateGameCard(g);
+
+  });
 }
 
 /* =========================
