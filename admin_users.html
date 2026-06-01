@@ -301,7 +301,11 @@ table td {
       })
       .catch(err => console.error('Header 載入失敗', err));
   }
-
+  
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadHeader();   // ✅ 一定要加
+  loadUsers();
+});
 
 function displayLevel(v) {
   return (!v || v === 'N') ? '無' : v;
