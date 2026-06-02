@@ -189,13 +189,14 @@ function renderGameCard(g, opt={}){
 
 
                 return `
-                <div class="slot">
+                <div class="slot" data-gid="${g.game_id}" data-role="${role}">
                   <div class="label">${roleMap(role)}</div>
                   <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${typeof slot === 'object' ? slot.name : slot}</div>
                   ${
                     isMe && !isPast
-                    ? `<div class="cancel"
-                         onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>`
+                    ? `
+                    <div class="cancel" onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>
+                       `
                     : ''
                   }
                 </div>`;
@@ -203,7 +204,7 @@ function renderGameCard(g, opt={}){
 
 
               if (isPast){
-                return `<div class="slot"><div class="label">${roleMap(role)}</div><div class="name">—</div></div>`;
+                return `<div class="slot" data-gid="${g.game_id}" data-role="${role}"><div class="label">${roleMap(role)}</div><div class="name">—</div></div>`;
               }
 
 
@@ -221,12 +222,11 @@ function renderGameCard(g, opt={}){
 
 
               return `
-                <div class="slot action"
-                  data-gid="${g.game_id}"
-                  data-role="${role}">
-                  <div class="label">${roleMap(role)}</div>
-                  <div class="btn"> 報名　</div>
-                </div>`;
+               <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+                 <div class="label">${roleMap(role)}</div>
+                 <div class="btn">報名</div>
+               </div>
+                `;
           }).join('')
         ) : ''
       }
@@ -250,13 +250,14 @@ function renderGameCard(g, opt={}){
 
 
             return `
-            <div class="slot">
+            <div class="slot" data-gid="${g.game_id}" data-role="${role}">
               <div class="label">${label}</div>
               <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${slot.name}</div>
               ${
                 isMe && !isPast
-                ? `<div class="cancel"
-                     onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>`
+                ? `
+                <div class="cancel" onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>
+                     `
                 : ''
               }
             </div>`;
@@ -264,7 +265,7 @@ function renderGameCard(g, opt={}){
 
 
           if (isPast){
-            return `<div class="slot"><div class="label">${label}</div><div class="name">—</div></div>`;
+            return `<div class="slot" data-gid="${g.game_id}" data-role="${role}"><div class="label">${label}</div><div class="name">—</div></div>`;
           }
 
 
@@ -277,12 +278,11 @@ function renderGameCard(g, opt={}){
 
 
           return `
-          <div class="slot action" data-gid="${g.game_id}" data-role="${role}">
+          <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
             <div class="label">${label}</div>
-            <div class="btn"> 報名　</div>
-          </div>`;
-
-
+            <div class="btn">報名</div>
+          </div>
+          `;
         }).join('')
         : ''
       }
