@@ -743,9 +743,9 @@ function cancelJudge(g, role){
       //g.judges[role] = '';
       g.judges[role] = null;
       g.my_position = '';
-
+      g.my_signup_id = res.signup_id || '';
+     
       // updateGameCard(g, 'judge'); 
-
       //reloadCurrentView();
       updateAffectedCards(g)
      
