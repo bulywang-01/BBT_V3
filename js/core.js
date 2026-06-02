@@ -185,7 +185,6 @@ function renderGameCard(g, opt={}){
 
               if (name){
                 // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
-                const slot = g.judges?.[role];
                 const isMe = isMySlot(slot, session);
 
 
@@ -1153,10 +1152,11 @@ function updateGameCard(g){
 
   // el.classList.add('loading');
 
-  el.outerHTML = renderGameCard(g,{
-    type,
-    session
-  });
+  el.insertAdjacentHTML('afterend',
+    renderGameCard(g,{ type, session })
+  );
+  el.remove();
+
 }
 
 
