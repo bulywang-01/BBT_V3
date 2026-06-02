@@ -268,20 +268,25 @@ window.openAssignJudge = function (gameId, role) {
       });
     }
 
+    console.log('API judges =', res.judges);
     // ✅ 嚴格過濾：只要已在任何裁判站位 → 不顯示
     res.judges.forEach(j => {
-      const uid = String(j.user_id);
-      if (assignedJudgeIds.length && assignedJudgeIds.includes(uid)) return;
-
+    
+      const uid = String(j.user_id); // ✅ 統一字串
+    
+      const assignedJudgeIdsStr = assignedJudgeIds.map(id => String(id));
+    
+      if (assignedJudgeIdsStr.includes(uid)) return;
+    
       const card = document.createElement('div');
       card.className = 'judge-card';
       card.textContent = j.name;
       card.onclick = () => assignJudge(j);
-
+    
       list.appendChild(card);
     });
 
-    if (!list.children.length) {
+    if (list.children.length === 0) {
       list.innerHTML = `<div class="empty">目前無可指派裁判</div>`;
     }
   });
