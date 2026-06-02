@@ -738,6 +738,8 @@ function cancelJudge(g, role){
 
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
 
+  console.log('CANCEL signup_id=', g.my_signup_id);
+ 
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading'); 
 
