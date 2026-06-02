@@ -262,31 +262,26 @@ window.openAssignJudge = function (gameId, role) {
     const assignedJudgeIds = [];
     if (game && game.positions) {
       Object.values(game.positions).forEach(p => {
-        if (p.assigned && p.assigned.id) {
-          assignedJudgeIds.push(String(p.assigned.id));
+        if (p.assigned && p.assigned.user_id) {
+          assignedJudgeIds.push(String(p.assigned.user_id));
         }
       });
     }
 
-    console.log('API judges =', res.judges);
     // ✅ 嚴格過濾：只要已在任何裁判站位 → 不顯示
     res.judges.forEach(j => {
-    
-      const uid = String(j.user_id); // ✅ 統一字串
-    
-      const assignedJudgeIdsStr = assignedJudgeIds.map(id => String(id));
-    
-      if (assignedJudgeIdsStr.includes(uid)) return;
-    
+      const uid = String(j.user_id);
+      if (assignedJudgeIds.includes(uid)) return;
+
       const card = document.createElement('div');
       card.className = 'judge-card';
       card.textContent = j.name;
       card.onclick = () => assignJudge(j);
-    
+
       list.appendChild(card);
     });
 
-    if (list.children.length === 0) {
+    if (!list.children.length) {
       list.innerHTML = `<div class="empty">目前無可指派裁判</div>`;
     }
   });
