@@ -772,7 +772,8 @@ function cancelJudge(g, role){
   callApi({
     action: 'cancelJudgeSignup',
     user_id: s.user_id,
-    signup_id: signup_id
+    game_id: g.game_id,
+    role: role
   }, function(res){
 
     if (el) el.classList.remove('loading');
