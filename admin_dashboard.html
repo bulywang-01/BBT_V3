@@ -418,7 +418,7 @@
         .then(res => res.text())
         .then(html => {
           document.getElementById('header-container').innerHTML = html;
-          initHeaderVisibility();
+          // initHeaderVisibility();
         });
     });
 
@@ -429,7 +429,7 @@
       currentAnnualType = type;
 
       const container = document.getElementById('annualList');
-      container.innerHTML = '載入中…';   // ✅ 清空 + loading
+      // container.innerHTML = '載入中…';   // ✅ 清空 + loading
 
       document.getElementById('annualModalTitle').textContent =
         type === 'judge' ? '裁判員年度總表' : '紀錄員年度總表';
@@ -471,8 +471,8 @@
     
       callApi({
         action: currentAnnualType === 'judge'
-          ? 'getJudgeAnnualSummary'
-          : 'getRecordAnnualSummary',
+          ? 'getJudgeAnnualSummary_'
+          : 'getRecordAnnualSummary_',
         year
       }, res => {
     
