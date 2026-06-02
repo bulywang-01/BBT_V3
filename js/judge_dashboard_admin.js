@@ -247,8 +247,38 @@ window.openAssignJudge = function (gameId, role) {
       });
     }
 
+    // ✅ 排序（證照 > 姓名）
+    const levelPriority = {
+      A: 3,
+      B: 2,
+      C: 1
+    };
+    
+    const sortedJudges = res.judges.sort((a, b) => {
+    
+      // ✅ level（你 Users 裡是 level 欄位）
+      const levelA = (a.level || '').toUpperCase();
+      const levelB = (b.level || '').toUpperCase();
+    
+      const scoreA = levelPriority[levelA] || 0;
+      const scoreB = levelPriority[levelB] || 0;
+    
+      // ✅ 先比證照（高 → 低）
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+    
+      // ✅ 再比姓名第一個字
+      const nameA = (a.name || '').charAt(0);
+      const nameB = (b.name || '').charAt(0);
+    
+      return nameA.localeCompare(nameB, 'zh-Hant');
+    });
+
     // ✅ 嚴格過濾：只要已在任何裁判站位 → 不顯示
-    res.judges.forEach(j => {
+    // res.judges.forEach(j => {
+    
+    sortedJudges.forEach(j => {
       const uid = String(j.user_id);
       const assignedJudgeIdsStr = assignedJudgeIds.map(id => String(id));
 
