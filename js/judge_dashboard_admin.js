@@ -294,9 +294,8 @@ window.openAssignJudge = function (gameId, role) {
     
     sortedJudges.forEach(j => {
       const uid = String(j.user_id);
-      const assignedJudgeIdsStr = assignedJudgeIds.map(id => String(id));
 
-      if (assignedJudgeIdsStr.includes(uid)) return;
+      if (occupiedIds.has(uid)) return;
 
       const card = document.createElement('div');
       card.className = 'judge-card';
