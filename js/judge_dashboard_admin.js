@@ -206,28 +206,6 @@ let currentAssignContext = null;
  * @param {string|number} gameId
  * @param {string} role  PU / U1 / U2 / U3
  */
-/*
-function openAssignJudge(gameId, role) {
-  currentAssignContext = { gameId, role };
-
-  const modal = document.getElementById('judgeModal');
-  const list = document.getElementById('judgeList');
-  const title = document.getElementById('judgeModalTitle');
-
-  title.textContent = `指派 ${ROLE_LABEL[role]}`;
-  list.innerHTML = '';
-
-  allJudges.forEach(j => {
-    const card = document.createElement('div');
-    card.className = 'judge-card';
-    card.textContent = j.name;
-    card.onclick = () => assignJudge(j);
-    list.appendChild(card);
-  });
-
-  modal.classList.remove('hidden');
-}
-*/
 
 window.openAssignJudge = function (gameId, role) {
   currentAssignContext = { gameId, role };
