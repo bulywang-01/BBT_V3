@@ -595,7 +595,6 @@ function highlight(name, session){
 function handleSlotClick(gid, role){
 
   console.log('CLICK OK', gid, role);
-  console.log('my_position=', g.my_position);
  
   const g = __GAME_CACHE.find(x => x.game_id === gid);
   if (!g) return;
@@ -611,6 +610,8 @@ function handleSlotClick(gid, role){
     : g.judges?.[role];
 
   const isMe = isMySlot(slot, s);
+ 
+  console.log('my_position=', g.my_position);
 
   // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
