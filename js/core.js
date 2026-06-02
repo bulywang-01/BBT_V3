@@ -605,6 +605,8 @@ function handleSlotClick(gid, role){
 
   const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
   if (!s || !s.user_id) return;
+ 
+  console.log('session=', s);
 
   const isRecord = role.startsWith('REC');
 
@@ -615,6 +617,9 @@ function handleSlotClick(gid, role){
 
   const isMe = isMySlot(slot, s);
  
+  console.log('isMe=', isMe);
+  console.log('slot=', slot);
+
 
   // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
@@ -1176,21 +1181,21 @@ function isMySlot(slot, session){
 
   if (!slot || !session) return false;
 
-  // ✅ object（新格式）
+  // ✅ object
   if (typeof slot === 'object'){
 
-    // ✅ 有 user_id → 正常比
+    // ✅ user_id 比對（轉字串避免型別問題）
     if (slot.user_id){
       return String(slot.user_id) === String(session.user_id);
     }
 
-    // ✅ ❗補強：只有 name（你的case🔥）
+    // ✅ 補強：用 name 比（fallback）
     if (slot.name){
       return slot.name === session.name;
     }
   }
 
-  // ✅ string（舊資料）
+  // ✅ string
   if (typeof slot === 'string'){
     return slot === session.name;
   }
