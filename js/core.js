@@ -174,12 +174,17 @@ function renderGameCard(g, opt={}){
           : judgeRoles.map(role=>{
 
 
-              const name = g.judges?.[role];
+              //const name = g.judges?.[role];
+           
+              const slot = g.judges?.[role];
+              const name = safeName(slot);
+
               const reason = getReason(role,false);
               const locked = isSameTimeOtherFieldLocked(g);
 
 
-              if (name){
+              //if (name){
+              if (slot){
                 // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
                 const slot = g.judges?.[role];
                 const isMe = isMySlot(slot, session);
@@ -402,11 +407,15 @@ function renderJudgeSlots(g, isPast, session){
     <div class="mobile-pos-grid">
       ${roles.map(role=>{
 
-        const name = g.judges?.[role];
+        //const name = g.judges?.[role];
+       
+        const slot = g.judges?.[role];
+        const name = safeName(slot);
+
 
         // ✅ 有人
-        if (name){
-
+        //if (name){
+        if (slot){
           const slot = g.judges?.[role];
           const isMe = isMySlot(slot, session);
 
