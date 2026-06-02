@@ -222,7 +222,8 @@ function renderGameCard(g, opt={}){
 
               return `
                 <div class="slot action"
-                  onclick="handleSlotClick('${g.game_id}','${role}')">
+                  data-gid="${g.game_id}"
+                  data-role="${role}">
                   <div class="label">${roleMap(role)}</div>
                   <div class="btn"> 報名　</div>
                 </div>`;
@@ -276,8 +277,7 @@ function renderGameCard(g, opt={}){
 
 
           return `
-          <div class="slot action"
-            onclick="handleSlotClick('${g.game_id}','${role}')">
+          <div class="slot action" data-gid="${g.game_id}" data-role="${role}">
             <div class="label">${label}</div>
             <div class="btn"> 報名　</div>
           </div>`;
@@ -594,6 +594,8 @@ function highlight(name, session){
 *********************************************************/
 function handleSlotClick(gid, role){
 
+  console.log('CLICK OK', gid, role);
+ 
   const g = __GAME_CACHE.find(x => x.game_id === gid);
   if (!g) return;
 
