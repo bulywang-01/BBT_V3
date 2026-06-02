@@ -134,51 +134,72 @@ function renderPos(g, role, label) {
 
 /* ===== Modal ===== */
 function openRecordModal(gameId, role) {
+
   currentGameId = gameId;
   currentRole = role;
 
   const modal = document.getElementById('recordModal');
   const list = document.getElementById('recordList');
 
-  list.innerHTML = `
-    <div class="empty">⏳ 載入紀錄名單中...</div>
-  `;
-
+  list.innerHTML = `<div class="empty">⏳ 載入紀錄名單中...</div>`;
   modal.classList.remove('hidden');
 
-callApi({
-  action: 'getRecordCandidates',
-  game_id: gameId,
-  record_role: role
-}, res => {
+  callApi({
+    action: 'getRecordCandidates',
+    game_id: gameId,
+    record_role: role
+  }, res => {
 
-  list.innerHTML = '';
+    list.innerHTML = '';
 
-  if (!res || res.result !== 'ok' || !Array.isArray(res.records)) {
-    list.innerHTML = `<div class="empty">目前無可指派紀錄員</div>`;
-    return;
-  }
+    if (!res || res.result !== 'ok' || !Array.isArray(res.records)) {
+      list.innerHTML = `<div class="empty">目前無可指派紀錄員</div>`;
+      return;
+    }
 
-  /* ✅ 姓名排序（中文排序） */
-  const sorted = res.records.sort((a, b) => {
-    return a.name.localeCompare(b.name, 'zh-Hant');
+    /* ✅ 排序（紀錄證 + 姓名） */
+    const levelPriority = {
+      A: 4,
+      B: 3,
+      C: 2,
+      N: 1
+    };
+
+    const sorted = res.records.sort((a, b) => {
+
+      // ✅ 第二碼（紀錄證）
+      const levelA = (a.level || 'N,N').split(',')[1].trim().toUpperCase();
+      const levelB = (b.level || 'N,N').split(',')[1].trim().toUpperCase();
+
+      const scoreA = levelPriority[levelA] || 0;
+      const scoreB = levelPriority[levelB] || 0;
+
+      // ✅ 1️⃣ 證照優先
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+
+      // ✅ 2️⃣ 姓名排序
+      return (a.name || '').localeCompare(b.name || '', 'zh-Hant');
+    });
+
+    /* ✅ 建立 UI */
+    sorted.forEach(r => {
+
+      const div = document.createElement('div');
+      div.className = 'record-card';
+      div.textContent = r.name;
+
+      // ✅ 可多角色 → 不鎖，但可提示
+      div.onclick = () => assignRecord(r.user_id);
+
+      list.appendChild(div);
+    });
+
+    if (!list.children.length) {
+      list.innerHTML = `<div class="empty">目前無可指派紀錄員</div>`;
+    }
   });
-
-  /* ✅ 建立卡片 */
-  sorted.forEach(r => {
-    const div = document.createElement('div');
-    div.className = 'record-card';
-    div.textContent = r.name;
-
-    div.onclick = () => assignRecord(r.user_id);
-
-    list.appendChild(div);
-  });
-
-  if (!list.children.length) {
-    list.innerHTML = `<div class="empty">目前無可指派紀錄員</div>`;
-  }
-});
 }
 
 
