@@ -1141,6 +1141,33 @@ function loadJudgeGamesByMonth(year, month) {
   });
 }
 
+document.addEventListener('click', function(e){
+
+  const actionSlot = e.target.closest('.slot.action');
+  if (actionSlot){
+
+    const gid = actionSlot.getAttribute('data-gid');
+    const role = actionSlot.getAttribute('data-role');
+
+    console.log('CLICK FIXED', gid, role);
+
+    handleSlotClick(gid, role);
+    return;
+  }
+
+  const cancelBtn = e.target.closest('.cancel');
+  if (cancelBtn){
+
+    const slot = cancelBtn.closest('.slot');
+    const gid = slot.getAttribute('data-gid');
+    const role = slot.getAttribute('data-role');
+
+    console.log('CANCEL FIXED', gid, role);
+
+    handleSlotClick(gid, role);
+  }
+
+});
 </script>
 </body>
 </html>
