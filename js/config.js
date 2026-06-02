@@ -13,7 +13,7 @@ function callApi(params, callback) {
     .map(k => `${k}=${encodeURIComponent(params[k])}`)
     .join('&');
 
-  const url = `${API_URL}?${query}&callback=${cbName}`;
+  const url = `${API_BASE}?${query}&callback=${cbName}`;
 
   const script = document.createElement('script');
 
