@@ -468,20 +468,24 @@
 
     function reloadAnnualByYear() {
       const year = document.getElementById('annualYearSelect').value;
-
+    
       callApi({
         action: currentAnnualType === 'judge'
-          ? 'getJudgeAnnualSummary_'
-          : 'getRecordAnnualSummary_',
+          ? 'getJudgeAnnualSummary'
+          : 'getRecordAnnualSummary',
         year
       }, res => {
+    
         if (res.result !== 'ok') {
           document.getElementById('annualList').textContent = res.message;
           return;
         }
-        renderAnnualTable(res.list, currentAnnualType);
+    
+        data = res.list;   // ✅ 🔥 很重要
+        renderAnnualTable(data, currentAnnualType);
       });
     }
+
 
     // 手機版表格
     function renderAnnualTable(list, type) {
@@ -608,6 +612,19 @@
 
   download(csv, '年度總表.csv');
   }
+
+  function guardAdminPage(){
+
+  const session = JSON.parse(localStorage.getItem('session_user') || '{}');
+
+  if (!session.user_id){
+    alert('尚未登入');
+    location.replace('login.html');
+    return false;
+  }
+
+  return true;
+}
   </script>
 </body>
 </html>
