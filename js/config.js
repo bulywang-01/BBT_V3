@@ -5,51 +5,42 @@ const API_BASE =
 
 // ===== JSONP helper（封版唯一安全版）=====
 function callApi(params, callback) {
+  const cbname = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
 
-  const cbName = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-
-  // ✅ 組 URL
-  const query = Object.keys(params)
-    .map(k => `${k}=${encodeURIComponent(params[k])}`)
-    .join('&');
-
-  const url = `${API_BASE}?${query}&callback=${cbName}`;
+  const qs = new URLSearchParams(params);
+  qs.set('callback', cbname);
 
   const script = document.createElement('script');
+  script.src = API_URL + '?' + qs.toString();
 
-  let timeout = setTimeout(() => {
-    console.error('JSONP timeout:', url);
-    callback && callback(null);
-    cleanup();
-  }, 8000);
+  let finished = false;   // ✅ 成功旗標（關鍵）
 
-  function cleanup(){
-    delete window[cbName];
-    script.remove();
-    clearTimeout(timeout);
-  }
-
-  // ✅ ✅ ✅ 關鍵：callback 必須掛在 window
-  window[cbName] = function(res){
-    cleanup();
+  // ✅ JSONP 成功回傳
+  window[cbname] = function (res) {
+    if (finished) return;
+    finished = true;
 
     try {
-      callback && callback(res);
-    } catch(e){
-      console.error('callback error:', e);
-      callback(null);
+      callback(res);
+    } finally {
+      delete window[cbname];
+      script.remove();
     }
   };
 
-  script.onerror = function(){
-    console.error('JSONP load failed:', url);
-    callback && callback(null);
-    cleanup();
+  // ✅ JSONP 失敗（只在「真的沒成功過」時才回報）
+  script.onerror = function () {
+    console.warn('JSONP load warning:', script.src);
+
+    if (!finished && callback) {   // ✅ 關鍵判斷
+      callback({ result: 'error', message: 'JSONP load failed' });
+    }
+
+    delete window[cbname];
+    script.remove();
   };
 
-  script.src = url;
-
-  document.body.appendChild(script);
+  document.head.appendChild(script);
 }
 
 
