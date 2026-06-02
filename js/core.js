@@ -738,7 +738,7 @@ function cancelJudge(g, role){
       g.judges[role] = null;
       g.my_position = '';
 
-      updateGameCard(g, 'judge');   // ✅ ✅ ✅
+      // updateGameCard(g, 'judge'); 
 
       //reloadCurrentView();
       updateAffectedCards(g)
@@ -776,7 +776,7 @@ function cancelRecord(g, role){
 
       g.my_position = '';
 
-      updateGameCard(g);
+      //updateGameCard(g);
 
       //reloadCurrentView();
       updateAffectedCards(g)
