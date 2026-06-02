@@ -192,7 +192,7 @@ function renderGameCard(g, opt={}){
                   ${
                     isMe && !isPast
                     ? `<div class="cancel"
-                         onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
+                         onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>`
                     : ''
                   }
                 </div>`;
@@ -252,7 +252,7 @@ function renderGameCard(g, opt={}){
               ${
                 isMe && !isPast
                 ? `<div class="cancel"
-                     onclick="handleSlotClick('${g.game_id}','${role}')">取消</div>`
+                     onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>`
                 : ''
               }
             </div>`;
@@ -419,7 +419,7 @@ function renderJudgeSlots(g, isPast, session){
               ${
                 isMe && !isPast
                 ? `<div class="mobile-cancel"
-                     onclick="handleSlotClick('${g.game_id}','${role}')">
+                     onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消</div>`
                 : ``
               }
@@ -485,7 +485,7 @@ function renderRecordSlots(g, isPast, session){
               ${
                 isMe && !isPast
                 ? `<div class="cancel-btn"
-                     onclick="handleSlotClick('${g.game_id}','${role}')">
+                     onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消
                    </div>`
                 : ''
