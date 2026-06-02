@@ -722,7 +722,6 @@ function renderGameRow(g, today) {
 
   if (isPast) tr.classList.add('expired');
 
-  /* ✅ ✅ ✅ 正確計算人數（關鍵修正） */
   const occupied = g.judges || {};
   const assigned = Object.values(occupied).filter(v => v && v !== '').length;
 
