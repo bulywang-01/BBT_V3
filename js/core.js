@@ -743,40 +743,30 @@ function cancelJudge(g, role){
 
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
 
-  console.log('CANCEL signup_id=', g.my_signup_id);
- 
+  const signup_id =
+    g.judges?.[role]?.signup_id || g.my_signup_id || '';
+
+  console.log('CANCEL signup_id=', signup_id);
+
+  if (!signup_id){
+    showToast('❌ 找不到報名資料（缺 signup_id）','error');
+    return;
+  }
+
   const el = document.getElementById(`game-${g.game_id}`);
-  if (el) el.classList.add('loading'); 
+  if (el) el.classList.add('loading');
 
   showToast('取消中...');
 
   callApi({
     action:'cancelJudgeSignup',
     user_id: s.user_id,
-    signup_id: g.my_signup_id
-  }, res => {
-
-    if (el) el.classList.remove('loading');
-
-    if (res.result === 'ok'){
-
-      //g.judges[role] = '';
-      g.judges[role] = null;
-      g.my_position = '';
-      g.my_signup_id = res.signup_id || '';
-     
-      // updateGameCard(g, 'judge'); 
-      //reloadCurrentView();
-      updateAffectedCards(g)
-     
-      showToast('✅ 已取消','success');
-
-    } else {
-      showToast(res?.message || '失敗','error');
-    }
-
+    signup_id: signup_id
+  }, res =>{
+    ...
   });
 }
+
 
 
 //✅ 取消（紀錄）
