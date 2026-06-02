@@ -413,7 +413,7 @@ function renderJudgeSlots(g, isPast, session){
 
 
         // ✅ 有人
-        //if (name){
+        if (name){
           const slot = g.judges?.[role];
           const isMe = isMySlot(slot, session);
 
