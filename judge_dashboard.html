@@ -712,7 +712,7 @@ function renderRow(g){
 }
 
 
-/* ✅ ✅ ✅ 拆出：render 每一列 */
+/* ✅ ✅ ✅ 拆出：render 每一列 
 function renderGameRow(g, today) {
 
   const tr = document.createElement('tr');
@@ -759,9 +759,9 @@ function renderGameRow(g, today) {
 
   return tr;
 }
+*/
 
-
-/* ✅ ========= 報名核心 ========= */
+/* ✅ ========= 報名核心 ========= 
 
 function renderPos(g, role, isPast){
 
@@ -812,7 +812,7 @@ function renderPos(g, role, isPast){
     </span>
   `;
 }
-
+*/
 
 // ✅ 裁判頁手機版：依 日期 → 組別 → 場次 分組
 function groupGamesForMobile(games) {
@@ -841,6 +841,7 @@ function groupGamesForMobile(games) {
   return map;
 }
 
+/*
 function renderMobilePosGrid(g) {
   if (isPastGame(g.date)){
     return `
@@ -936,7 +937,7 @@ function renderMobilePosGrid(g) {
     </div>
   `;
 }
-
+*/
  
 function renderTimeHHmm(t) {
   if (!t) return '';
@@ -1010,7 +1011,7 @@ function logout(){
 }
 
 
-/* ✅ ========= 取消 ========= */
+/* ✅ ========= 取消 ========= 
 
 function cancelMySignup(signupId){
 
@@ -1029,10 +1030,10 @@ function cancelMySignup(signupId){
   });
 
 }
+*/
 
 
-
-/* ✅ ========= 報名 ========= */
+/* ✅ ========= 報名 ========= 
 
 function signupJudgeInstant(gameId, role){
 
@@ -1050,7 +1051,7 @@ function signupJudgeInstant(gameId, role){
   });
 
 }
-
+*/
 
 // 初始化月份
 window.currentMonth = null;
