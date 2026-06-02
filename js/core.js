@@ -738,34 +738,67 @@ function signupRecord(g, role){
   });
 }
 
-//✅ 取消（裁判）
+// ✅ 取消（裁判）完整最終版
 function cancelJudge(g, role){
 
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
 
-  const signup_id =
-    g.judges?.[role]?.signup_id || g.my_signup_id || '';
+  // ✅ 優先從 slot 取，其次 fallback
+  let signup_id = '';
 
-  console.log('CANCEL signup_id=', signup_id);
+  const slot = g.judges?.[role];
 
+  if (slot && typeof slot === 'object' && slot.signup_id){
+    signup_id = slot.signup_id;
+  } else if (g.my_signup_id){
+    signup_id = g.my_signup_id;
+  }
+
+  console.log('CANCEL signup_id =', signup_id);
+
+  // ✅ 防呆（最重要）
   if (!signup_id){
     showToast('❌ 找不到報名資料（缺 signup_id）','error');
     return;
   }
 
+  // ✅ UI loading
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading');
 
   showToast('取消中...');
 
+  // ✅ API 呼叫
   callApi({
-    action:'cancelJudgeSignup',
+    action: 'cancelJudgeSignup',
     user_id: s.user_id,
     signup_id: signup_id
-  }, res =>{
-    ...
+  }, function(res){
+
+    if (el) el.classList.remove('loading');
+
+    if (res && res.result === 'ok'){
+
+      // ✅ ✅ ✅ 清掉前端資料（關鍵）
+      if (g.judges && g.judges[role]){
+        g.judges[role] = null;
+      }
+
+      g.my_position = '';
+      g.my_signup_id = '';
+
+      // ✅ ✅ ✅ 畫面刷新（你現在用這個是對的）
+      updateAffectedCards(g);
+
+      showToast('✅ 已取消','success');
+
+    } else {
+      showToast(res?.message || '取消失敗','error');
+    }
+
   });
 }
+
 
 
 
