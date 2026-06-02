@@ -596,7 +596,11 @@ function handleSlotClick(gid, role){
 
   console.log('CLICK OK', gid, role);
  
-  const g = __GAME_CACHE.find(x => x.game_id === gid);
+  const gidNum = Number(gid);
+  const g = __GAME_CACHE.find(x => Number(x.game_id) === gidNum);
+
+  console.log('my_position=', g.my_position);
+
   if (!g) return;
 
   const s = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
@@ -611,7 +615,6 @@ function handleSlotClick(gid, role){
 
   const isMe = isMySlot(slot, s);
  
-  console.log('my_position=', g.my_position);
 
   // ✅ ✅ ✅ 如果是自己 → 取消
   if (isMe){
