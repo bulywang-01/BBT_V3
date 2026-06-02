@@ -235,17 +235,31 @@ window.openAssignJudge = function (gameId, role) {
 
     // ✅ 找到該場比賽
     const game = allGames.find(g => String(g.game_id) === String(gameId));
-
-    // ✅ 本場「所有已指派裁判」ID（不分站位）
-    const assignedJudgeIds = [];
+    
+    // ✅ 本場「已佔位的人（裁判 + 報名）」全部抓出來
+    const occupiedIds = new Set();
     
     if (game && game.positions) {
+    
       Object.values(game.positions).forEach(p => {
-        if (p.assigned && p.assigned.id) { // ✅ 改這裡
-          assignedJudgeIds.push(String(p.assigned.id)); // ✅ 改這裡
+    
+        // ✅ 已指派
+        if (p.assigned && p.assigned.id) {
+          occupiedIds.add(String(p.assigned.id));
         }
+    
+        // ✅ ✅ ✅ 加這段（關鍵！）→ 報名的人也不能再當別的位置
+        if (Array.isArray(p.preferred)) {
+          p.preferred.forEach(u => {
+            if (u.id) {
+              occupiedIds.add(String(u.id));
+            }
+          });
+        }
+    
       });
     }
+
 
     // ✅ 排序（證照 > 姓名）
     const levelPriority = {
