@@ -18,6 +18,9 @@ function loadAdminGames() {
   callApi({
     action:'getRecordGamesWithAssignments_admin'
   }, res=>{
+    
+    console.log('API回傳:', res);
+    
     if (!res || res.result!=='ok') return alert('載入失敗');
     renderAdminGames(res.games);
   });
