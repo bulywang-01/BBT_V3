@@ -183,8 +183,7 @@ function renderGameCard(g, opt={}){
               const locked = isSameTimeOtherFieldLocked(g);
 
 
-              //if (name){
-              if (slot){
+              if (name){
                 // const session = JSON.parse(localStorage.getItem('session_user')||'{}');
                 const slot = g.judges?.[role];
                 const isMe = isMySlot(slot, session);
@@ -415,7 +414,6 @@ function renderJudgeSlots(g, isPast, session){
 
         // ✅ 有人
         //if (name){
-        if (slot){
           const slot = g.judges?.[role];
           const isMe = isMySlot(slot, session);
 
