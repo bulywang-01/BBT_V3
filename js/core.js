@@ -651,6 +651,8 @@ function signupJudge(g, role){
     games_with_position:`${g.game_id}:${role}`
   }, res => {
 
+    if (el) el.classList.remove('loading');
+
     if (res.result === 'ok'){
 
       // ✅ ✅ ✅ 直接改資料
@@ -693,6 +695,8 @@ function signupRecord(g, role){
     record_role: role
   }, res => {
 
+    if (el) el.classList.remove('loading');
+
     if (res.result === 'ok'){
 
       g.records ||= {};
@@ -732,6 +736,8 @@ function cancelJudge(g, role){
     signup_id: g.my_signup_id
   }, res => {
 
+    if (el) el.classList.remove('loading');
+
     if (res.result === 'ok'){
 
       //g.judges[role] = '';
@@ -769,6 +775,8 @@ function cancelRecord(g, role){
     user_id: s.user_id,
     record_role: role
   }, res => {
+
+    if (el) el.classList.remove('loading');
 
     if (res.result === 'ok'){
 
@@ -1136,7 +1144,7 @@ function updateGameCard(g){
   // ✅ ✅ ✅ 用統一來源
   const session = getSession ? getSession() : JSON.parse(localStorage.getItem('session_user')||'{}');
 
-  el.classList.add('loading');
+  // el.classList.add('loading');
 
   el.outerHTML = renderGameCard(g,{
     type,
