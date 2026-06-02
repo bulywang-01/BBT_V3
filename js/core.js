@@ -595,6 +595,7 @@ function highlight(name, session){
 function handleSlotClick(gid, role){
 
   console.log('CLICK OK', gid, role);
+  console.log('my_position=', g.my_position);
  
   const g = __GAME_CACHE.find(x => x.game_id === gid);
   if (!g) return;
