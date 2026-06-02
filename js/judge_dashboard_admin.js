@@ -260,10 +260,11 @@ window.openAssignJudge = function (gameId, role) {
 
     // ✅ 本場「所有已指派裁判」ID（不分站位）
     const assignedJudgeIds = [];
+    
     if (game && game.positions) {
       Object.values(game.positions).forEach(p => {
-        if (p.assigned && p.assigned.user_id) {
-          assignedJudgeIds.push(String(p.assigned.user_id));
+        if (p.assigned && p.assigned.id) { // ✅ 改這裡
+          assignedJudgeIds.push(String(p.assigned.id)); // ✅ 改這裡
         }
       });
     }
@@ -271,7 +272,9 @@ window.openAssignJudge = function (gameId, role) {
     // ✅ 嚴格過濾：只要已在任何裁判站位 → 不顯示
     res.judges.forEach(j => {
       const uid = String(j.user_id);
-      if (assignedJudgeIds.includes(uid)) return;
+      const assignedJudgeIdsStr = assignedJudgeIds.map(id => String(id));
+
+      if (assignedJudgeIdsStr.includes(uid)) return;
 
       const card = document.createElement('div');
       card.className = 'judge-card';
