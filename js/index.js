@@ -365,14 +365,27 @@ function openMySchedule(){
       return;
     }
 
+    // ✅ ✅ ✅ 一定要 merge
     const games = (res.games || []).map(safeMerge);
 
-    const now = new Date();
-    now.setHours(23,59,59,999);
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
+    // ✅ ✅ ✅ 正確 filter
     const myGames = games.filter(g=>{
-      if (!g.my_position) return false;
-      return new Date(g.date + ' ' + g.time) > now;
+
+      // ✅ 是否屬於我
+      const isMine =
+        g.my_position ||
+        Object.values(g.judges||{}).includes(session.name) ||
+        Object.values(g.records||{}).includes(session.name);
+
+      if (!isMine) return false;
+
+      // ✅ 只看今天之後（含今天）
+      const d = parseDate(g.date);
+      return d && d >= today;
+
     });
 
     if (!myGames.length){
@@ -380,10 +393,11 @@ function openMySchedule(){
       return;
     }
 
-    myGames.sort((a,b)=>
-      new Date(a.date + ' ' + a.time) -
-      new Date(b.date + ' ' + b.time)
-    );
+    // ✅ ✅ ✅ 排序（安全）
+    myGames.sort((a,b)=>{
+      return new Date(a.date + ' ' + (a.time||'00:00'))
+           - new Date(b.date + ' ' + (b.time||'00:00'));
+    });
 
     list.innerHTML = myGames.map(renderGameCard).join('');
     setGameCache(myGames);
