@@ -120,18 +120,26 @@ function loadWeeklyReminder(){
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23,59,59,999);
 
+    // 我的班表
     const weekGames = games.filter(g => {
-
+    
       const hasWork =
         g.my_position ||
         Object.values(g.judges||{}).includes(session.name) ||
         Object.values(g.records||{}).includes(session.name);
-
+    
       if (!hasWork) return false;
-
+    
       const d = parseDate(g.date);
-      return d >= monday && d <= sunday;
+    
+      const inWeek = d >= monday && d <= sunday;
+    
+      // ✅ ✅ ✅ 關鍵：只算「未來」
+      const isFuture = d >= now;
+    
+      return inWeek && isFuture;
     });
+
 
     if (weekGames.length){
 
