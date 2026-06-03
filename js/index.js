@@ -107,9 +107,9 @@ function loadWeeklyReminder(){
 
     if (!res || res.result !== 'ok') return;
 
-    const games = res.games || [];
-    const now = new Date();
+    const games = (res.games || []).map(safeMerge);
 
+    const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
     const monday = new Date(now);
@@ -120,49 +120,38 @@ function loadWeeklyReminder(){
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23,59,59,999);
 
-    // 本週條件：週一到週日
-    const hasThisWeek = games.some(g => {
-    
+    const weekGames = games.filter(g => {
+
       const hasWork =
         g.my_position ||
-        g.judges?.PU === session.name ||
-        g.judges?.U1 === session.name ||
-        g.judges?.U3 === session.name ||
-        g.records?.REC_MAIN === session.name ||
-        g.records?.REC_TRAINEE === session.name ||
-        g.records?.REC_VIDEO === session.name;
-    
+        Object.values(g.judges||{}).includes(session.name) ||
+        Object.values(g.records||{}).includes(session.name);
+
       if (!hasWork) return false;
-    
+
       const d = parseDate(g.date);
       return d >= monday && d <= sunday;
     });
 
+    if (weekGames.length){
 
-    // ✅ 只處理提醒（不碰 welcome）
-    if (hasThisWeek){
-    
-        el.innerHTML = `
-          <div class="week-alert" onclick="openMySchedule()">
-        
-            <div class="icon">🔔</div>
-        
-            <div class="text">
-              本週有 ${count} 場出勤（點我查看）
-            </div>
-        
-            <div class="arrow">›</div>
-        
+      el.innerHTML = `
+        <div class="week-alert" onclick="openMySchedule()">
+          <div class="icon">🔔</div>
+          <div class="text">
+            本週有 ${weekGames.length} 場出勤（點擊查看）
           </div>
-        `;
-    
+          <div class="arrow">›</div>
+        </div>
+      `;
+
     } else {
-    
-      el.classList.remove('show');
+      el.innerHTML = '';
     }
 
   });
 }
+
 
 /*********************************************************
  * ✅ Dashboard
@@ -176,7 +165,8 @@ function loadDashboard(){
 
     if (!res || res.result !== 'ok') return;
 
-    const games = res.games || [];
+    // const games = res.games || [];
+    const games = (res.games || []).map(safeMerge);
     const today = new Date();
 
     let judgeDone = 0;
@@ -186,8 +176,18 @@ function loadDashboard(){
 
     games.forEach(g => {
 
-      if (!g.my_position) return;
-
+    const hasWork =
+      g.my_position ||
+      g.judges?.PU === session.name ||
+      g.judges?.U1 === session.name ||
+      g.judges?.U2 === session.name ||
+      g.judges?.U3 === session.name ||
+      g.records?.REC_MAIN === session.name ||
+      g.records?.REC_TRAINEE === session.name ||
+      g.records?.REC_VIDEO === session.name;
+    
+    if (!hasWork) return;
+          
       const d = new Date(g.date);
 
       const isRecord = g.my_position.startsWith('REC');
