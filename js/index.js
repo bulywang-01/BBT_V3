@@ -142,10 +142,19 @@ function loadWeeklyReminder(){
     // ✅ 只處理提醒（不碰 welcome）
     if (hasThisWeek){
     
-      el.classList.add('show');
-      el.innerHTML = `
-        📢 本週有執法／紀錄賽事噢，詳見「我的班表」
-      `;
+        el.innerHTML = `
+          <div class="week-alert" onclick="openMySchedule()">
+        
+            <div class="icon">🔔</div>
+        
+            <div class="text">
+              本週有 ${count} 場出勤（點我查看）
+            </div>
+        
+            <div class="arrow">›</div>
+        
+          </div>
+        `;
     
     } else {
     
