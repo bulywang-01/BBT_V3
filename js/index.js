@@ -399,7 +399,15 @@ function openMySchedule(){
            - new Date(b.date + ' ' + (b.time||'00:00'));
     });
 
-    list.innerHTML = myGames.map(renderGameCard).join('');
+    // list.innerHTML = myGames.map(renderGameCard).join('');
+    list.innerHTML = myGames.map(g =>
+      renderGameCard(g,{
+        session,
+        type:'judge',
+        mode:'view'   // ✅ ✅ ✅ 關鍵就這個
+      })
+    ).join('');
+
     setGameCache(myGames);
   });
 }
