@@ -1659,20 +1659,27 @@ function saveRow(id){
   showSaving('儲存中...');
 
   callApi(data, function(res){
-
+  
+    console.log('update res=', res); // ✅ 建議保留（debug用）
+  
     hideSaving();
-
-    if (res?.result === 'ok'){
+  
+    const ok =
+      res === 'ok' ||
+      res?.result === 'ok';
+  
+    if (ok){
       showToast('✅ 已儲存');
-
+  
       setTimeout(()=>{
-        location.reload();   // ✅ 100%回到列表
-      }, 500);
-
+        location.reload();
+      }, 300);
+  
     } else {
-      showToast('❌ 儲存失敗','error');
+      showToast('❌ 儲存失敗');
+      console.warn('API回傳錯誤', res);
     }
-
+  
   });
 }
   
