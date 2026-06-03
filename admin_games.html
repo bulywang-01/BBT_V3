@@ -1022,16 +1022,39 @@ function normalizeDateValue(d) {
 // 115.5.29 新增
 
 // 賽事狀態
-function statusText(s){
+function statusText(s, g){
+
   s = Number(s);
 
+  // ✅ 1~4 直接判斷
   if (s === 1) return '延賽';
   if (s === 2) return '停賽';
-  if (s === 3) return '已結束';
+  if (s === 3) return '暫存中';   // ✅ 改這裡
   if (s === 4) return '已鎖定';
+
+  // ✅ ✅ ✅ status=0 才判斷是否過期
+  if (s === 0 && g){
+    const partsD = (g.date || '').split('-');
+    const partsT = (g.time || '').split(':');
+
+    if (partsD.length === 3 && partsT.length >= 2){
+      const dt = new Date(
+        Number(partsD[0]),
+        Number(partsD[1]) - 1,
+        Number(partsD[2]),
+        Number(partsT[0]),
+        Number(partsT[1])
+      );
+
+      if (dt < new Date()){
+        return '已結束';   // ✅ ✅ ✅ 用時間判斷
+      }
+    }
+  }
 
   return '正常';
 }
+
 
 
 
@@ -1175,7 +1198,7 @@ function renderGames(list){
   
         <td>
           <span class="status-badge status-${g.status || 0}">
-            ${statusText(g.status)}
+            ${statusText(g.status, g)}
           </span>
         </td>
   
@@ -1633,9 +1656,10 @@ function saveRow(id){
     ['category', document.getElementById(`e_category_${id}`).value],
     ['away_team', document.getElementById(`e_away_${id}`).value],
     ['home_team', document.getElementById(`e_home_${id}`).value],
-    ['umpire_count', document.getElementById(`e_umpire_${id}`).value]
-    ['status', document.getElementById(`e_status_${id}`).value]
+    ['umpire_count', document.getElementById(`e_umpire_${id}`).value],  // ✅ 這裡加逗號
+    ['status', Number(document.getElementById(`e_status_${id}`).value)] // ✅ 型態一起修
   ];
+
 
   console.log('status=', document.getElementById(`e_status_${id}`).value);
   
