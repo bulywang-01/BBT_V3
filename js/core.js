@@ -743,34 +743,15 @@ function cancelJudge(g, role){
 
   const s = JSON.parse(localStorage.getItem('session_user') || '{}');
 
-  // ✅ 優先從 slot 取，其次 fallback
-  let signup_id = '';
+  console.log('CANCEL by game:', g.game_id, role);
 
-  const slot = g.judges?.[role];
-
-  if (slot && typeof slot === 'object' && slot.signup_id){
-    signup_id = slot.signup_id;
-  } else if (g.my_signup_id){
-    signup_id = g.my_signup_id;
-  }
-
-  console.log('CANCEL signup_id =', signup_id);
-
-  // ✅ 防呆（最重要）
-  if (!signup_id){
-    showToast('❌ 找不到報名資料（缺 signup_id）','error');
-    return;
-  }
-
-  // ✅ UI loading
   const el = document.getElementById(`game-${g.game_id}`);
   if (el) el.classList.add('loading');
 
   showToast('取消中...');
 
-  // ✅ API 呼叫
   callApi({
-    action: 'cancelJudgeSignup',
+    action: 'cancelJudgeSignupByGame',   // ✅ 改這裡
     user_id: s.user_id,
     game_id: g.game_id,
     role: role
@@ -780,15 +761,12 @@ function cancelJudge(g, role){
 
     if (res && res.result === 'ok'){
 
-      // ✅ ✅ ✅ 清掉前端資料（關鍵）
-      if (g.judges && g.judges[role]){
-        g.judges[role] = null;
-      }
+      // ✅ 清資料
+      if (g.judges) g.judges[role] = null;
 
       g.my_position = '';
       g.my_signup_id = '';
 
-      // ✅ ✅ ✅ 畫面刷新（你現在用這個是對的）
       updateAffectedCards(g);
 
       showToast('✅ 已取消','success');
