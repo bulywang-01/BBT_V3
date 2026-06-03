@@ -120,28 +120,36 @@ function loadWeeklyReminder(){
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23,59,59,999);
 
+    // 本週條件：週一到週日
     const hasThisWeek = games.some(g => {
     
       const hasWork =
         g.my_position ||
-        g.is_assigned ||       // ✅ 新增
-        g.is_record_assigned;  // ✅ 新增
+        g.judges?.PU === session.name ||
+        g.judges?.U1 === session.name ||
+        g.judges?.U3 === session.name ||
+        g.records?.REC_MAIN === session.name ||
+        g.records?.REC_TRAINEE === session.name ||
+        g.records?.REC_VIDEO === session.name;
     
       if (!hasWork) return false;
     
-      const d = new Date(g.date);
+      const d = parseDate(g.date);
       return d >= monday && d <= sunday;
     });
 
+
     // ✅ 只處理提醒（不碰 welcome）
     if (hasThisWeek){
+    
+      el.classList.add('show');
       el.innerHTML = `
-        <div class="week-alert" onclick="openMySchedule()">
-          🔔 您本週有出勤哦，詳見我的班表
-        </div>
+        📢 本週有執法／紀錄賽事噢，詳見「我的班表」
       `;
+    
     } else {
-      el.innerHTML = '';
+    
+      el.classList.remove('show');
     }
 
   });
