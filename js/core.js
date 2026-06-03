@@ -5,7 +5,7 @@ function renderGameCard(g, opt={}){
 
 
   const session = opt.session || null;
-
+  const isViewMode = opt.mode === 'view';
 
   // ✅ ✅ ✅ 自動判斷頁面（核心封裝）
   let type = opt.type;
@@ -193,7 +193,8 @@ function renderGameCard(g, opt={}){
                   <div class="label">${roleMap(role)}</div>
                   <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${typeof slot === 'object' ? slot.name : slot}</div>
                   ${
-                    isMe && !isPast
+                    // isMe && !isPast
+                   isMe && !isPast && !isViewMode
                     ? `
                     <div class="cancel" onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>
                        `
@@ -220,13 +221,21 @@ function renderGameCard(g, opt={}){
 
               }
 
-
-              return `
+             if (isViewMode){
+               return `
+                 <div class="slot waiting">
+                   <div class="label">${roleMap(role)}</div>
+                   <div class="name">待位中</div>
+                 </div>
+               `;
+             }
+             
+             return `
                <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
                  <div class="label">${roleMap(role)}</div>
                  <div class="btn">報名</div>
                </div>
-                `;
+             `;
           }).join('')
         ) : ''
       }
@@ -254,7 +263,8 @@ function renderGameCard(g, opt={}){
               <div class="label">${label}</div>
               <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${slot.name}</div>
               ${
-                isMe && !isPast
+                // isMe && !isPast
+               isMe && !isPast && !isViewMode
                 ? `
                 <div class="cancel" onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>
                      `
@@ -277,12 +287,21 @@ function renderGameCard(g, opt={}){
           }
 
 
-          return `
-          <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
-            <div class="label">${label}</div>
-            <div class="btn">報名</div>
-          </div>
-          `;
+         if (isViewMode){
+           return `
+             <div class="slot waiting">
+               <div class="label">${roleMap(role)}</div>
+               <div class="name">待位中</div>
+             </div>
+           `;
+         }
+         
+         return `
+           <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+             <div class="label">${roleMap(role)}</div>
+             <div class="btn">報名</div>
+           </div>
+         `;
         }).join('')
         : ''
       }
@@ -423,7 +442,8 @@ function renderJudgeSlots(g, isPast, session){
               </span>
 
               ${
-                isMe && !isPast
+                // isMe && !isPast
+               isMe && !isPast && !isViewMode
                 ? `<div class="mobile-cancel"
                      onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消</div>`
@@ -489,7 +509,8 @@ function renderRecordSlots(g, isPast, session){
             <div class="record-role ${isMe?'me':'other'}">
               ${label}<br>${slot.name}
               ${
-                isMe && !isPast
+                // isMe && !isPast
+               isMe && !isPast && !isViewMode
                 ? `<div class="cancel-btn"
                      onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消
