@@ -579,18 +579,50 @@
     }
 
     /* 本週出勤提醒 */
-    .week-alert{
-      margin-top:6px;
-      color:#dc2626;
-      font-weight:600;
-      animation: blink 1s infinite;
-    }
-    
-    @keyframes blink {
-      0%   { opacity:1; }
-      50%  { opacity:0.3; }
-      100% { opacity:1; }
-    }
+  .week-alert{
+    margin-top:10px;
+    padding:12px 16px;
+  
+    border-radius:12px;
+  
+    background:linear-gradient(135deg,#fff3cd,#ffe69c);
+    border:1px solid #ffe08a;
+  
+    color:#b45309;
+    font-weight:800;
+  
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  
+    cursor:pointer;
+  
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  
+    animation: pulse 1.2s infinite;
+  }
+  
+  .week-alert .text{
+    flex:1;
+  }
+  
+  .week-alert .icon{
+    margin-right:8px;
+    font-size:18px;
+  }
+  
+  .week-alert .arrow{
+    font-size:18px;
+    color:#92400e;
+  }
+  
+  /* ✅ 呼吸效果，比 blink 高級 */
+  @keyframes pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
   </style>
 
 </head>
