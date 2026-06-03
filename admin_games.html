@@ -1664,7 +1664,11 @@ function saveRow(id){
 
     if (res?.result === 'ok'){
       showToast('✅ 已儲存');
-      loadGames();
+
+      setTimeout(()=>{
+        location.reload();   // ✅ 100%回到列表
+      }, 500);
+
     } else {
       showToast('❌ 儲存失敗','error');
     }
