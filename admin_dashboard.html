@@ -424,7 +424,7 @@
         <h3 id="annualModalTitle">全員年度總表</h3>
         <div class="modal-tools">
           <select id="annualYearSelect" onchange="reloadAnnualByYear()"></select>
-          <button class="btn-export" onclick="exportCSV()">匯出</button>
+          <!-- <button class="btn-export" onclick="exportCSV()">匯出</button> -->
           <button class="btn-close" onclick="closeAnnualModal()">✕</button>
         </div>
       </div>
@@ -566,7 +566,7 @@ function renderAnnualList(list, type){
           <th>年度</th>
           <th>生涯</th>
           <th>角色分佈</th>
-          <th>總分</th>
+          <th>經驗值</th>
           <th>平均</th>
         </tr>
       </thead>
@@ -619,16 +619,13 @@ function renderScoreNote(type){
         <b>📌 分數計算方式：</b><br>
         總分 = 
         (主審 × 10 + 一壘審 × 6 + 二壘審 × 5 + 三壘審 × 6)
-        × 等級權重<br><br>
+        × 證照權重<br><br>
 
-        <b>📌 等級權重：</b><br>
-        A級 = 1.2　B級 = 1.1　C級 = 1.0　其他 = 0.9<br><br>
+        <b>📌 證照權重：</b><br>
+        A級 = 1.2　B級 = 1.1　C級 = 1.0　無證照 = 0.9<br><br>
 
         <b>📌 數據來源：</b><br>
-        Games（賽事）<br>
-        Judge_Signup（報名/站位）<br>
-        Users（姓名 / 等級）<br>
-        Role_Score_Config（角色分數設定）
+        賽事等級／參與程度（報名／指派）／是否持有證照／擔任角色
       </div>
     `;
   }
@@ -639,16 +636,14 @@ function renderScoreNote(type){
       <b>📌 分數計算方式：</b><br>
       總分 = 
       (主紀錄 × 8 + 見習 × 4 + 影像 × 5)
-      × 等級權重<br><br>
+      × 證照權重<br><br>
 
-      <b>📌 等級權重：</b><br>
+      <b>📌 證照權重：</b><br>
       A級 = 1.2　B級 = 1.1　C級 = 1.0　其他 = 0.9<br><br>
 
       <b>📌 數據來源：</b><br>
-      Games（賽事）<br>
-      Record_Assignment（紀錄指派）<br>
-      Users（姓名 / 等級）<br>
-      Role_Score_Config（角色分數設定）
+        賽事等級／參與程度（報名／指派）／是否持有證照／擔任角色
+
     </div>
   `;
 }
