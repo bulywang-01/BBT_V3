@@ -238,22 +238,22 @@ function renderGameCard(g, opt={}){
              }
              
              return `
-               if (isLocked){
-                 return `
-                   <div class="slot locked">
-                     <div class="label">${roleMap(role)}</div>
-                     <div class="name">🔒 已鎖定</div>
-                   </div>
-                 `;
-               }
-               
-               return `
-                 <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+              if (isLocked){
+                return `
+                  <div class="slot locked">
+                    <div class="label">${roleMap(role)}</div>
+                    <div class="name">🔒 已鎖定</div>
+                  </div>
+                `;
+              }
+              
+              return `
+                <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+                  <div class="label">${roleMap(role)}</div>
+                  <div class="btn">報名</div>
+                </div>
+              `;
 
-                 <div class="label">${roleMap(role)}</div>
-                 <div class="btn">報名</div>
-               </div>
-             `;
           }).join('')
         ) : ''
       }
@@ -315,22 +315,21 @@ function renderGameCard(g, opt={}){
          }
          
          return `
-           if (isLocked){
-             return `
-               <div class="slot locked">
-                 <div class="label">${roleMap(role)}</div>
-                 <div class="name">🔒 已鎖定</div>
-               </div>
-             `;
-           }
-           
-           return `
-             <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
-
-             <div class="label">${roleMap(role)}</div>
-             <div class="btn">報名</div>
-           </div>
-         `;
+          if (isLocked){
+            return `
+              <div class="slot locked">
+                <div class="label">${label}</div>
+                <div class="name">🔒 已鎖定</div>
+              </div>
+            `;
+          }
+          
+          return `
+            <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+              <div class="label">${label}</div>
+              <div class="btn">報名</div>
+            </div>
+          `;
         }).join('')
         : ''
       }
