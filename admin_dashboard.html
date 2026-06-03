@@ -482,135 +482,24 @@
         }
     
         data = res.list;   // ✅ 🔥 很重要
-        renderAnnualTable(data, currentAnnualType);
+        renderAnnualList(data, currentAnnualType);
       });
     }
 
-
-    // 手機版表格
-    function renderAnnualTable(list, type) {
-      const container = document.getElementById('annualList');
-    
-      // ✅ 清掉「載入中 / 舊資料」
-      container.innerHTML = '';
-    
-      container.innerHTML = list.map(u => {
-        const roles = type === 'judge'
-          ? (u.positions || {})
-          : (u.roles || {});
-    
-        let roleCells = '';
-    
-        if (type === 'judge') {
-          const judgeRoleOrder = ['主審','一壘審','二壘審','三壘審'];
-          roleCells = judgeRoleOrder
-            .map(r => `<div>${r}<br><b>${roles[r] || 0}</b></div>`)
-            .join('');
-        } else {
-          const recordRoleOrder = ['主紀錄','見習','影像'];
-          roleCells = recordRoleOrder
-            .map(r => `<div>${r}<br><b>${roles[r] || 0}</b></div>`)
-            .join('');
-        }
-    
-        return `
-          <div class="person-row">
-            <div class="person-name">${u.name}</div>
-            <div class="person-stats">
-              年度：${u.annual} ｜ 生涯：${u.career}
-            </div>
-            <div class="role-grid">
-              ${roleCells}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-
-  // 桌機表格
-  function renderDesktopTable(list) {
-  const rows = list.map(u => `
-    <tr>
-      <td>${u.name}</td>
-      <td>${u.annual}</td>
-      <td>${u.career}</td>
-      <td>${formatDetail(u)}</td>
-    </tr>
-  `).join('');
-
-  document.getElementById('annualTable').innerHTML = `
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th onclick="sortBy('name')">姓名</th>
-          <th onclick="sortBy('annual')">年度</th>
-          <th onclick="sortBy('career')">生涯</th>
-          <th>站位分佈</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
-}
-
-  // 手機卡片
-  function renderMobileCards(list) {
-    document.getElementById('annualCards').innerHTML =
-      list.map(u => `
-        <div class="person-card">
-          <div class="name">${u.name}</div>
-          <div class="stats">
-            年度：${u.annual}　生涯：${u.career}
-          </div>
-          <div class="detail">${formatDetail(u)}</div>
-        </div>
-      `).join('');
-  }
-
-  // 排序功能
-  let currentSort = { key: null, asc: true };
-
-  function sortBy(key) {
-    if (currentSort.key === key) {
-      currentSort.asc = !currentSort.asc;
-    } else {
-      currentSort.key = key;
-      currentSort.asc = true;
-    }
-  
-    data.sort((a, b) => {
-      if (typeof a[key] === 'string') {
-        return currentSort.asc
-          ? a[key].localeCompare(b[key])
-          : b[key].localeCompare(a[key]);
-      }
-      return currentSort.asc ? a[key] - b[key] : b[key] - a[key];
-    });
-  
-    renderAll();
-  }
-  
-  function renderAll() {
-    renderDesktopTable(data);
-    renderMobileCards(data);
-  }
-
   // 匯出功能
   function exportCSV() {
-  const header = ['姓名','年度','生涯','站位分佈'];
-  const rows = data.map(u => [
-    u.name,
-    u.annual,
-    u.career,
-    formatDetail(u)
-  ]);
-
-  const csv = [header, ...rows]
-    .map(r => r.map(v => `"${v}"`).join(','))
-    .join('\n');
-
-  download(csv, '年度總表.csv');
+    const header = ['姓名','年度','生涯','站位分佈'];
+    const rows = data.map(u => [
+      u.name,
+      u.annual,
+      u.career,
+    ]);
+  
+    const csv = [header, ...rows]
+      .map(r => r.map(v => `"${v}"`).join(','))
+      .join('\n');
+  
+    download(csv, '年度總表.csv');
   }
 
   function guardAdminPage(){
@@ -625,6 +514,75 @@
 
   return true;
 }
+
+/* 新年度總表 */
+function renderAnnualList(list, type){
+
+  const container = document.getElementById('annualList');
+
+  // ✅ 只顯示有出勤
+  const filtered = list.filter(x => (x.annual || 0) > 0);
+
+  container.innerHTML = filtered.map(u => {
+
+    // ✅ 統一欄位
+    const total = u.annual || 0;
+    const career = u.career || 0;
+
+    const scoreTotal = u.score_total || 0;
+    const avgScore = u.avg_score || 0;
+
+    const roles = type === 'judge'
+      ? (u.positions || {})
+      : (u.roles || {});
+
+    // ✅ 角色縮成一行
+    const roleTxt = Object.keys(roles)
+      .map(k => `${k}:${roles[k]||0}`)
+      .join(' ｜ ');
+
+    return `
+      <div class="summary-row">
+        
+        <div class="summary-left">
+          <div class="summary-name">${u.name}</div>
+          <div class="summary-role">${type === 'judge' ? '裁判' : '紀錄'}</div>
+        </div>
+
+        <div class="summary-stats">
+
+          <div class="stat">
+            <div class="num">${total}</div>
+            <div class="label">年度</div>
+          </div>
+
+          <div class="stat">
+            <div class="num">${career}</div>
+            <div class="label">生涯</div>
+          </div>
+
+          <div class="stat">
+            <div class="num">${scoreTotal}</div>
+            <div class="label">總分</div>
+          </div>
+
+          <div class="stat">
+            <div class="num">${avgScore}</div>
+            <div class="label">平均</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div style="font-size:12px;color:#666;margin:-6px 0 10px 8px;">
+        ${roleTxt}
+      </div>
+    `;
+
+  }).join('');
+}
+
   </script>
 </body>
 </html>
