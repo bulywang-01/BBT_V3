@@ -751,7 +751,7 @@ function cancelJudge(g, role){
   showToast('取消中...');
 
   callApi({
-    action: 'cancelJudgeSignupByGame',   // ✅ 改這裡
+    action: 'cancelJudgeSignup', 
     user_id: s.user_id,
     game_id: g.game_id,
     role: role
