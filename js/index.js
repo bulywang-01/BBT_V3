@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadWeeklyReminder();
   
   // ✅ 
-  loadHomeGames();
+  // loadHomeGames();
 
 });
 
@@ -121,7 +121,14 @@ function loadWeeklyReminder(){
     sunday.setHours(23,59,59,999);
 
     const hasThisWeek = games.some(g => {
-      if (!g.my_position) return false;
+    
+      const hasWork =
+        g.my_position ||
+        g.is_assigned ||       // ✅ 新增
+        g.is_record_assigned;  // ✅ 新增
+    
+      if (!hasWork) return false;
+    
       const d = new Date(g.date);
       return d >= monday && d <= sunday;
     });
