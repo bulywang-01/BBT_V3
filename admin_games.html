@@ -1639,64 +1639,37 @@ function editRow(id){
 // 編輯後儲存
 function saveRow(id){
 
-  const durationVal = Number(document.getElementById(`e_duration_${id}`).value);
-  
-  if (durationVal < 0 || durationVal > 300){
-    alert('比賽時間請輸入 0～300 分鐘');
-    return;
-  }
+  const data = {
+    action: 'updateGameFull',
+    game_id: id,
 
-  const data = [
-    ['game_code', document.getElementById(`e_code_${id}`).value],
-    ['date', document.getElementById(`e_date_${id}`).value],
-    ['time', document.getElementById(`e_time_${id}`).value],
-    ['duration', document.getElementById(`e_duration_${id}`).value],
-    ['tournament', document.getElementById(`e_tournament_${id}`).value],
-    ['field', document.getElementById(`e_field_${id}`).value],
-    ['category', document.getElementById(`e_category_${id}`).value],
-    ['away_team', document.getElementById(`e_away_${id}`).value],
-    ['home_team', document.getElementById(`e_home_${id}`).value],
-    ['umpire_count', document.getElementById(`e_umpire_${id}`).value],  // ✅ 這裡加逗號
-    ['status', Number(document.getElementById(`e_status_${id}`).value)] // ✅ 型態一起修
-  ];
+    game_code: document.getElementById(`e_code_${id}`).value,
+    date: document.getElementById(`e_date_${id}`).value,
+    time: document.getElementById(`e_time_${id}`).value,
+    duration: Number(document.getElementById(`e_duration_${id}`).value),
+    tournament: document.getElementById(`e_tournament_${id}`).value,
+    field: document.getElementById(`e_field_${id}`).value,
+    category: document.getElementById(`e_category_${id}`).value,
+    away_team: document.getElementById(`e_away_${id}`).value,
+    home_team: document.getElementById(`e_home_${id}`).value,
+    umpire_count: Number(document.getElementById(`e_umpire_${id}`).value),
+    status: Number(document.getElementById(`e_status_${id}`).value)
+  };
 
+  showSaving('儲存中...');
 
-  console.log('status=', document.getElementById(`e_status_${id}`).value);
-  
-  let i = 0;
+  callApi(data, function(res){
 
-  // ✅ ✅ ✅ 這裡先顯示一次
-  showSaving(`儲存中 (0 / ${data.length})`);
+    hideSaving();
 
-  function next(){
-
-    // ✅ ✅ ✅ 結束時要關掉
-    if (i >= data.length){
-      hideSaving();
+    if (res?.result === 'ok'){
       showToast('✅ 已儲存');
       loadGames();
-      return;
+    } else {
+      showToast('❌ 儲存失敗','error');
     }
 
-    const [field, value] = data[i];
-
-    // ✅ ✅ ✅ 每次更新文字（這才是重點）
-    showSaving(`儲存中 (${i+1} / ${data.length})`);
-
-    callApi({
-      action: 'updateGame',
-      game_id: id,
-      field_name: field,
-      value: value
-    }, function(){
-
-      i++;
-      next();
-
-    });
-  }
-
-  next();
+  });
 }
   
 </script>
