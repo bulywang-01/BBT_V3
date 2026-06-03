@@ -3,7 +3,14 @@
 *********************************************************/
 function renderGameCard(g, opt={}){
 
+// ✅ ✅ ✅ 1️⃣ 暫存 → 完全不顯示
+  if (Number(g.status) === 3){
+    return '';
+  }
 
+  // ✅ ✅ ✅ 2️⃣ 鎖定
+  const isLocked = Number(g.status) === 4;
+ 
   const session = opt.session || null;
   const isViewMode = opt.mode === 'view';
 
@@ -72,7 +79,7 @@ function renderGameCard(g, opt={}){
 
 
   return `
-  <div class="game-card ${isPast?'expired-card':''}"
+  <div class="game-card ${isPast?'expired-card':''} ${isLocked?'locked':''}"
        id="game-${g.game_id}"
        data-type="${type}">
 
@@ -231,7 +238,18 @@ function renderGameCard(g, opt={}){
              }
              
              return `
-               <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+               if (isLocked){
+                 return `
+                   <div class="slot locked">
+                     <div class="label">${roleMap(role)}</div>
+                     <div class="name">🔒 已鎖定</div>
+                   </div>
+                 `;
+               }
+               
+               return `
+                 <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+
                  <div class="label">${roleMap(role)}</div>
                  <div class="btn">報名</div>
                </div>
@@ -297,7 +315,18 @@ function renderGameCard(g, opt={}){
          }
          
          return `
-           <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+           if (isLocked){
+             return `
+               <div class="slot locked">
+                 <div class="label">${roleMap(role)}</div>
+                 <div class="name">🔒 已鎖定</div>
+               </div>
+             `;
+           }
+           
+           return `
+             <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+
              <div class="label">${roleMap(role)}</div>
              <div class="btn">報名</div>
            </div>
