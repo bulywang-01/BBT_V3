@@ -1214,6 +1214,36 @@ function loadJudgeGamesByMonth(year, month) {
     render();
   });
 }
+
+function safeMerge(g){
+
+  // ✅ 如果後端已經整理好就直接用
+  if (g.judges && Object.keys(g.judges).some(v => g.judges[v])){
+    return g;
+  }
+
+  // ✅ 初始化
+  g.judges = g.judges || {};
+  g.records = g.records || {};
+
+  // ✅ 裁判
+  ['PU','U1','U2','U3'].forEach(r=>{
+    g.judges[r] =
+      g.assignment_judges?.[r] ||
+      g.signup_judges?.[r] ||
+      '';
+  });
+
+  // ✅ 紀錄
+  ['REC_MAIN','REC_TRAINEE','REC_VIDEO'].forEach(r=>{
+    g.records[r] =
+      g.assignment_records?.[r] ||
+      g.signup_records?.[r] ||
+      '';
+  });
+
+  return g;
+}
 </script>
 </body>
 </html>
