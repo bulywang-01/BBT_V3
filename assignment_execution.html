@@ -22,6 +22,7 @@ body{
   padding:16px;
 }
 
+/* 卡片 */
 .game-card{
   background:#fff;
   border-radius:14px;
@@ -32,14 +33,15 @@ body{
 
 .game-title{
   font-weight:800;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 
+/* 人員 */
 .person{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:6px 0;
+  padding:8px 0;
   border-bottom:1px dashed #ddd;
 }
 
@@ -47,28 +49,43 @@ body{
   border-bottom:none;
 }
 
-.role{ font-weight:700; }
+.role{
+  font-weight:700;
+  color:#374151;
+}
 
+/* 按鈕 */
 .actions button{
   margin-left:6px;
-  padding:4px 8px;
+  padding:5px 10px;
   border:none;
   border-radius:6px;
   cursor:pointer;
+  font-size:12px;
 }
 
 .btn-ok{ background:#16a34a;color:#fff;}
 .btn-no{ background:#dc2626;color:#fff;}
 .btn-late{ background:#f59e0b;color:#fff;}
 
+/* 狀態 */
 .completed{ background:#ecfdf5;}
 .no_show{ background:#fef2f2;}
 .late{ background:#fffbeb;}
+
+.empty{
+  text-align:center;
+  color:#999;
+  padding:40px;
+}
 
 </style>
 </head>
 
 <body>
+
+<!-- ✅ header -->
+<div id="header-container"></div>
 
 <div class="main">
   <h2>✅ 出勤管理</h2>
@@ -77,18 +94,48 @@ body{
 
 <script>
 
+// ✅ Header 載入
+document.addEventListener('DOMContentLoaded',()=>{
+  fetch('header.html')
+    .then(res=>res.text())
+    .then(html=>{
+      document.getElementById('header-container').innerHTML = html;
+    });
+
+  load();
+});
+
+/* =========================
+   ✅ 主載入
+========================= */
 function load(){
 
-  callApi({action:'getAssignmentsByDate'}, res=>{
-    if(res.result!=='ok') return;
+  callApi({ action:'getAssignmentsByDate' }, res=>{
 
-    render(res.games);
+    console.log('出勤資料', res);
+
+    if (res.result !== 'ok'){
+      document.getElementById('list').innerHTML =
+        '<div class="empty">資料讀取失敗</div>';
+      return;
+    }
+
+    render(res.games || []);
   });
 }
 
+/* =========================
+   ✅ render（完整）
+========================= */
 function render(list){
 
-  const el=document.getElementById('list');
+  const el = document.getElementById('list');
+
+  // ✅ 沒資料
+  if (!list.length){
+    el.innerHTML = '<div class="empty">目前沒有出勤資料</div>';
+    return;
+  }
 
   el.innerHTML = list.map(g=>`
 
@@ -98,39 +145,52 @@ function render(list){
         📅 ${g.date}｜${g.game_code}｜${g.field}
       </div>
 
-      ${g.members.map(p=>`
+      ${
+        (!g.members || !g.members.length)
+        ? `<div style="color:#aaa;">尚未安排人員</div>`
+        : g.members.map(p=>`
 
-        <div class="person ${p.status||''}">
+          <div class="person ${p.status || ''}">
 
-          <div>
-            <div class="role">${p.role}</div>
-            <div>${p.name}</div>
+            <div>
+              <div class="role">${p.role}</div>
+              <div>${p.name}</div>
+            </div>
+
+            <div class="actions">
+
+              <button class="btn-ok"
+                onclick="complete('${p.assignment_id}')">
+                ✅ 完成
+              </button>
+
+              <button class="btn-no"
+                onclick="noShow('${p.assignment_id}')">
+                ❌ 缺席
+              </button>
+
+              <button class="btn-late"
+                onclick="late('${p.assignment_id}')">
+                ⏱ 遲到
+              </button>
+
+            </div>
+
           </div>
 
-          <div class="actions">
-
-            <button class="btn-ok"
-              onclick="complete('${p.assignment_id}')">完成</button>
-
-            <button class="btn-no"
-              onclick="noShow('${p.user_id}','${g.game_id}')">缺席</button>
-
-            <button class="btn-late"
-              onclick="late('${p.user_id}','${g.game_id}')">遲到</button>
-
-          </div>
-
-        </div>
-
-      `).join('')}
+        `).join('')
+      }
 
     </div>
 
   `).join('');
 }
 
-/* ===== API ===== */
+/* =========================
+   ✅ API 操作
+========================= */
 
+// ✅ 完賽
 function complete(id){
   callApi({
     action:'completeAssignment',
@@ -138,25 +198,22 @@ function complete(id){
   }, ()=>load());
 }
 
-function noShow(uid,gid){
+// ✅ 缺席
+function noShow(id){
   callApi({
-    action:'addPenalty',
-    user_id:uid,
-    game_id:gid,
-    type:'absent'
+    action:'markNoShow',
+    assignment_id:id
   }, ()=>load());
 }
 
-function late(uid,gid){
+// ✅ 遲到
+function late(id){
   callApi({
     action:'addPenalty',
-    user_id:uid,
-    game_id:gid,
+    assignment_id:id,
     type:'late'
   }, ()=>load());
 }
-
-load();
 
 </script>
 
