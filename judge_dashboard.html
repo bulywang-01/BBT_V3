@@ -468,7 +468,7 @@ function loadHeader() {
 
 <script>
 
-// const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+const s = JSON.parse(localStorage.getItem('session_user')||'{}');
   
 function getName(v){
   if (!v) return '—';
@@ -505,7 +505,7 @@ let games = [];
 
 /* ===== API ===== */
 function loadGames() {
-  // const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
  showToast('載入賽事資料中...');
 
   callApi(
@@ -1157,7 +1157,7 @@ function setActiveTab(el) {
 // 呼叫API
 function loadJudgeGamesByMonth(year, month) {
 
-  // const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
  showToast('載入月份班表中...');
 
