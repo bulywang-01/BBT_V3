@@ -231,6 +231,12 @@
   th, td {
     white-space: nowrap;
   }
+  
+  /* ✅ ✅ ✅ 特例：允許說明區換行 */
+  .annual-right,
+  .annual-right * {
+    white-space: normal !important;
+  }
 
   /* ===== Modal 工具列 ===== */
   .modal-header {
@@ -338,12 +344,12 @@
   }
   
   .annual-right{
-    flex:1;
+    /* flex:1; */
     background:#fafafa;
     padding:14px;
     border-radius:12px;
     font-size:13px;
-    
+    flex:0 0 280px;   /* ✅ 固定寬度（比 max-width 更穩） */
     max-width:280px;     /* ✅ 限制寬度（關鍵） */
     white-space:normal;  /* ✅ 可換行 */
     line-height:1.5;
@@ -422,11 +428,11 @@
       </a> 
       
       <div class="card" onclick="openAnnualModal('judge')">
-        📈 全員裁判年度總表
+        📈 裁判員年度總表
       </div>
     
       <div class="card" onclick="openAnnualModal('record')">
-        📝 全員紀錄員年度總表
+        📝 紀錄員年度總表
       </div>
 
     
