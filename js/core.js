@@ -78,25 +78,25 @@ function renderGameCard(g, opt={}){
   }
 
 
-     let statusBanner = '';
-     
-     if (g.status === 1){
-       statusBanner = '<div class="row-warning">⚠️延賽</div>';
-     }
-     if (g.status === 2){
-       statusBanner = '<div class="row-warning">⛔停賽</div>';
-     }
-     if (g.status === 4){
-       statusBanner = '<div class="row-warning">🔒鎖定</div>';
-     }
+    let statusBanner = '';
+    
+    if (s === 1){
+      statusBanner = '<div class="row-warning">⚠️延賽</div>';
+    }
+    if (s === 2){
+      statusBanner = '<div class="row-warning">⛔停賽</div>';
+    }
+    if (s === 4){
+      statusBanner = '<div class="row-warning">🔒鎖定</div>';
+    }
  
   return `
 
       <div class="game-card 
         ${isPast?'expired-card':''} 
-        ${s === 4 ? 'locked' : ''} 
         ${s === 1 ? 'postponed' : ''} 
         ${s === 2 ? 'stopped' : ''}
+        ${s === 4 ? 'locked' : ''} 
       "
        id="game-${g.game_id}"
        data-type="${type}">
