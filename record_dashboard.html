@@ -592,20 +592,45 @@ function render(){
   const dateMap = {};
 
   // ✅ 分日期
-  games.forEach(g=>{
-
-    if (!shouldRenderGame(g)) return;
-
-    // ✅ 月份過濾
+  games.forEach(g => {
+  
+    const s = Number(g.status || 0);
+  
+    // ✅ 1️⃣ 暫存 → 不顯示
+    if (s === 3) return;
+  
+    const d = new Date(g.date.replace(/\//g,'-'));
+    d.setHours(0,0,0,0);
+  
+    const today = new Date();
+    today.setHours(0,0,0,0);
+  
+    // ✅ ✅ ✅ 月份模式（最高優先）
     if (window.currentMonth !== null){
-      const d = new Date(g.date.replace(/\//g,'-'));
       const m = d.getMonth() + 1;
       if (m !== window.currentMonth) return;
     }
-
+  
+    // ✅ ✅ ✅ 全年模式
+    else if (window.isFullYear){
+      // 不過濾
+    }
+  
+    // ✅ ✅ ✅ 預設（本週之後）
+    else {
+      const day = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+      monday.setHours(0,0,0,0);
+  
+      if (d < monday) return;
+    }
+  
     if (!dateMap[g.date]) dateMap[g.date] = [];
     dateMap[g.date].push(g);
+  
   });
+
 
   // ✅ 日期排序
   Object.keys(dateMap)
@@ -823,6 +848,7 @@ function logout(){
 
 // 初始化月份
 window.currentMonth = null;
+window.isFullYear = false;
   
 function initMonthTabs() {
 
@@ -838,9 +864,11 @@ function initMonthTabs() {
   allBtn.textContent = '📊 全年班表';
 
   allBtn.onclick = () => {
-    currentMonth = null;
+    window.currentMonth = null;
+    window.isFullYear = true;
     setActiveTab(allBtn);
-    loadGames(); // ✅ 回原本全部
+    loadGames();
+    showToast(`載入全年班表`, 'success');
   };
 
   container.appendChild(allBtn);
@@ -857,12 +885,13 @@ function initMonthTabs() {
       // 預設不要 active（讓全年是預設）
     }
 
-    div.onclick = () => {
-      currentMonth = m;
-      setActiveTab(div);
-      loadRecordGamesByMonth(year, m);
-      showToast(`${m}月 班表`, 'success');
-    };
+   div.onclick = () => {
+     window.currentMonth = m;
+     window.isFullYear = false;
+     setActiveTab(div);
+     loadJudgeGamesByMonth(year, m);
+     showToast(`載入 ${m}月 班表`, 'success');
+   };
 
     container.appendChild(div);
   }
