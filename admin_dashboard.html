@@ -343,6 +343,12 @@
     padding:14px;
     border-radius:12px;
     font-size:13px;
+    
+    max-width:280px;     /* ✅ 限制寬度（關鍵） */
+    white-space:normal;  /* ✅ 可換行 */
+    line-height:1.5;
+    overflow-wrap: break-word;  /* 避免英文 / 長字串爆版 */
+
   }
   
   /* ✅ 手機自動改上下 */
