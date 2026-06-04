@@ -119,7 +119,14 @@
     background: #fff2cc;
   }
   
-  
+  .card-annual{ background:#eef2ff;}
+  .card-schedule{ background:#eefaf4;}
+  .card-admin{ background:#fff9e6;}
+  .card-execution{
+    background:#ecfdf5;
+    border:1px solid #bbf7d0;
+  }
+
   /* =====================================================
      Modal（乾淨版）
      ===================================================== */
@@ -409,38 +416,28 @@
     
     
       <a href="judge_dashboard_admin.html">
-        <div class="card">
-          ⚾ 裁判員班表安排
-        </div>
+        <div class="card card-schedule">⚾ 裁判員班表安排</div>
       </a>
     
       <a href="record_dashboard_admin.html">
-        <div class="card">
-          📋 紀錄員班表安排
-        </div>
+        <div class="card card-schedule">📋 紀錄員班表安排</div>
       </a> 
       
-      <div class="card" onclick="openAnnualModal('judge')">
-        📈 裁判員年度總表
-      </div>
-    
-      <div class="card" onclick="openAnnualModal('record')">
-        📝 紀錄員年度總表
-      </div>
-
+      <div class="card card-schedule" onclick="openAnnualModal('judge')">📈 裁判員年度總表</div>
+      <div class="card card-schedule" onclick="openAnnualModal('record')">📝 紀錄員年度總表</div>
     
       <a href="admin_users.html">
-        <div class="card">
-          👤 帳號管理
-        </div>
+        <div class="card card-schedule">👤 帳號管理</div>
       </a>
     
       <a href="admin_games.html">
-        <div class="card">
-          🏟️ 賽事管理
-        </div>
+        <div class="card card-schedule">🏟️ 賽事管理</div>
       </a>
-    
+      
+      <a href="assignment_execution.html">
+        <div class="card card-execution">✅ 出勤確認</div>
+      </a>
+
     </div>
 
   <!-- ✅ Modal 永遠在最外層，而且預設 hidden -->
