@@ -499,13 +499,15 @@ function renderJudgeSlots(g, isPast, session){
               <span class="${isMe?'mobile-judge-me':''}">
                 ${name}
               </span>
-              ${
-                isMe && !isPast && !isViewMode
-                ? `<div class="mobile-cancel"
-                     onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
-                     取消</div>`
-                : 
-              }
+
+             ${
+               isMe && !isPast && !isViewMode
+               ? `<div class="mobile-cancel"
+                    onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
+                    取消</div>`
+               : ''
+             }
+
             </div>
           `;
 
