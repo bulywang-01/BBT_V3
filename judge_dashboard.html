@@ -1048,48 +1048,6 @@ function logout(){
 }
 
 
-/* ✅ ========= 取消 ========= 
-
-function cancelMySignup(signupId){
-
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
-
- showToast('取消中...');
-
-  callApi({
-    action:'cancelJudgeSignup',
-    user_id: s.user_id,   // ✅ 修這行
-    signup_id: signupId
-  },res=>{
-   
-    showToast('✅ 已取消');
-    reloadCurrentView();
-  });
-
-}
-*/
-
-
-/* ✅ ========= 報名 ========= 
-
-function signupJudgeInstant(gameId, role){
-
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
-
- showToast('報名中...');
-
-  callApi({
-    action:'judgeSignupByGames',
-    user_id: s.user_id,
-    games_with_position:`${gameId}:${role}`
-  },res=>{
-    showToast(res.result==='ok'?'✅ 成功':res.message||'失敗');
-    reloadCurrentView();
-  });
-
-}
-*/
-
 // 初始化月份
 window.currentMonth = null;
 window.isFullYear = false;
@@ -1112,6 +1070,7 @@ function initMonthTabs() {
     window.isFullYear = true;
     setActiveTab(allBtn);
     loadGames();
+    showToast(`全年班表`, 'success');
   };
 
 
@@ -1134,6 +1093,7 @@ function initMonthTabs() {
       window.isFullYear = false;
       setActiveTab(div);
       loadJudgeGamesByMonth(year, m);
+      showToast(`${m}月 班表`, 'success');
     };
 
 
