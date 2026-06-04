@@ -504,7 +504,7 @@ function renderJudgeSlots(g, isPast, session){
                 ? `<div class="mobile-cancel"
                      onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消</div>`
-                : ``
+                : 
               }
             </div>
           `;
@@ -1103,7 +1103,6 @@ function getTime(g){
   // ✅ fallback
   return '';
 }
-``
 
 /*********************************************************
  ✅ 過期判斷
