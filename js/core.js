@@ -18,7 +18,6 @@ function renderGameCard(g, opt={}){
   // ✅ ✅ ✅ 自動判斷頁面（核心封裝）
   let type = opt.type;
 
-
   if (!type){
     if (document.body.classList.contains('page-record')){
       type = 'record';
