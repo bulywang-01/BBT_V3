@@ -447,13 +447,20 @@ function openMySchedule(){
     });
 
     // list.innerHTML = myGames.map(renderGameCard).join('');
-    list.innerHTML = myGames.map(g =>
-      renderGameCard(g,{
+
+    list.innerHTML = myGames.map(g => {
+    
+      const type = g.my_position?.startsWith('REC')
+        ? 'record'
+        : 'judge';
+    
+      return renderGameCard(g,{
         session,
-        type:'judge',
-        mode:'view'   // ✅ ✅ ✅ 關鍵就這個
-      })
-    ).join('');
+        type,
+        mode:'view'
+      });
+    
+    }).join('');
 
     setGameCache(myGames);
   });
