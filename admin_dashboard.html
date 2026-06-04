@@ -297,14 +297,6 @@
   }
   
   /* ===== 桌機優化 ===== */
-  @media (min-width: 768px) {
-    #annualList {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 14px;
-    }
-  }
-
   /* 年度排名 */
   .annual-table{
     width:100%;
@@ -336,10 +328,11 @@
   .annual-layout{
     display:flex;
     gap:20px;
+    align-items:flex-start;   /* ✅ 防止被撐歪 */
   }
   
   .annual-left{
-    flex:2;
+    flex:1;
     min-width:0;
   }
   
@@ -349,7 +342,7 @@
     padding:14px;
     border-radius:12px;
     font-size:13px;
-    flex:0 0 280px;   /* ✅ 固定寬度（比 max-width 更穩） */
+    flex: 0 0 260px;   /* ✅ 固定右側 */
     max-width:280px;     /* ✅ 限制寬度（關鍵） */
     white-space:normal;  /* ✅ 可換行 */
     line-height:1.5;
