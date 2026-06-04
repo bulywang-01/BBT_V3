@@ -237,7 +237,6 @@ function renderGameCard(g, opt={}){
                `;
              }
              
-             return `
               if (isLocked){
                 return `
                   <div class="slot locked">
@@ -314,7 +313,6 @@ function renderGameCard(g, opt={}){
            `;
          }
          
-         return `
           if (isLocked){
             return `
               <div class="slot locked">
