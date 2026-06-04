@@ -91,7 +91,13 @@ function renderGameCard(g, opt={}){
      }
  
   return `
-  <div class="game-card ${isPast?'expired-card':''} ${s === 4 ? 'locked' : ''}"
+
+      <div class="game-card 
+        ${isPast?'expired-card':''} 
+        ${s === 4 ? 'locked' : ''} 
+        ${s === 1 ? 'postponed' : ''} 
+        ${s === 2 ? 'stopped' : ''}
+      "
        id="game-${g.game_id}"
        data-type="${type}">
 
