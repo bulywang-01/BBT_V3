@@ -546,7 +546,8 @@ function loadGames() {
       if (typeof setGameCache === 'function'){
         setGameCache(allGames);
       }
-      
+
+      console.log(games.map(g => g.status));
       render();
 
       ;
