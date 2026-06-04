@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出勤管理</title>
+
+<script src="js/auth.js"></script>
+<script src="js/config.js"></script>
+
+<style>
+
+body{
+  font-family: system-ui;
+  background:#f5f6f8;
+  margin:0;
+}
+
+.main{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+
+.game-card{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.game-title{
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+.person{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px dashed #ddd;
+}
+
+.person:last-child{
+  border-bottom:none;
+}
+
+.role{ font-weight:700; }
+
+.actions button{
+  margin-left:6px;
+  padding:4px 8px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.btn-ok{ background:#16a34a;color:#fff;}
+.btn-no{ background:#dc2626;color:#fff;}
+.btn-late{ background:#f59e0b;color:#fff;}
+
+.completed{ background:#ecfdf5;}
+.no_show{ background:#fef2f2;}
+.late{ background:#fffbeb;}
+
+</style>
+</head>
+
+<body>
+
+<div class="main">
+  <h2>✅ 出勤管理</h2>
+  <div id="list"></div>
+</div>
+
+<script>
+
+function load(){
+
+  callApi({action:'getAssignmentsByDate'}, res=>{
+    if(res.result!=='ok') return;
+
+    render(res.games);
+  });
+}
+
+function render(list){
+
+  const el=document.getElementById('list');
+
+  el.innerHTML = list.map(g=>`
+
+    <div class="game-card">
+
+      <div class="game-title">
+        📅 ${g.date}｜${g.game_code}｜${g.field}
+      </div>
+
+      ${g.members.map(p=>`
+
+        <div class="person ${p.status||''}">
+
+          <div>
+            <div class="role">${p.role}</div>
+            <div>${p.name}</div>
+          </div>
+
+          <div class="actions">
+
+            <button class="btn-ok"
+              onclick="complete('${p.assignment_id}')">完成</button>
+
+            <button class="btn-no"
+              onclick="noShow('${p.user_id}','${g.game_id}')">缺席</button>
+
+            <button class="btn-late"
+              onclick="late('${p.user_id}','${g.game_id}')">遲到</button>
+
+          </div>
+
+        </div>
+
+      `).join('')}
+
+    </div>
+
+  `).join('');
+}
+
+/* ===== API ===== */
+
+function complete(id){
+  callApi({
+    action:'completeAssignment',
+    assignment_id:id
+  }, ()=>load());
+}
+
+function noShow(uid,gid){
+  callApi({
+    action:'addPenalty',
+    user_id:uid,
+    game_id:gid,
+    type:'absent'
+  }, ()=>load());
+}
+
+function late(uid,gid){
+  callApi({
+    action:'addPenalty',
+    user_id:uid,
+    game_id:gid,
+    type:'late'
+  }, ()=>load());
+}
+
+load();
+
+</script>
+
+</body>
+</html>
