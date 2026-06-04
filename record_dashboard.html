@@ -676,10 +676,10 @@ function render(){
             <div class="category-title">${field}</div>
             <div class="card-grid">
               ${
-                finalList.map(g=>renderGameCard(g,{
-                  type:'record',
-                  session:s
-                })).join('')
+                finalList
+                  .filter(g => Number(g.status || 0) !== 3)   // ✅ 先過濾
+                  .map(g => renderGameCard(g,{ session, type:'record' }))
+                  .join('')
               }
             </div>
           `;
@@ -706,10 +706,10 @@ function render(){
               <div class="category-title">${cat}</div>
               <div class="card-grid">
                 ${
-                  sorted.map(g=>renderGameCard(g,{
-                    type:'record',
-                    session:s
-                  })).join('')
+                  sorted
+                    .filter(g => Number(g.status || 0) !== 3)
+                    .map(g => renderGameCard(g,{ session, type:'record' }))
+                    .join('')
                 }
               </div>
             `;
