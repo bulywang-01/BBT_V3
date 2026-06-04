@@ -388,6 +388,10 @@ body {
 <div id="header-container"></div>
 
 <script>
+const session = getSession
+  ? getSession() 
+  : JSON.parse(localStorage.getItem('session_user')||'{}');
+ 
 function loadHeader() {
   fetch('header.html')
     .then(res => res.text())
@@ -464,7 +468,7 @@ function loadHeader() {
 
 <script>
 
-const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+// const s = JSON.parse(localStorage.getItem('session_user')||'{}');
   
 function getName(v){
   if (!v) return '—';
@@ -501,7 +505,7 @@ let games = [];
 
 /* ===== API ===== */
 function loadGames() {
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  // const s = JSON.parse(localStorage.getItem('session_user')||'{}');
  showToast('載入賽事資料中...');
 
   callApi(
@@ -513,14 +517,38 @@ function loadGames() {
         return;
       }
 
-      allGames = res.games || [];
+      allGames = (res.games || []).map(safeMerge);
       games = allGames;
       
+      // ✅ ✅ ✅ 補 my_position（一定要）
+      const s = session;
+      
+      allGames.forEach(g => {
+      
+        if (g.judges){
+          for (let [role, val] of Object.entries(g.judges)){
+            if (isMySlot(val, s)){
+              g.my_position = role;
+            }
+          }
+        }
+      
+        if (g.records){
+          for (let [role, val] of Object.entries(g.records)){
+            if (isMySlot(val, s)){
+              g.my_position = role;
+            }
+          }
+        }
+      
+      });
+      
       if (typeof setGameCache === 'function'){
-        setGameCache(allGames);   // ✅ 關鍵
+        setGameCache(allGames);
       }
-
+      
       render();
+
       ;
 
     }
@@ -1129,7 +1157,7 @@ function setActiveTab(el) {
 // 呼叫API
 function loadJudgeGamesByMonth(year, month) {
 
-  const s = JSON.parse(localStorage.getItem('session_user')||'{}');
+  // const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
  showToast('載入月份班表中...');
 
@@ -1145,11 +1173,35 @@ function loadJudgeGamesByMonth(year, month) {
       return;
     }
 
-    allGames = res.games || [];
-
+    allGames = (res.games || []).map(safeMerge);
+    
+    // ✅ ✅ ✅ 同樣補
+    const s = session;
+    
+    allGames.forEach(g => {
+    
+      if (g.judges){
+        for (let [role, val] of Object.entries(g.judges)){
+          if (isMySlot(val, s)){
+            g.my_position = role;
+          }
+        }
+      }
+    
+      if (g.records){
+        for (let [role, val] of Object.entries(g.records)){
+          if (isMySlot(val, s)){
+            g.my_position = role;
+          }
+        }
+      }
+    
+    });
+    
     if (typeof setGameCache === 'function'){
       setGameCache(allGames);
     }
+
 
     // ✅ ✅ ✅ 關鍵（補空資料）
     if (!allGames.length) {
