@@ -1155,14 +1155,19 @@ function shouldRenderGame(g){
 
   const s = Number(g.status || 0);
 
-  // ✅ 1️⃣ 暫存 → 完全不顯示
+  // ✅ 暫存
   if (s === 3){
     return false;
   }
 
-  // ✅ 2️⃣ 其他全部顯示（0/1/2/4）
+  // ✅ 本週以前（不顯示）
+  if (isBeforeThisWeek(g.date)){
+    return false;
+  }
+
   return true;
 }
+
 
 /*********************************************************
  ✅ 裁判站位
@@ -1365,4 +1370,22 @@ function isSameTimeOtherFieldLocked(g){
 
     return judgeHit || recordHit;
   });
+}
+
+/* =========================
+ ✅ 只顯示本週之後
+========================= */
+function isBeforeThisWeek(dateStr){
+
+  const now = new Date();
+  const day = now.getDay(); // 0(日)-6
+
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  monday.setHours(0,0,0,0);
+
+  const d = new Date(dateStr.replace(/\//g,'-'));
+  d.setHours(0,0,0,0);
+
+  return d < monday; // 在本週以前
 }
