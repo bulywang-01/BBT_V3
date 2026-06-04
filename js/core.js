@@ -484,7 +484,7 @@ function renderJudgeSlots(g, isPast, session){
           const slot = g.judges?.[role];
           const isMe = isMySlot(slot, session);
 
-          // const s = Number(g.status || 0);
+          const s = Number(g.status || 0);
           
           if ([1,2,4].includes(s)){
             return `
@@ -1152,7 +1152,7 @@ function canSignup(g){
 *********************************************************/
 function shouldRenderGame(g){
 
-  // const s = Number(g.status || 0);
+  const s = Number(g.status || 0);
 
   // ✅ 1️⃣ 暫存 → 完全不顯示
   if (s === 3){
