@@ -525,6 +525,7 @@ function loadGames() {
         setGameCache(allGames);   // ✅ 關鍵
       }
 
+      console.log(games.map(g => g.status));
       render();
       ;
 
