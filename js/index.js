@@ -173,8 +173,30 @@ function loadDashboard(){
 
     if (!res || res.result !== 'ok') return;
 
-    // const games = res.games || [];
     const games = (res.games || []).map(safeMerge);
+    
+    const s = session;
+    
+    games.forEach(g => {
+    
+      if (g.judges){
+        for (let [role, val] of Object.entries(g.judges)){
+          if (isMySlot(val, s)){
+            g.my_position = role;
+          }
+        }
+      }
+    
+      if (g.records){
+        for (let [role, val] of Object.entries(g.records)){
+          if (isMySlot(val, s)){
+            g.my_position = role;
+          }
+        }
+      }
+    
+    });
+
     const today = new Date();
 
     let judgeDone = 0;
@@ -367,7 +389,32 @@ function openMySchedule(){
 
     // ✅ ✅ ✅ 一定要 merge
     const games = (res.games || []).map(safeMerge);
-
+    
+    // ✅ ✅ ✅ 👉 插這裡（關鍵）
+    const s = getSession ? getSession() : session;
+    
+    games.forEach(g => {
+    
+      // ✅ 裁判
+      if (g.judges){
+        for (let [role, val] of Object.entries(g.judges)){
+          if (isMySlot(val, s)){
+            g.my_position = role;
+          }
+        }
+      }
+    
+      // ✅ 紀錄（🔥 你現在缺的）
+      if (g.records){
+        for (let [role, val] of Object.entries(g.records)){
+          if (isMySlot(val, s)){
+            g.my_position = role;
+          }
+        }
+      }
+    
+    });
+        
     const today = new Date();
     today.setHours(0,0,0,0);
 
