@@ -351,7 +351,7 @@ function renderGameCard(g, opt={}){
               <div class="btn">報名</div>
             </div>
           `;
-        ).join('')
+        }).join('')
         : ''
       }
 
