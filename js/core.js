@@ -3,13 +3,14 @@
 *********************************************************/
 function renderGameCard(g, opt={}){
 
-// ✅ ✅ ✅ 1️⃣ 暫存 → 完全不顯示
-  if (Number(g.status) === 3){
+  const s = Number(g.status || 0);
+  
+  // ✅ 暫存 → 不顯示
+  if (s === 3){
     return '';
   }
 
   // ✅ ✅ ✅ 2️⃣ 鎖定
-  const isLocked = Number(g.status) === 4;
  
   const session = opt.session || null;
   const isViewMode = opt.mode === 'view';
@@ -78,18 +79,30 @@ function renderGameCard(g, opt={}){
   }
 
 
+     let statusBanner = '';
+     
+     if (g.status === 1){
+       statusBanner = '<div class="row-warning">⚠️延賽</div>';
+     }
+     if (g.status === 2){
+       statusBanner = '<div class="row-warning">⛔停賽</div>';
+     }
+     if (g.status === 4){
+       statusBanner = '<div class="row-warning">🔒鎖定</div>';
+     }
+ 
   return `
-  <div class="game-card ${isPast?'expired-card':''} ${isLocked?'locked':''}"
+  <div class="game-card ${isPast?'expired-card':''} ${s === 4 ? 'locked' : ''}"
        id="game-${g.game_id}"
        data-type="${type}">
 
-
+     
     <div class="row-top">
       <div class="left">${formatDateTW(g.date)}</div>
       <div class="center">${g.category||''}</div>
       <div class="right">${g.field||''}</div>
     </div>    
-
+    ${statusBanner}
 
     <!-- 警告同場訊息　renderGameCard WARNING -->
         ${(() => {
@@ -201,7 +214,7 @@ function renderGameCard(g, opt={}){
                   <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${typeof slot === 'object' ? slot.name : slot}</div>
                   ${
                     // isMe && !isPast
-                   isMe && !isPast && !isViewMode
+                   isMe && !isPast && !isViewMode && ![1,2,4].includes(s)
                     ? `
                     <div class="cancel" onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>
                        `
@@ -237,21 +250,26 @@ function renderGameCard(g, opt={}){
                `;
              }
              
-              if (isLocked){
-                return `
-                  <div class="slot locked">
-                    <div class="label">${roleMap(role)}</div>
-                    <div class="name">🔒 已鎖定</div>
-                  </div>
-                `;
-              }
-              
-              return `
-                <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
-                  <div class="label">${roleMap(role)}</div>
-                  <div class="btn">報名</div>
-                </div>
-              `;
+                  // const s = Number(g.status || 0);
+                  // const isDisabled = [1,2,4].includes(s);
+                  
+                  if ([1,2,4].includes(s)){
+                    return `
+                      <div class="slot locked">
+                        <div class="label">${roleMap(role)}</div>
+                        <div class="name">
+                          ${s === 1 ? '延賽' : s === 2 ? '停賽' : '🔒 鎖定'}
+                        </div>
+                      </div>
+                    `;
+                  }
+            
+            return `
+              <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
+                <div class="label">${roleMap(role)}</div>
+                <div class="btn">報名</div>
+              </div>
+            `;
 
           }).join('')
         ) : ''
@@ -281,7 +299,7 @@ function renderGameCard(g, opt={}){
               <div class="name ${isMe?'me':''} ${String(slot.name || slot).length > 10 ? 'long' : ''}">${slot.name}</div>
               ${
                 // isMe && !isPast
-               isMe && !isPast && !isViewMode
+               isMe && !isPast && !isViewMode && ![1,2,4].includes(s)
                 ? `
                 <div class="cancel" onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">取消</div>
                      `
@@ -313,22 +331,27 @@ function renderGameCard(g, opt={}){
            `;
          }
          
-          if (isLocked){
-            return `
-              <div class="slot locked">
-                <div class="label">${label}</div>
-                <div class="name">🔒 已鎖定</div>
-              </div>
-            `;
-          }
-          
+           // ✅ ✅ ✅ status 控制
+            // const s = Number(g.status || 0);
+                
+            if ([1,2,4].includes(s)){
+              return `
+                <div class="slot locked">
+                  <div class="label">${label}</div>
+                  <div class="name">
+                    ${s === 1 ? '延賽' : s === 2 ? '停賽' : '🔒 鎖定'}
+                  </div>
+                </div>
+              `;
+            }
+         
           return `
             <div class="slot action" onclick="handleSlotClick('${g.game_id}','${role}')">
               <div class="label">${label}</div>
               <div class="btn">報名</div>
             </div>
           `;
-        }).join('')
+        ).join('')
         : ''
       }
 
@@ -461,15 +484,23 @@ function renderJudgeSlots(g, isPast, session){
           const slot = g.judges?.[role];
           const isMe = isMySlot(slot, session);
 
+          // const s = Number(g.status || 0);
+          
+          if ([1,2,4].includes(s)){
+            return `
+              <div class="mobile-pos">
+                <span>${s === 1 ? '延賽' : s === 2 ? '停賽' : '🔒鎖定'}</span>
+              </div>
+            `;
+          }
+          
           return `
             <div class="mobile-pos">
               <span class="${isMe?'mobile-judge-me':''}">
                 ${name}
               </span>
-
               ${
-                // isMe && !isPast
-               isMe && !isPast && !isViewMode
+                isMe && !isPast && !isViewMode
                 ? `<div class="mobile-cancel"
                      onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消</div>`
@@ -477,6 +508,7 @@ function renderJudgeSlots(g, isPast, session){
               }
             </div>
           `;
+
         }
 
         // ✅ ✅ ✅ 過期：完全不能操作
@@ -494,15 +526,24 @@ function renderJudgeSlots(g, isPast, session){
         }
 
         // ✅ ✅ ✅ 可報名
-        return `
-          <div class="mobile-pos">
-            <div class="mobile-pos-btn"
-              onclick="handleSlotClick('${g.game_id}','${role}')">
-               報名　
-            </div>
-          </div>
-        `;
-
+           // const s = Number(g.status || 0);
+           
+           if ([1,2,4].includes(s)){
+             return `
+               <div class="mobile-pos">
+                 <span>${s === 1 ? '延賽' : s === 2 ? '停賽' : '🔒鎖定'}</span>
+               </div>
+             `;
+           }
+           
+           return `
+             <div class="mobile-pos">
+               <div class="mobile-pos-btn"
+                 onclick="handleSlotClick('${g.game_id}','${role}')">
+                 報名
+               </div>
+             </div>
+           `;
       }).join('')}
     </div>
   `;
@@ -536,7 +577,7 @@ function renderRecordSlots(g, isPast, session){
               ${label}<br>${slot.name}
               ${
                 // isMe && !isPast
-               isMe && !isPast && !isViewMode
+               isMe && !isPast && !isViewMode && ![1,2,4].includes(s)
                 ? `<div class="cancel-btn"
                      onclick="event.stopPropagation(); handleSlotClick('${g.game_id}','${role}')">
                      取消
@@ -565,15 +606,26 @@ function renderRecordSlots(g, isPast, session){
       if (!canSignup(g)){
         return `<div class="record-role other">${label}<br>—</div>`;
       }
-
-
+      
+      // ✅ ✅ ✅ 加這段（重點🔥）
+      const s = Number(g.status || 0);
+      if (s === 3) return '';
+      if ([1,2,4].includes(s)){
         return `
-          <div class="record-role action"
-            onclick="handleSlotClick('${g.game_id}','${role}')">
-            ＋${label}
+          <div class="record-role other">
+            ${label}<br>
+            ${s === 1 ? '延賽' : s === 2 ? '停賽' : '🔒鎖定'}
           </div>
         `;
-
+      }
+      
+      // ✅ ✅ ✅ 正常可報名
+      return `
+        <div class="record-role action"
+          onclick="handleSlotClick('${g.game_id}','${role}')">
+          ＋${label}
+        </div>
+      `;
       }).join('')}
     </div>
   `;
@@ -1099,9 +1151,15 @@ function canSignup(g){
  ✅ 是否顯示（全年隱藏過期）
 *********************************************************/
 function shouldRenderGame(g){
-  if (window.currentMonth === null){
-    if (isPastGame(g.date)) return false;
+
+  // const s = Number(g.status || 0);
+
+  // ✅ 1️⃣ 暫存 → 完全不顯示
+  if (s === 3){
+    return false;
   }
+
+  // ✅ 2️⃣ 其他全部顯示（0/1/2/4）
   return true;
 }
 
