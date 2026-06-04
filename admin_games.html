@@ -1029,8 +1029,8 @@ function statusText(s, g){
   // ✅ 1~4 直接判斷
   if (s === 1) return '延賽';
   if (s === 2) return '停賽';
-  if (s === 3) return '暫存中';   // ✅ 改這裡
-  if (s === 4) return '已鎖定';
+  if (s === 3) return '暫存';   // ✅ 改這裡
+  if (s === 4) return '鎖定';
 
   // ✅ ✅ ✅ status=0 才判斷是否過期
   if (s === 0 && g){
@@ -1372,6 +1372,7 @@ function addRow(){
         <option value="0">正常</option>
         <option value="1">延賽</option>
         <option value="2">停賽</option>
+        <option value="3">暫存</option>
       </select>
     </div>
 
