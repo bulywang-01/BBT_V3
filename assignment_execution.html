@@ -83,6 +83,10 @@ select{
   border-radius:6px;
 }
 
+
+.person.replacement {
+  border-left: 4px solid #3b82f6;
+}
 </style>
 </head>
 
@@ -174,11 +178,14 @@ select{
           ? `<div style="color:#aaa;">尚未安排人員</div>`
           : g.members.map(p=>`
   
-            <div class="person ${p.status || ''}">
+            <div class="person ${p.status || ''} ${p.is_replacement ? 'replacement' : ''}">
   
               <div>
                 <div class="role">${p.role}</div>
-                <div class="name">${p.name || '（待位中）'}</div>
+                <div class="name">
+                  ${p.name || '（待位中）'}
+                  ${p.is_replacement ? '（替補）' : ''}
+                </div>
                 <div style="font-size:12px;color:#888;">
                   狀態：${p.status || 'scheduled'}
                 </div>
