@@ -193,6 +193,16 @@ select{
     align-items:flex-start;
   }
 }
+
+.btn-complete-all{
+  margin-left:10px;
+  background:#16a34a;
+  color:#fff;
+  border:none;
+  padding:4px 10px;
+  border-radius:6px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -379,6 +389,10 @@ function renderGame(g){
 
   return `
   <div class="game-card">
+    <button class="btn-complete-all"
+      onclick="completeGame('${g.game_id}')">
+      ✅ 全部完成
+    </button>
 
     <div class="game-title">
       📅 ${g.date}｜${g.game_code}｜${g.field}
@@ -709,15 +723,72 @@ function quickReplace(gameId, role, btn){
     return;
   }
 
+  // ✅ ✅ ✅ 🔥 檢查有沒有缺席
+  const hasNoShow = checkRoleNoShow(gameId, role);
+
+  if (!hasNoShow){
+    toast('⚠️ 請先將該位置標記為「缺席」才能替補','error');
+    return;
+  }
+
+  toast('補位中...','loading');
+
   callApi({
     action:'addReplacement',
     game_id:gameId,
     role:role,
     user_id:uid
   }, ()=>{
-    toast('✅ 已補位');
-    autoNoShow(gameId, role);
+    toast('✅ 已完成替補');
     load();
+  });
+}
+
+// 判斷是否有遲到，才能遞補
+function checkRoleNoShow(gameId, role){
+
+  // ✅ 從目前畫面資料判斷（最快）
+  const cards = document.querySelectorAll('.game-card');
+
+  for (let card of cards){
+
+    if (!card.innerHTML.includes(gameId)) continue;
+
+    const rows = card.querySelectorAll('.person');
+
+    for (let r of rows){
+
+      const roleText = r.querySelector('.role')?.innerText || '';
+      const statusText = r.innerHTML;
+
+      if (roleText.includes(role) && statusText.includes('no_show')){
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// 一鍵整場完成
+function completeGame(gameId){
+
+  if(!confirm('確定將本場全部標記為完成？')) return;
+
+  toast('整場處理中...','loading');
+
+  callApi({
+    action:'completeGame',
+    game_id:gameId
+  }, res=>{
+
+    if(res.result==='ok'){
+      toast('✅ 本場已全部完成');
+      load();
+    }else{
+      toast('❌ 處理失敗','error');
+    }
+
   });
 }
 </script>
