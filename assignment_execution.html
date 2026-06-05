@@ -196,17 +196,17 @@ select{
                 <div class="actions" style="display:inline-block;">
   
                   <button class="btn-ok"
-                    onclick="updateStatus('${p.assignment_id}','completed')">
+                    onclick="updateStatus('${p.assignment_id}','completed')", this>
                     ✅
                   </button>
   
                   <button class="btn-no"
-                    onclick="updateStatus('${p.assignment_id}','no_show')">
+                    onclick="updateStatus('${p.assignment_id}','no_show')", this>
                     ❌
                   </button>
   
                   <button class="btn-late"
-                    onclick="updateStatus('${p.assignment_id}','late')">
+                    onclick="updateStatus('${p.assignment_id}','late')", this>
                     ⏱
                   </button>
   
@@ -276,7 +276,12 @@ select{
   /* ========================
      更新狀態
   ======================== */
-  function updateStatus(id, status){
+  function updateStatus(id, status, btn){
+  
+    // ✅ 防重點
+    if (btn && btn.disabled) return;
+  
+    if (btn) btn.disabled = true;
   
     const textMap = {
       completed:'完成',
@@ -297,6 +302,7 @@ select{
         load();
       }else{
         toast(res.message || '更新失敗','error');
+        if (btn) btn.disabled = false;
       }
   
     });
