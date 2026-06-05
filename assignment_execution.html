@@ -154,7 +154,7 @@ select{
   }
   
   /* ========================
-     Render
+     Render 核心程式
   ======================== */
   function render(list){
   
@@ -165,71 +165,43 @@ select{
       return;
     }
   
-    el.innerHTML = list.map(g=>`
+    // ✅ ✅ ✅ 分組（關鍵）
+    const pending = list.filter(g =>
+      g.members.some(p => p.status !== 'completed')
+    );
   
-      <div class="game-card">
+    const done = list.filter(g =>
+      g.members.every(p => p.status === 'completed')
+    );
   
-        <div class="game-title">
-          📅 ${g.date}｜${g.game_code}｜${g.field}
-        </div>
+    let html = '';
   
-        ${
-          (!g.members || !g.members.length)
-          ? `<div style="color:#aaa;">尚未安排人員</div>`
-          : g.members.map(p=>`
+    // ✅ 未完成
+    html += `<h3 style="margin:10px 0;">🔴 未完成</h3>`;
+    html += pending.map(renderGame).join('');
   
-            <div class="person ${p.status || ''} ${p.is_replacement ? 'replacement' : ''}">
-  
-              <div>
-                <div class="role">${p.role}</div>
-                <div class="name">
-                  ${p.name || '（待位中）'}
-                  ${p.is_replacement ? '（替補）' : ''}
-                </div>
-                <div style="font-size:12px;color:#888;">
-                  狀態：${p.status || 'scheduled'}
-                </div>
-              </div>
-  
-              <div>
-  
-                ${renderUserSelect(p)}
-  
-                <button class="btn-change"
-                  onclick="changeUser('${p.assignment_id}', this)">
-                  指派
-                </button>
-  
-                <div class="actions" style="display:inline-block;">
-  
-                  <button class="btn-ok"
-                    onclick="updateStatus('${p.assignment_id}','completed')", this>
-                    ✅
-                  </button>
-  
-                  <button class="btn-no"
-                    onclick="updateStatus('${p.assignment_id}','no_show')", this>
-                    ❌
-                  </button>
-  
-                  <button class="btn-late"
-                    onclick="updateStatus('${p.assignment_id}','late')", this>
-                    ⏱
-                  </button>
-  
-                </div>
-  
-              </div>
-  
-            </div>
-  
-          `).join('')
-        }
-  
+    // ✅ 已完成（可收合）
+    html += `
+      <h3 style="margin:20px 0 10px;cursor:pointer;"
+          onclick="toggleDone()">
+        ✅ 已完成（${done.length}場）
+      </h3>
+      <div id="doneSection" style="display:none;">
+        ${done.map(renderGame).join('')}
       </div>
+    `;
   
-    `).join('');
+    el.innerHTML = html;
   }
+
+
+   /* ========================
+     收合功能
+  ======================== */
+  function toggleDone(){
+   const el = document.getElementById('doneSection');
+   el.style.display = el.style.display === 'none' ? 'block' : 'none';
+ }
   
   /* ========================
      下拉選單
@@ -247,7 +219,134 @@ select{
       </select>
     `;
   }
+
+  /* ========================
+     替補
+  ======================== */
+function addReplacement(gameId, role, btn){
+
+  const select = btn.parentNode.querySelector('.replacement-select');
+  const uid = select.value;
+
+  if (!uid){
+    toast('請選擇替補人員','warn');
+    return;
+  }
+
+  toast('新增替補中...','loading');
+
+  callApi({
+    action:'addReplacement',
+    game_id:gameId,
+    role:role,
+    user_id:uid
+  }, res=>{
+
+    if(res.result==='ok'){
+      toast('✅ 已新增替補');
+
+      // ✅ ✅ ✅ 🔥 自動處理原人（這個很重要）
+      autoNoShow(gameId, role);
+
+      load();
+    }else{
+      toast('新增失敗','error');
+    }
+
+  });
+}
+
+
+  /* ========================
+     每場 render，替補＋鎖定＋更正＋顏色
+  ======================== */
+  function renderGame(g){
   
+    return `
+      <div class="game-card">
+  
+        <div class="game-title">
+          📅 ${g.date}｜${g.game_code}｜${g.field}
+        </div>
+  
+        ${g.members.map(p => {
+  
+          const isDone = p.status === 'completed';
+  
+          return `
+            <div class="person ${p.status || ''} ${p.is_replacement ? 'replacement' : ''}">
+  
+              <div>
+                <div class="role">
+                  ${p.role}
+                  ${p.is_replacement ? ' <span style="color:#2563eb;">(替補)</span>' : ''}
+                </div>
+  
+                <div class="name">
+                  ${p.name || '（待位中）'}
+                </div>
+  
+                <div style="font-size:12px;color:#888;">
+                  ${p.status}
+                </div>
+              </div>
+  
+              <div>
+  
+                ${!isDone ? renderUserSelect(p) : ''}
+  
+                ${!isDone ? `
+                  <button class="btn-change"
+                    onclick="changeUser('${p.assignment_id}', this)">
+                    指派
+                  </button>
+                ` : `
+                  <button onclick="unlock('${p.assignment_id}')">
+                    ✏️ 更正
+                  </button>
+                `}
+  
+                <div class="actions" style="display:inline-block;">
+  
+                  <button ${isDone?'disabled':''}
+                    class="btn-ok"
+                    onclick="updateStatus('${p.assignment_id}','completed',this)">✅</button>
+  
+                  <button ${isDone?'disabled':''}
+                    class="btn-no"
+                    onclick="updateStatus('${p.assignment_id}','no_show',this)">❌</button>
+  
+                  <button ${isDone?'disabled':''}
+                    class="btn-late"
+                    onclick="updateStatus('${p.assignment_id}','late',this)">⏱</button>
+  
+                </div>
+  
+                <!-- ✅ 替補按鈕 -->
+                <select class="replacement-select">
+                  <option value="">替補人員</option>
+                  ${userList.map(u=>
+                    `<option value="${u.user_id}">
+                      ${u.name} ${u.note ? '('+u.note+')' : ''}
+                    </option>`
+                  ).join('')}
+                </select>
+                
+                <button 
+                  onclick="addReplacement('${g.game_id}','${p.role}', this)">
+                  ➕ 替補
+                </button>
+  
+              </div>
+  
+            </div>
+          `;
+        }).join('')}
+  
+      </div>
+    `;
+  }
+   
   /* ========================
      指派人員
   ======================== */
@@ -366,6 +465,41 @@ select{
       },1500);
     }
   }
+
+  /* ========================
+     ✅ 異動出勤狀態，解鎖按鍵
+  ======================== */
+ function unlock(id){
+
+  if (!confirm('確定要更正這筆出勤狀態？')) return;
+
+  toast('解鎖中...','loading');
+
+  callApi({
+    action:'updateAssignment',
+    assignment_id:id,
+    status:'scheduled'
+  }, res => {
+
+    if (res.result === 'ok'){
+      toast('✅ 已解鎖，可重新編輯');
+      load();
+    }else{
+      toast(res.message || '解鎖失敗','error');
+    }
+
+  });
+}
+
+// 替補時「原人自動 no_show」
+ function autoNoShow(gameId, role){
+
+  callApi({
+    action:'autoNoShow',
+    game_id:gameId,
+    role:role
+  });
+}
 </script>
 
 </body>
