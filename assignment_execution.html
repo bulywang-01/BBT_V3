@@ -403,7 +403,7 @@ function renderGame(g){
   });
 
   return `
-  <div class="game-card">
+  <div class="game-card" data-game-id="${g.game_id}">
 
     ${currentTab==='pending' ? `
       <button class="btn-complete-all"
@@ -434,6 +434,10 @@ function renderGame(g){
        const hasNoShow = g.members.some(x =>
          x.role === p.role && x.status === 'no_show'
        );
+       
+       // ✅ 是否允許指派（沒有缺席才允許）
+       const canAssign = !hasNoShow;
+
 
       return `
        <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
@@ -493,11 +497,12 @@ function renderGame(g){
                 缺席
               </button>
 
-              <button class="btn btn-assign"
-                onclick="quickAssign('${p.assignment_id}', this)">
-                指派
-              </button>
-
+             ${canAssign ? `
+               <button class="btn btn-assign"
+                 onclick="quickAssign('${p.assignment_id}', this)">
+                 指派
+               </button>
+             ` : ''}
 
              ${hasNoShow ? `
                <button class="btn btn-replace"
@@ -518,38 +523,6 @@ function renderGame(g){
   `;
 }
 
-   
-  /* ========================
-     指派人員
-  ======================== */
-  function changeUser(id, btn){
-  
-    const select = btn.parentNode.querySelector('select');
-    const uid = select.value;
-  
-    if (!uid){
-      toast('請選擇人員','warn');
-      return;
-    }
-  
-    toast('指派中...','loading');
-  
-    callApi({
-      action:'updateAssignment',
-      assignment_id:id,
-      user_id:uid,
-      status:'scheduled'
-    }, res=>{
-  
-      if(res.result==='ok'){
-        toast('✅ 指派成功');
-        load();
-      }else{
-        toast(res.message || '指派失敗','error');
-      }
-  
-    });
-  }
   
   /* ========================
      更新狀態
@@ -586,7 +559,7 @@ function renderGame(g){
      
        // ✅ ✅ ✅ 🔥 如果是 no_show，要刷新（讓補出現）
        if (status === 'no_show'){
-         setTimeout(load, 200);
+         setTimeout(load, 0);
        }
      }
       else{
@@ -788,7 +761,7 @@ function checkRoleNoShow(gameId, role){
 
   for (let card of cards){
 
-    if (!card.innerHTML.includes(gameId)) continue;
+    if (card.getAttribute('data-game-id') !== String(gameId)) continue;
 
     const rows = card.querySelectorAll('.person');
 
@@ -796,10 +769,6 @@ function checkRoleNoShow(gameId, role){
 
       const roleText = r.querySelector('.role')?.innerText || '';
       const statusText = r.innerHTML;
-
-      if (r.classList.contains('no_show')){
-        return true;
-      }
 
       if (roleText.includes(role) && r.classList.contains('no_show')){
         return true;
@@ -847,6 +816,16 @@ function updateRowUI(id, status){
   const statusEl = row.querySelector('.status');
   if (statusEl){
     statusEl.innerHTML = getStatusText(status);
+  }
+
+  // ✅ 如果變回 scheduled → 重新開啟按鈕
+  if (status !== 'completed'){
+    const actions = row.querySelector('.actions-box');
+    if (actions && actions.innerHTML.includes('更正')){
+      setTimeout(()=>{
+        load();   // ✅ 保證回復完整UI
+      },100);
+    }
   }
 
   // ✅ ✅ ✅ 🔥 如果完成 → 切換為鎖定UI
