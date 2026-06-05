@@ -141,6 +141,58 @@ select{
   padding:12px 0;
 }
 
+.person{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.info{
+  min-width:160px;
+}
+
+.actions-box{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.select-user{
+  padding:4px;
+  border-radius:6px;
+}
+
+.btn{
+  padding:4px 8px;
+  border:none;
+  border-radius:6px;
+  color:#fff;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.btn-ok{background:#16a34a;}
+.btn-no{background:#dc2626;}
+.btn-late{background:#f59e0b;}
+.btn-assign{background:#3b82f6;}
+.btn-replace{background:#6366f1;}
+
+.tag{
+  background:#3b82f6;
+  color:#fff;
+  padding:2px 4px;
+  border-radius:4px;
+  margin-left:4px;
+}
+
+@media(max-width:600px){
+  .person{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
 </style>
 </head>
 
@@ -326,97 +378,103 @@ function renderGame(g){
   });
 
   return `
-    <div class="game-card">
+  <div class="game-card">
 
-      <div class="game-title">
-        📅 ${g.date}｜${g.game_code}｜${g.field}
-      </div>
-
-      ${g.members
-        // ✅ ✅ ✅ 🔥 隱藏 no_show（如果有替補）
-        .filter(p=>{
-          if (p.status === 'no_show'){
-            const hasReplacement = g.members.some(x =>
-              x.role === p.role &&
-              x.is_replacement
-            );
-            if (hasReplacement) return false;
-          }
-          return true;
-        })
-        .map(p=>{
-
-        const roleDone = roleDoneMap[p.role] === true;
-
-        const statusBadge = getStatusBadge(p.status);
-
-        return `
-          <div class="person ${p.status} ${p.is_replacement?'replacement':''}">
-
-            <div>
-              <div class="role">
-                ${p.role}
-                ${p.is_replacement ? 
-                  '<span class="replacement-tag">替補</span>' : ''}
-              </div>
-
-              <div class="name">
-                ${p.name || '（待位中）'}
-              </div>
-
-              ${statusBadge}
-            </div>
-
-            <div>
-
-              ${
-                roleDone
-                ? `
-                  <!-- ✅ 已完成 -->
-                  <button onclick="unlock('${p.assignment_id}')">
-                    ✏️ 更正
-                  </button>
-                `
-                : `
-                  <!-- ✅ 未完成 -->
-                  ${renderUserSelect(p)}
-
-                  <button class="btn-change"
-                    onclick="changeUser('${p.assignment_id}', this)">
-                    指派
-                  </button>
-
-                  <button class="btn-ok"
-                    onclick="updateStatus('${p.assignment_id}','completed',this)">✅</button>
-
-                  <button class="btn-no"
-                    onclick="updateStatus('${p.assignment_id}','no_show',this)">❌</button>
-
-                  <button class="btn-late"
-                    onclick="updateStatus('${p.assignment_id}','late',this)">⏱</button>
-
-                  <select class="replacement-select">
-                    <option value="">替補人員</option>
-                    ${userList.map(u=>
-                      `<option value="${u.user_id}">
-                        ${u.name} ${u.note ? '('+u.note+')' : ''}
-                      </option>`
-                    ).join('')}
-                  </select>
-
-                  <button onclick="addReplacement('${g.game_id}','${p.role}', this)">
-                    ➕
-                  </button>
-                `
-              }
-
-            </div>
-
-          </div>
-        `;
-      }).join('')}
-
+    <div class="game-title">
+      📅 ${g.date}｜${g.game_code}｜${g.field}
     </div>
+
+    ${g.members
+      .filter(p=>{
+        // ✅ 隱藏 no_show（有替補時）
+        if (p.status === 'no_show'){
+          const hasReplacement = g.members.some(x =>
+            x.role === p.role && x.is_replacement
+          );
+          if (hasReplacement) return false;
+        }
+        return true;
+      })
+      .map(p=>{
+
+      const roleDone = roleDoneMap[p.role];
+
+      return `
+      <div class="person ${p.status} ${p.is_replacement?'replacement':''}">
+
+        <!-- 左側資訊 -->
+        <div class="info">
+          <div class="role">
+            ${p.role}
+            ${p.is_replacement ? '<span class="tag">替</span>' : ''}
+          </div>
+
+          <div class="name">
+            ${p.name || '（待位中）'}
+          </div>
+
+          <div class="status">
+            ${getStatusText(p.status)}
+          </div>
+        </div>
+
+        <!-- 右側操作 -->
+        <div class="actions-box">
+
+          ${
+            roleDone
+            ? `
+              <button class="btn-edit"
+                onclick="unlock('${p.assignment_id}')">
+                ✏️ 更正
+              </button>
+            `
+            : `
+              <!-- 下拉合一 -->
+              <select class="select-user">
+                <option value="">選擇人員</option>
+                ${userList.map(u=>
+                  `<option value="${u.user_id}">
+                    ${u.name}
+                  </option>`
+                ).join('')}
+              </select>
+
+              <!-- 按鈕 -->
+              <button class="btn btn-ok"
+                onclick="updateStatus('${p.assignment_id}','completed',this)">
+                完
+              </button>
+
+              <button class="btn btn-late"
+                onclick="updateStatus('${p.assignment_id}','late',this)">
+                遲
+              </button>
+
+              <button class="btn btn-no"
+                onclick="updateStatus('${p.assignment_id}','no_show',this)">
+                缺
+              </button>
+
+              <button class="btn btn-assign"
+                onclick="quickAssign('${p.assignment_id}', this)">
+                派
+              </button>
+
+              <button class="btn btn-replace"
+                onclick="quickReplace('${g.game_id}','${p.role}', this)">
+                補
+              </button>
+            `
+          }
+
+        </div>
+
+      </div>
+      `;
+    }).join('')}
+
+  </div>
   `;
 }
 
@@ -616,6 +674,51 @@ function getStatusBadge(s){
   };
 
   return map[s] || '';
+}
+
+// 快速指派
+function quickAssign(id, btn){
+
+  const select = btn.parentNode.querySelector('.select-user');
+  const uid = select.value;
+
+  if (!uid){
+    toast('請先選人','warn');
+    return;
+  }
+
+  callApi({
+    action:'updateAssignment',
+    assignment_id:id,
+    user_id:uid,
+    status:'scheduled'
+  }, ()=> {
+    toast('✅ 已指派');
+    load();
+  });
+}
+
+// 快速替補
+function quickReplace(gameId, role, btn){
+
+  const select = btn.parentNode.querySelector('.select-user');
+  const uid = select.value;
+
+  if (!uid){
+    toast('請先選替補人員','warn');
+    return;
+  }
+
+  callApi({
+    action:'addReplacement',
+    game_id:gameId,
+    role:role,
+    user_id:uid
+  }, ()=>{
+    toast('✅ 已補位');
+    autoNoShow(gameId, role);
+    load();
+  });
 }
 </script>
 
