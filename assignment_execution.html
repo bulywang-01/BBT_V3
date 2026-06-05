@@ -166,13 +166,9 @@ select{
     }
   
     // ✅ ✅ ✅ 分組（關鍵）
-    const pending = list.filter(g =>
-      g.members.some(p => p.status !== 'completed')
-    );
-  
-    const done = list.filter(g =>
-      g.members.every(p => p.status === 'completed')
-    );
+
+    const pending = list.filter(g => !isGameCompleted(g));
+    const done = list.filter(g => isGameCompleted(g));
   
     let html = '';
   
@@ -500,6 +496,23 @@ function addReplacement(gameId, role, btn){
     role:role
   });
 }
+
+// 判斷是否已完成
+ function isGameCompleted(g){
+ 
+   const roleDone = {};
+ 
+   g.members.forEach(p=>{
+     if (p.status === 'completed'){
+       roleDone[p.role] = true;
+     }
+   });
+ 
+   // ✅ 只要每個 role 都有完成
+   return Object.keys(roleDone).length ===
+          [...new Set(g.members.map(x=>x.role))].length;
+ }
+
 </script>
 
 </body>
