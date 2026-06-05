@@ -822,9 +822,31 @@ function updateRowUI(id, status){
   const row = document.querySelector(`[data-id="${id}"]`);
   if (!row) return;
 
-  row.classList.remove('completed','no_show','late');
+  // ✅ 更新顏色
+  row.classList.remove('completed','no_show','late','scheduled');
   row.classList.add(status);
+
+  // ✅ ✅ ✅ 🔥 更新狀態文字（你現在缺這行）
+  const statusEl = row.querySelector('.status');
+  if (statusEl){
+    statusEl.innerHTML = getStatusText(status);
+  }
+
+  // ✅ ✅ ✅ 🔥 如果完成 → 切換為鎖定UI
+  if (status === 'completed'){
+
+    const actions = row.querySelector('.actions-box');
+
+    if (actions){
+      actions.innerHTML = `
+        <button onclick="unlock('${id}')">
+          ✏️ 更正
+        </button>
+      `;
+    }
+  }
 }
+
 
 </script>
 
