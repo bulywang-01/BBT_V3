@@ -169,6 +169,7 @@ select{
 
     const pending = list.filter(g => !isGameCompleted(g));
     const done = list.filter(g => isGameCompleted(g));
+
   
     let html = '';
   
@@ -257,91 +258,102 @@ function addReplacement(gameId, role, btn){
      每場 render，替補＋鎖定＋更正＋顏色
   ======================== */
   function renderGame(g){
-  
-    return `
-      <div class="game-card">
-  
-        <div class="game-title">
-          📅 ${g.date}｜${g.game_code}｜${g.field}
-        </div>
-  
-        ${g.members.map(p => {
-  
-          const isDone = p.status === 'completed';
-  
-          return `
-            <div class="person ${p.status || ''} ${p.is_replacement ? 'replacement' : ''}">
-  
-              <div>
-                <div class="role">
-                  ${p.role}
-                  ${p.is_replacement ? ' <span style="color:#2563eb;">(替補)</span>' : ''}
-                </div>
-  
-                <div class="name">
-                  ${p.name || '（待位中）'}
-                </div>
-  
-                <div style="font-size:12px;color:#888;">
-                  ${p.status}
-                </div>
+
+  // ✅ 每個 role 是否已完成
+  const roleDoneMap = {};
+  g.members.forEach(p=>{
+    if (p.status === 'completed'){
+      roleDoneMap[p.role] = true;
+    }
+  });
+
+  return `
+    <div class="game-card">
+
+      <div class="game-title">
+        📅 ${g.date}｜${g.game_code}｜${g.field}
+      </div>
+
+      ${g.members.map(p => {
+
+        const roleDone = roleDoneMap[p.role] === true;
+
+        return `
+          <div class="person ${p.status || ''} ${p.is_replacement ? 'replacement' : ''}">
+
+            <div>
+              <div class="role">
+                ${p.role}
+                ${p.is_replacement ? ' <span style="color:#2563eb;">(替補)</span>' : ''}
               </div>
-  
-              <div>
-  
-                ${!isDone ? renderUserSelect(p) : ''}
-  
-                ${!isDone ? `
+
+              <div class="name">
+                ${p.name || '（待位中）'}
+              </div>
+
+              <div style="font-size:12px;color:#888;">
+                ${getStatusText(p.status)}
+              </div>
+            </div>
+
+            <div>
+
+              ${
+                roleDone
+                ? `
+                  <!-- ✅ ✅ ✅ 已完成：只留更正 -->
+                  <button onclick="unlock('${p.assignment_id}')">
+                    ✏️ 更正
+                  </button>
+                `
+                : `
+                  <!-- ✅ 未完成：全部操作開放 -->
+                  ${renderUserSelect(p)}
+
                   <button class="btn-change"
                     onclick="changeUser('${p.assignment_id}', this)">
                     指派
                   </button>
-                ` : `
-                  <button onclick="unlock('${p.assignment_id}')">
-                    ✏️ 更正
+
+                  <div class="actions" style="display:inline-block;">
+
+                    <button class="btn-ok"
+                      onclick="updateStatus('${p.assignment_id}','completed',this)">✅</button>
+
+                    <button class="btn-no"
+                      onclick="updateStatus('${p.assignment_id}','no_show',this)">❌</button>
+
+                    <button class="btn-late"
+                      onclick="updateStatus('${p.assignment_id}','late',this)">⏱</button>
+
+                  </div>
+
+                  <select class="replacement-select">
+                    <option value="">替補人員</option>
+                    ${userList.map(u=>
+                      `<option value="${u.user_id}">
+                        ${u.name} ${u.note ? '('+u.note+')' : ''}
+                      </option>`
+                    ).join('')}
+                  </select>
+
+                  <button onclick="addReplacement('${g.game_id}','${p.role}', this)">
+                    ➕ 替補
                   </button>
-                `}
-  
-                <div class="actions" style="display:inline-block;">
-  
-                  <button ${isDone?'disabled':''}
-                    class="btn-ok"
-                    onclick="updateStatus('${p.assignment_id}','completed',this)">✅</button>
-  
-                  <button ${isDone?'disabled':''}
-                    class="btn-no"
-                    onclick="updateStatus('${p.assignment_id}','no_show',this)">❌</button>
-  
-                  <button ${isDone?'disabled':''}
-                    class="btn-late"
-                    onclick="updateStatus('${p.assignment_id}','late',this)">⏱</button>
-  
-                </div>
-  
-                <!-- ✅ 替補按鈕 -->
-                <select class="replacement-select">
-                  <option value="">替補人員</option>
-                  ${userList.map(u=>
-                    `<option value="${u.user_id}">
-                      ${u.name} ${u.note ? '('+u.note+')' : ''}
-                    </option>`
-                  ).join('')}
-                </select>
-                
-                <button 
-                  onclick="addReplacement('${g.game_id}','${p.role}', this)">
-                  ➕ 替補
-                </button>
-  
-              </div>
-  
+                `
+              }
+
             </div>
-          `;
-        }).join('')}
-  
-      </div>
-    `;
-  }
+
+          </div>
+        `;
+
+      }).join('')}
+
+    </div>
+  `;
+}
+
    
   /* ========================
      指派人員
@@ -498,19 +510,33 @@ function addReplacement(gameId, role, btn){
 }
 
 // 判斷是否已完成
- function isGameCompleted(g){
+function isGameCompleted(g){
+
+  const roleDone = {};
+
+  g.members.forEach(p=>{
+    if (p.status === 'completed'){
+      roleDone[p.role] = true;
+    }
+  });
+
+  const roleCount = new Set(g.members.map(x=>x.role)).size;
+
+  return Object.keys(roleDone).length === roleCount;
+}
+
+
+// 狀態中文化
+ function getStatusText(s){
  
-   const roleDone = {};
+   const map = {
+     scheduled:'待確認',
+     no_show:'缺席',
+     late:'遲到',
+     completed:'✅ 已完成'
+   };
  
-   g.members.forEach(p=>{
-     if (p.status === 'completed'){
-       roleDone[p.role] = true;
-     }
-   });
- 
-   // ✅ 只要每個 role 都有完成
-   return Object.keys(roleDone).length ===
-          [...new Set(g.members.map(x=>x.role))].length;
+   return map[s] || s;
  }
 
 </script>
