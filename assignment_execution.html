@@ -87,6 +87,60 @@ select{
 .person.replacement {
   border-left: 4px solid #3b82f6;
 }
+
+/* UI 升級版 */
+/* === TAB === */
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.tab{
+  padding:8px 14px;
+  border-radius:20px;
+  background:#e5e7eb;
+  cursor:pointer;
+}
+
+.tab.active{
+  background:#2563eb;
+  color:#fff;
+}
+
+/* === 狀態 badge === */
+.badge{
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:6px;
+}
+
+.badge.done{
+  background:#16a34a;
+  color:#fff;
+}
+
+.badge.no{
+  background:#dc2626;
+  color:#fff;
+}
+
+.badge.late{
+  background:#f59e0b;
+  color:#fff;
+}
+
+/* === 替補 === */
+.replacement-tag{
+  color:#2563eb;
+  font-size:12px;
+}
+
+/* 卡片更乾淨 */
+.person{
+  padding:12px 0;
+}
+
 </style>
 </head>
 
@@ -156,40 +210,44 @@ select{
   /* ========================
      Render 核心程式
   ======================== */
-  function render(list){
-  
-    const el = document.getElementById('list');
-  
-    if (!list.length){
-      el.innerHTML = '<div class="empty">目前沒有出勤資料</div>';
-      return;
-    }
-  
-    // ✅ ✅ ✅ 分組（關鍵）
+let currentTab = 'pending';
 
-    const pending = list.filter(g => !isGameCompleted(g));
-    const done = list.filter(g => isGameCompleted(g));
+function render(list){
 
-  
-    let html = '';
-  
-    // ✅ 未完成
-    html += `<h3 style="margin:10px 0;">🔴 未完成</h3>`;
-    html += pending.map(renderGame).join('');
-  
-    // ✅ 已完成（可收合）
-    html += `
-      <h3 style="margin:20px 0 10px;cursor:pointer;"
-          onclick="toggleDone()">
-        ✅ 已完成（${done.length}場）
-      </h3>
-      <div id="doneSection" style="display:none;">
-        ${done.map(renderGame).join('')}
-      </div>
-    `;
-  
-    el.innerHTML = html;
+  const el = document.getElementById('list');
+
+  if (!list.length){
+    el.innerHTML = '<div class="empty">目前沒有出勤資料</div>';
+    return;
   }
+
+  const pending = list.filter(g => !isGameCompleted(g));
+  const done = list.filter(g => isGameCompleted(g));
+
+  const data = currentTab === 'pending' ? pending : done;
+
+  el.innerHTML = `
+    <div class="tabs">
+      <div class="tab ${currentTab==='pending'?'active':''}"
+           onclick="switchTab('pending')">
+        🔴 未完成 (${pending.length})
+      </div>
+
+      <div class="tab ${currentTab==='done'?'active':''}"
+           onclick="switchTab('done')">
+        ✅ 已完成 (${done.length})
+      </div>
+    </div>
+
+    ${data.map(renderGame).join('')}
+  `;
+}
+
+function switchTab(t){
+  currentTab = t;
+  load();
+}
+
 
 
    /* ========================
@@ -257,10 +315,10 @@ function addReplacement(gameId, role, btn){
   /* ========================
      每場 render，替補＋鎖定＋更正＋顏色
   ======================== */
-  function renderGame(g){
+function renderGame(g){
 
-  // ✅ 每個 role 是否已完成
   const roleDoneMap = {};
+
   g.members.forEach(p=>{
     if (p.status === 'completed'){
       roleDoneMap[p.role] = true;
@@ -274,26 +332,39 @@ function addReplacement(gameId, role, btn){
         📅 ${g.date}｜${g.game_code}｜${g.field}
       </div>
 
-      ${g.members.map(p => {
+      ${g.members
+        // ✅ ✅ ✅ 🔥 隱藏 no_show（如果有替補）
+        .filter(p=>{
+          if (p.status === 'no_show'){
+            const hasReplacement = g.members.some(x =>
+              x.role === p.role &&
+              x.is_replacement
+            );
+            if (hasReplacement) return false;
+          }
+          return true;
+        })
+        .map(p=>{
 
         const roleDone = roleDoneMap[p.role] === true;
 
+        const statusBadge = getStatusBadge(p.status);
+
         return `
-          <div class="person ${p.status || ''} ${p.is_replacement ? 'replacement' : ''}">
+          <div class="person ${p.status} ${p.is_replacement?'replacement':''}">
 
             <div>
               <div class="role">
                 ${p.role}
-                ${p.is_replacement ? ' <span style="color:#2563eb;">(替補)</span>' : ''}
+                ${p.is_replacement ? 
+                  '<span class="replacement-tag">替補</span>' : ''}
               </div>
 
               <div class="name">
                 ${p.name || '（待位中）'}
               </div>
 
-              <div style="font-size:12px;color:#888;">
-                ${getStatusText(p.status)}
-              </div>
+              ${statusBadge}
             </div>
 
             <div>
@@ -301,13 +372,13 @@ function addReplacement(gameId, role, btn){
               ${
                 roleDone
                 ? `
-                  <!-- ✅ ✅ ✅ 已完成：只留更正 -->
+                  <!-- ✅ 已完成 -->
                   <button onclick="unlock('${p.assignment_id}')">
                     ✏️ 更正
                   </button>
                 `
                 : `
-                  <!-- ✅ 未完成：全部操作開放 -->
+                  <!-- ✅ 未完成 -->
                   ${renderUserSelect(p)}
 
                   <button class="btn-change"
@@ -315,18 +386,14 @@ function addReplacement(gameId, role, btn){
                     指派
                   </button>
 
-                  <div class="actions" style="display:inline-block;">
+                  <button class="btn-ok"
+                    onclick="updateStatus('${p.assignment_id}','completed',this)">✅</button>
 
-                    <button class="btn-ok"
-                      onclick="updateStatus('${p.assignment_id}','completed',this)">✅</button>
+                  <button class="btn-no"
+                    onclick="updateStatus('${p.assignment_id}','no_show',this)">❌</button>
 
-                    <button class="btn-no"
-                      onclick="updateStatus('${p.assignment_id}','no_show',this)">❌</button>
-
-                    <button class="btn-late"
-                      onclick="updateStatus('${p.assignment_id}','late',this)">⏱</button>
-
-                  </div>
+                  <button class="btn-late"
+                    onclick="updateStatus('${p.assignment_id}','late',this)">⏱</button>
 
                   <select class="replacement-select">
                     <option value="">替補人員</option>
@@ -338,7 +405,7 @@ function addReplacement(gameId, role, btn){
                   </select>
 
                   <button onclick="addReplacement('${g.game_id}','${p.role}', this)">
-                    ➕ 替補
+                    ➕
                   </button>
                 `
               }
@@ -347,7 +414,6 @@ function addReplacement(gameId, role, btn){
 
           </div>
         `;
-
       }).join('')}
 
     </div>
@@ -539,6 +605,18 @@ function isGameCompleted(g){
    return map[s] || s;
  }
 
+// 狀態 badge
+function getStatusBadge(s){
+
+  const map = {
+    completed:'<span class="badge done">已完成</span>',
+    no_show:'<span class="badge no">缺席</span>',
+    late:'<span class="badge late">遲到</span>',
+    scheduled:'<span class="badge">待確認</span>'
+  };
+
+  return map[s] || '';
+}
 </script>
 
 </body>
