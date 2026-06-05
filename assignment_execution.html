@@ -429,7 +429,10 @@ function renderGame(g){
       })
       .map(p=>{
 
-      const roleDone = roleDoneMap[p.role];
+     // ✅ 是否有缺席（整個 role）
+     const hasNoShow = g.members.some(x =>
+       x.role === p.role && x.status === 'no_show'
+     );
 
       return `
        <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
@@ -476,28 +479,31 @@ function renderGame(g){
               <!-- 按鈕 -->
               <button class="btn btn-ok"
                 onclick="updateStatus('${p.assignment_id}','completed',this)">
-                完
+                完成
               </button>
 
               <button class="btn btn-late"
                 onclick="updateStatus('${p.assignment_id}','late',this)">
-                遲
+                遲到
               </button>
 
               <button class="btn btn-no"
                 onclick="updateStatus('${p.assignment_id}','no_show',this)">
-                缺
+                缺席
               </button>
 
               <button class="btn btn-assign"
                 onclick="quickAssign('${p.assignment_id}', this)">
-                派
+                指派
               </button>
 
-              <button class="btn btn-replace"
-                onclick="quickReplace('${g.game_id}','${p.role}', this)">
-                補
-              </button>
+
+             ${hasNoShow ? `
+               <button class="btn btn-replace"
+                 onclick="quickReplace('${g.game_id}','${p.role}', this)">
+                 替補
+               </button>
+             ` : ''}
             `
           }
 
