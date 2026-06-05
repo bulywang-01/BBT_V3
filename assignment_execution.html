@@ -122,8 +122,7 @@ function loadHeader(){
 function loadUsers(){
   callApi({action:'getUsers'}, res=>{
     if(res.result !== 'ok') return;
-
-    userList = res.list || [];
+    userList = res.users || [];
     load();
   });
 }
