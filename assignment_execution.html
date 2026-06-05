@@ -577,11 +577,18 @@ function renderGame(g){
       toast('', 'ok'); 
   
 
-      if (res && res.result === 'ok'){
-        toast(`✅ 已標記：${textMap[status]}`);
-        updateRowUI(id, status);
-      }
 
+     if (res && res.result === 'ok'){
+     
+       toast(`✅ 已標記：${textMap[status]}`);
+     
+       updateRowUI(id, status);
+     
+       // ✅ ✅ ✅ 🔥 如果是 no_show，要刷新（讓補出現）
+       if (status === 'no_show'){
+         setTimeout(load, 200);
+       }
+     }
       else{
         toast(res.message || '更新失敗','error');
         if (btn) btn.disabled = false;
