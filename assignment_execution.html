@@ -254,20 +254,35 @@ select{
   /* ========================
      主載入
   ======================== */
-  function load(){
-  
-    callApi({action:'getAssignmentsByDate'}, res=>{
-  
-      if(res.result !== 'ok'){
-        document.getElementById('list').innerHTML =
-          '<div class="empty">資料讀取失敗</div>';
-        toast(res.message || '讀取失敗','error');
-        return;
-      }
-  
-      render(res.games || []);
-    });
-  }
+function load(){
+
+  const el = document.getElementById('list');
+
+  // ✅ loading畫面
+  el.innerHTML = `
+    <div class="empty">⏳ 資料載入中...</div>
+  `;
+
+  // ✅ 🔥 超過3秒提示（關鍵）
+  const timer = setTimeout(()=>{
+    toast('資料載入較慢，請稍候...','warn');
+  },3000);
+
+  callApi({action:'getAssignmentsByDate'}, res=>{
+
+    // ✅ 清除慢載入提示
+    clearTimeout(timer);
+
+    if(res.result !== 'ok'){
+      el.innerHTML =
+        '<div class="empty">資料讀取失敗</div>';
+      toast(res.message || '讀取失敗','error');
+      return;
+    }
+
+    render(res.games || []);
+  });
+}
   
   /* ========================
      Render 核心程式
@@ -389,10 +404,13 @@ function renderGame(g){
 
   return `
   <div class="game-card">
-    <button class="btn-complete-all"
-      onclick="completeGame('${g.game_id}')">
-      ✅ 全部完成
-    </button>
+
+    ${currentTab==='pending' ? `
+      <button class="btn-complete-all"
+        onclick="completeGame('${g.game_id}')">
+        ✅ 全部完成
+      </button>
+    ` : ''}
 
     <div class="game-title">
       📅 ${g.date}｜${g.game_code}｜${g.field}
@@ -414,7 +432,8 @@ function renderGame(g){
       const roleDone = roleDoneMap[p.role];
 
       return `
-      <div class="person ${p.status} ${p.is_replacement?'replacement':''}">
+       <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
+            data-id="${p.assignment_id}">
 
         <!-- 左側資訊 -->
         <div class="info">
@@ -552,7 +571,11 @@ function renderGame(g){
   
       if(res.result==='ok'){
         toast(`✅ 已標記：${textMap[status]}`);
-        load();
+         if(res.result==='ok'){
+           toast(`✅ 已標記：${textMap[status]}`);
+         
+           updateRowUI(id, status);   // ✅ 改這個
+         }
       }else{
         toast(res.message || '更新失敗','error');
         if (btn) btn.disabled = false;
@@ -708,7 +731,7 @@ function quickAssign(id, btn){
     status:'scheduled'
   }, ()=> {
     toast('✅ 已指派');
-    load();
+    updateRowUI(id, 'scheduled');
   });
 }
 
@@ -740,7 +763,7 @@ function quickReplace(gameId, role, btn){
     user_id:uid
   }, ()=>{
     toast('✅ 已完成替補');
-    load();
+    // load();
   });
 }
 
@@ -791,6 +814,18 @@ function completeGame(gameId){
 
   });
 }
+
+
+//
+function updateRowUI(id, status){
+
+  const row = document.querySelector(`[data-id="${id}"]`);
+  if (!row) return;
+
+  row.classList.remove('completed','no_show','late');
+  row.classList.add(status);
+}
+
 </script>
 
 </body>
