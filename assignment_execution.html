@@ -278,9 +278,7 @@ select{
   ======================== */
   function updateStatus(id, status, btn){
   
-    // ✅ 防重點
     if (btn && btn.disabled) return;
-  
     if (btn) btn.disabled = true;
   
     const textMap = {
@@ -297,6 +295,9 @@ select{
       status:status
     }, res=>{
   
+      // ✅ 🔥 先清 loading
+      toast('', 'ok'); 
+  
       if(res.result==='ok'){
         toast(`✅ 已標記：${textMap[status]}`);
         load();
@@ -311,7 +312,15 @@ select{
   /* ========================
      ✅ Toast通知（關鍵）
   ======================== */
+  let currentToast = null;
+  
   function toast(msg,type='ok'){
+  
+    // ✅ 清掉舊的
+    if (currentToast){
+      currentToast.remove();
+      currentToast = null;
+    }
   
     const div = document.createElement('div');
   
@@ -338,9 +347,16 @@ select{
     `;
   
     document.body.appendChild(div);
+    currentToast = div;
   
-    if(type !== 'loading'){
-      setTimeout(()=>div.remove(),1500);
+    // ✅ loading 不自動消失
+    if (type !== 'loading'){
+      setTimeout(()=>{
+        if (div === currentToast){
+          div.remove();
+          currentToast = null;
+        }
+      },1500);
     }
   }
 </script>
