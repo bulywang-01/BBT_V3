@@ -203,6 +203,62 @@ select{
   border-radius:6px;
   cursor:pointer;
 }
+
+.status{
+  margin-top:4px;
+  font-size:12px;
+}
+
+.status-badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+}
+
+/* 狀態色 */
+.status-scheduled{ background:#e5e7eb;color:#374151; }
+.status-no_show{ background:#fee2e2;color:#991b1b; }
+.status-late{ background:#fef3c7;color:#92400e; }
+.status-completed{ background:#dcfce7;color:#166534; }
+
+.person{
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:6px;
+  transition:all .2s ease;
+}
+
+.person:hover{
+  background:#f9fafb;
+}
+
+/* 狀態底色（更柔和） */
+.person.completed{ background:#ecfdf5; }
+.person.no_show{ background:#fef2f2; }
+.person.late{ background:#fffbeb; }
+
+.group-title{
+  font-weight:700;
+  margin-top:10px;
+  margin-bottom:6px;
+}
+
+.judge{ color:#2563eb; }
+.record{ color:#7c3aed; }
+
+.btn{
+  padding:4px 10px;
+  border-radius:999px;
+  font-weight:600;
+  box-shadow:0 1px 2px rgba(0,0,0,.1);
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
 </style>
 </head>
 
@@ -402,51 +458,33 @@ function renderGame(g){
     }
   });
 
-  return `
-  <div class="game-card" data-game-id="${g.game_id}">
+  // ✅ ✅ ✅ 🔥 分組（這就是你現在沒做的）
+  const judges = g.members.filter(x =>
+    ['PU','U1','U2','U3'].includes(x.role)
+  );
 
-    ${currentTab==='pending' ? `
-      <button class="btn-complete-all"
-        onclick="completeGame('${g.game_id}')">
-        ✅ 全部完成
-      </button>
-    ` : ''}
+  const records = g.members.filter(x =>
+    x.role.startsWith('REC')
+  );
 
-    <div class="game-title">
-      📅 ${g.date}｜${g.game_code}｜${g.field}
-    </div>
+  // ✅ 共用 render row（避免重複）
+  function renderRow(p){
 
-    ${g.members
-      .filter(p=>{
-        // ✅ 隱藏 no_show（有替補時）
-        if (p.status === 'no_show'){
-          const hasReplacement = g.members.some(x =>
-            x.role === p.role && x.is_replacement
-          );
-          if (hasReplacement) return false;
-        }
-        return true;
-      })
-      .map(p=>{
-       const roleDone = roleDoneMap[p.role] === true;
+    const roleDone = roleDoneMap[p.role] === true;
 
-       // ✅ 是否有缺席（整個 role）
-       const hasNoShow = g.members.some(x =>
-         x.role === p.role && x.status === 'no_show'
-       );
-       
-       // ✅ 是否允許指派（沒有缺席才允許）
-       const canAssign = !hasNoShow;
+    const hasNoShow = g.members.some(x =>
+      x.role === p.role && x.status === 'no_show'
+    );
 
+    const canAssign = !hasNoShow;
 
-      return `
-       <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
-            data-id="${p.assignment_id}">
+    return `
+      <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
+           data-id="${p.assignment_id}">
 
-        <!-- 左側資訊 -->
         <div class="info">
           <div class="role">
-            ${p.role}
+            ${getRoleText(p.role)}
             ${p.is_replacement ? '<span class="tag">替</span>' : ''}
           </div>
 
@@ -459,67 +497,72 @@ function renderGame(g){
           </div>
         </div>
 
-        <!-- 右側操作 -->
         <div class="actions-box">
 
           ${
             roleDone
             ? `
-              <button class="btn-edit"
-                onclick="unlock('${p.assignment_id}')">
+              <button onclick="unlock('${p.assignment_id}')">
                 ✏️ 更正
               </button>
             `
             : `
-              <!-- 下拉合一 -->
               <select class="select-user">
                 <option value="">選擇人員</option>
                 ${userList.map(u=>
-                  `<option value="${u.user_id}">
-                    ${u.name}
-                  </option>`
+                  `<option value="${u.user_id}">${u.name}</option>`
                 ).join('')}
               </select>
 
-              <!-- 按鈕 -->
               <button class="btn btn-ok"
-                onclick="updateStatus('${p.assignment_id}','completed',this)">
-                完成
-              </button>
+                onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
 
               <button class="btn btn-late"
-                onclick="updateStatus('${p.assignment_id}','late',this)">
-                遲到
-              </button>
+                onclick="updateStatus('${p.assignment_id}','late',this)">遲到</button>
 
               <button class="btn btn-no"
-                onclick="updateStatus('${p.assignment_id}','no_show',this)">
-                缺席
-              </button>
+                onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
 
-             ${canAssign ? `
-               <button class="btn btn-assign"
-                 onclick="quickAssign('${p.assignment_id}', this)">
-                 指派
-               </button>
-             ` : ''}
+              ${canAssign ? `
+                <button class="btn btn-assign"
+                  onclick="quickAssign('${p.assignment_id}', this)">指派</button>
+              ` : ''}
 
-             ${hasNoShow ? `
-               <button class="btn btn-replace"
-                 onclick="quickReplace('${g.game_id}','${p.role}', this)">
-                 替補
-               </button>
-             ` : ''}
+              ${hasNoShow ? `
+                <button class="btn btn-replace"
+                  onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
+              ` : ''}
             `
           }
 
         </div>
-
       </div>
-      `;
-    }).join('')}
+    `;
+  }
 
-  </div>
+  return `
+    <div class="game-card" data-game-id="${g.game_id}">
+
+      ${currentTab==='pending' ? `
+        <button class="btn-complete-all"
+          onclick="completeGame('${g.game_id}')">
+          ✅ 全部完成
+        </button>
+      ` : ''}
+
+      <div class="game-title">
+        📅 ${g.date}｜${g.game_code}｜${g.field}
+      </div>
+
+      <!-- ✅ ✅ ✅ 裁判 -->
+      <div class="group-title judge">⚾ 裁判</div>
+      ${judges.map(renderRow).join('')}
+
+      <!-- ✅ ✅ ✅ 紀錄 -->
+      <div class="group-title record">📝 紀錄</div>
+      ${records.map(renderRow).join('')}
+
+    </div>
   `;
 }
 
@@ -674,17 +717,34 @@ function isGameCompleted(g){
 
 
 // 狀態中文化
- function getStatusText(s){
- 
-   const map = {
-     scheduled:'待確認',
-     no_show:'缺席',
-     late:'遲到',
-     completed:'✅ 已完成'
-   };
- 
-   return map[s] || s;
- }
+
+function getStatusText(s){
+
+  const map = {
+    scheduled:'<span class="status-badge status-scheduled">待確認</span>',
+    no_show:'<span class="status-badge status-no_show">缺席，請選擇替補人員</span>',
+    late:'<span class="status-badge status-late">遲到</span>',
+    completed:'<span class="status-badge status-completed">✔ 已完成</span>'
+  };
+
+  return map[s] || s;
+}
+
+
+function getRoleText(role){
+
+  const map = {
+    PU:'主審',
+    U1:'一壘審',
+    U2:'二壘審',
+    U3:'三壘審',
+    REC_MAIN:'紀錄員',
+    REC_TRAINEE:'紀錄實習員',
+    REC_VIDEO:'影像紀錄員'
+  };
+
+  return map[role] || role;
+}
 
 // 狀態 badge
 function getStatusBadge(s){
