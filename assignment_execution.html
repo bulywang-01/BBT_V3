@@ -22,7 +22,6 @@ body{
   padding:16px;
 }
 
-/* 卡片 */
 .game-card{
   background:#fff;
   border-radius:14px;
@@ -36,25 +35,23 @@ body{
   margin-bottom:10px;
 }
 
-/* 人員 */
 .person{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px dashed #ddd;
 }
 
-.person:last-child{
-  border-bottom:none;
-}
+.person:last-child{ border-bottom:none; }
 
-.role{
-  font-weight:700;
+.role{ font-weight:700; }
+
+.name{
+  font-size:14px;
   color:#374151;
 }
 
-/* 按鈕 */
 .actions button{
   margin-left:6px;
   padding:5px 10px;
@@ -67,11 +64,12 @@ body{
 .btn-ok{ background:#16a34a;color:#fff;}
 .btn-no{ background:#dc2626;color:#fff;}
 .btn-late{ background:#f59e0b;color:#fff;}
+.btn-change{ background:#3b82f6;color:#fff;}
 
-/* 狀態 */
 .completed{ background:#ecfdf5;}
 .no_show{ background:#fef2f2;}
 .late{ background:#fffbeb;}
+.cancelled{ background:#f3f4f6;opacity:.7;}
 
 .empty{
   text-align:center;
@@ -79,12 +77,17 @@ body{
   padding:40px;
 }
 
+select{
+  margin-left:6px;
+  padding:4px;
+  border-radius:6px;
+}
+
 </style>
 </head>
 
 <body>
 
-<!-- ✅ header -->
 <div id="header-container"></div>
 
 <div class="main">
@@ -94,27 +97,45 @@ body{
 
 <script>
 
-// ✅ Header 載入
+let userList = [];
+
+// ✅ 初始化
 document.addEventListener('DOMContentLoaded',()=>{
+  loadHeader();
+  loadUsers();   // 👈 新增（換人用）
+});
+
+/* ========================
+   Header
+======================== */
+function loadHeader(){
   fetch('header.html')
-    .then(res=>res.text())
+    .then(r=>r.text())
     .then(html=>{
       document.getElementById('header-container').innerHTML = html;
     });
+}
 
-  load();
-});
+/* ========================
+   Users（下拉選單）
+======================== */
+function loadUsers(){
+  callApi({action:'getUsers'}, res=>{
+    if(res.result !== 'ok') return;
 
-/* =========================
-   ✅ 主載入
-========================= */
+    userList = res.list || [];
+    load();
+  });
+}
+
+/* ========================
+   主載入
+======================== */
 function load(){
 
-  callApi({ action:'getAssignmentsByDate' }, res=>{
+  callApi({action:'getAssignmentsByDate'}, res=>{
 
-    console.log('出勤資料', res);
-
-    if (res.result !== 'ok'){
+    if(res.result !== 'ok'){
       document.getElementById('list').innerHTML =
         '<div class="empty">資料讀取失敗</div>';
       return;
@@ -124,14 +145,13 @@ function load(){
   });
 }
 
-/* =========================
-   ✅ render（完整）
-========================= */
+/* ========================
+   Render
+======================== */
 function render(list){
 
   const el = document.getElementById('list');
 
-  // ✅ 沒資料
   if (!list.length){
     el.innerHTML = '<div class="empty">目前沒有出勤資料</div>';
     return;
@@ -154,25 +174,34 @@ function render(list){
 
             <div>
               <div class="role">${p.role}</div>
-              <div>${p.name}</div>
+              <div class="name">${p.name || '（待位中）'}</div>
             </div>
 
-            <div class="actions">
+            <div>
 
-              <button class="btn-ok"
-                onclick="complete('${p.assignment_id}')">
-                ✅ 完成
+              ${renderUserSelect(p)}
+
+              <button class="btn-change"
+                onclick="changeUser('${p.assignment_id}', this)">
+                指派
               </button>
 
-              <button class="btn-no"
-                onclick="noShow('${p.assignment_id}')">
-                ❌ 缺席
-              </button>
+              <div class="actions" style="display:inline-block;">
+                <button class="btn-ok"
+                  onclick="updateStatus('${p.assignment_id}','completed')">
+                  ✅
+                </button>
 
-              <button class="btn-late"
-                onclick="late('${p.assignment_id}')">
-                ⏱ 遲到
-              </button>
+                <button class="btn-no"
+                  onclick="updateStatus('${p.assignment_id}','no_show')">
+                  ❌
+                </button>
+
+                <button class="btn-late"
+                  onclick="updateStatus('${p.assignment_id}','late')">
+                  ⏱
+                </button>
+              </div>
 
             </div>
 
@@ -186,32 +215,51 @@ function render(list){
   `).join('');
 }
 
-/* =========================
-   ✅ API 操作
-========================= */
+/* ========================
+   下拉選單
+======================== */
+function renderUserSelect(p){
 
-// ✅ 完賽
-function complete(id){
-  callApi({
-    action:'completeAssignment',
-    assignment_id:id
-  }, ()=>load());
+  return `
+    <select data-id="${p.assignment_id}">
+      <option value="">--換人--</option>
+      ${userList.map(u=>
+        `<option value="${u.user_id}">${u.name}</option>`
+      ).join('')}
+    </select>
+  `;
 }
 
-// ✅ 缺席
-function noShow(id){
-  callApi({
-    action:'markNoShow',
-    assignment_id:id
-  }, ()=>load());
-}
+/* ========================
+   指派人員
+======================== */
+function changeUser(id, btn){
 
-// ✅ 遲到
-function late(id){
+  const select = btn.parentNode.querySelector('select');
+  const uid = select.value;
+
+  if (!uid){
+    alert('請選擇人員');
+    return;
+  }
+
   callApi({
-    action:'addPenalty',
+    action:'updateAssignment',
     assignment_id:id,
-    type:'late'
+    user_id:uid,
+    status:'scheduled'
+  }, ()=>load());
+}
+
+/* ========================
+   更新狀態
+======================== */
+function updateStatus(id, status){
+
+  callApi({
+    action:'updateAssignment',
+    assignment_id:id,
+    status:status
   }, ()=>load());
 }
 
