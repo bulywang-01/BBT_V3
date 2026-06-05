@@ -428,11 +428,12 @@ function renderGame(g){
         return true;
       })
       .map(p=>{
+       const roleDone = roleDoneMap[p.role] === true;
 
-     // ✅ 是否有缺席（整個 role）
-     const hasNoShow = g.members.some(x =>
-       x.role === p.role && x.status === 'no_show'
-     );
+       // ✅ 是否有缺席（整個 role）
+       const hasNoShow = g.members.some(x =>
+         x.role === p.role && x.status === 'no_show'
+       );
 
       return `
        <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
@@ -575,13 +576,12 @@ function renderGame(g){
       // ✅ 🔥 先清 loading
       toast('', 'ok'); 
   
-      if(res.result==='ok'){
+
+      if (res && res.result === 'ok'){
         toast(`✅ 已標記：${textMap[status]}`);
-         if(res.result==='ok'){
-           toast(`✅ 已標記：${textMap[status]}`);
-         
-           updateRowUI(id, status);   // ✅ 改這個
-         }
+        updateRowUI(id, status);
+      }
+
       }else{
         toast(res.message || '更新失敗','error');
         if (btn) btn.disabled = false;
@@ -769,7 +769,7 @@ function quickReplace(gameId, role, btn){
     user_id:uid
   }, ()=>{
     toast('✅ 已完成替補');
-    // load();
+    setTimeout(load, 300);
   });
 }
 
@@ -790,7 +790,11 @@ function checkRoleNoShow(gameId, role){
       const roleText = r.querySelector('.role')?.innerText || '';
       const statusText = r.innerHTML;
 
-      if (roleText.includes(role) && statusText.includes('no_show')){
+      if (r.classList.contains('no_show')){
+        return true;
+      }
+
+      if (roleText.includes(role) && r.classList.contains('no_show')){
         return true;
       }
     }
