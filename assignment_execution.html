@@ -259,6 +259,37 @@ select{
   transform:translateY(-1px);
 }
 
+.info-line{
+  font-size:14px;
+  font-weight:500;
+}
+
+.info-line span{
+  margin-right:6px;
+}
+
+.header-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.btn-recalc{
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.btn-recalc:hover{
+  background:#1d4ed8;
+}
+
 </style>
 </head>
 
@@ -267,7 +298,16 @@ select{
 <div id="header-container"></div>
 
 <div class="main">
-  <h2>✅ 出勤管理</h2>
+
+  <div class="header-bar">
+    <h2>✅ 出勤管理</h2>
+  
+    <button class="btn-recalc"
+      onclick="recalcScore()">
+      🔄 重算分數
+    </button>
+  </div>
+
   <div id="list"></div>
 </div>
 
@@ -483,16 +523,9 @@ function renderGame(g){
            data-id="${p.assignment_id}">
 
         <div class="info">
-          <div class="role">
-            ${getRoleText(p.role)}
-            ${p.is_replacement ? '<span class="tag">替</span>' : ''}
-          </div>
-
-          <div class="name">
-            ${p.name || '（待位中）'}
-          </div>
-
-          <div class="status">
+          <div class="info-line">
+            ${getRoleText(p.role)} ｜ 
+            ${p.name || '（待位中）'} ｜ 
             ${getStatusText(p.status)}
           </div>
         </div>
@@ -901,6 +934,24 @@ function updateRowUI(id, status){
       `;
     }
   }
+}
+
+function recalcScore(){
+
+  if(!confirm('確定重新計算所有人員分數？')) return;
+
+  toast('分數計算中...','loading');
+
+  callApi({action:'recalcAllScores'}, res=>{
+
+    if (!res || res.result !== 'ok'){
+      toast('❌ 計算失敗','error');
+      return;
+    }
+
+    toast('✅ 分數已更新');
+
+  });
 }
 
 
