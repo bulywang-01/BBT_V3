@@ -585,12 +585,6 @@ function renderGame(g){
               </button>
             `
             : `
-              <select class="select-user">
-                <option value="">選擇人員</option>
-                ${userList.map(u=>
-                  `<option value="${u.user_id}">${u.name}</option>`
-                ).join('')}
-              </select>
 
               <button class="btn btn-ok"
                 onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
@@ -610,6 +604,14 @@ function renderGame(g){
                 <button class="btn btn-replace"
                   onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
               ` : ''}
+
+              <select class="select-user">
+                <option value="">選擇人員</option>
+                ${userList.map(u=>
+                  `<option value="${u.user_id}">${u.name}</option>`
+                ).join('')}
+              </select>
+
             `
           }
 
