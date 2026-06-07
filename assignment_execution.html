@@ -304,7 +304,20 @@ select{
   font-weight:700;
   margin-left:4px;
 }
- 
+
+.tag-replace{
+  margin-left:4px;
+  font-size:11px;
+  background:#6366f1;
+  color:#fff;
+  padding:2px 6px;
+  border-radius:6px;
+}
+
+.status-mini{
+  font-weight:700;
+}
+
 </style>
 </head>
 
@@ -574,10 +587,65 @@ function renderGame(g){
     x.role.startsWith('REC')
   );
 
-  // ✅ 共用 render row（避免重複）
-function renderRow(p){
+ // 只顯示已完賽
+ function isGameReady(g){
 
-  const roleDone = roleDoneMap[p.role] === true;
+  const gameDate = new Date(g.date);
+  const today = new Date();
+
+  today.setHours(0,0,0,0);
+  gameDate.setHours(0,0,0,0);
+
+  const isPast = gameDate < today;
+
+  const status = String(g.status || '').toLowerCase();
+
+  return isPast && (status === '0' || status === 'completed' || status === '');
+}
+
+// 主入口
+function load(){
+
+  const el = document.getElementById('list');
+
+  el.innerHTML = `<div class="empty">⏳ 資料載入中...</div>`;
+
+  callApi({action:'getAssignments'}, res=>{
+
+    if(!res || !res.data){
+      el.innerHTML = `<div class="empty">❌ 讀取失敗</div>`;
+      return;
+    }
+
+    const games = res.data;
+
+    const html = games
+      .filter(g => isGameReady(g))   // ✅ ✅ ✅ 只顯示完賽
+      .map(renderGame)
+      .join('');
+
+    el.innerHTML = html || `<div class="empty">沒有資料</div>`;
+  });
+}
+
+//
+function renderGame(g){
+
+  return `
+    <div class="game-card" data-game-id="${g.game_id}">
+
+      <div class="game-title">
+        📅 ${g.date} ｜ ${g.game_code} ｜ ${g.field}
+      </div>
+
+      ${g.members.map(p => renderRow(p, g)).join('')}
+
+    </div>
+  `;
+}
+ 
+// ✅ 共用 render row（避免重複）
+function renderRow(p, g){
 
   const hasNoShow = g.members.some(x =>
     x.role === p.role && x.status === 'no_show'
@@ -585,44 +653,47 @@ function renderRow(p){
 
   const canAssign = !hasNoShow;
 
-  // ✅ ✅ ✅ 是否已選人
+  const rowDone = p.status === 'completed';
+
   const hasUser = !!p.name;
 
-  // ✅ ✅ ✅ 狀態文字（精簡版）
-  function getSimpleStatus(s){
+  // ✅ 狀態縮寫
+  const statusMap = {
+    completed:'✔',
+    late:'遲',
+    no_show:'缺',
+    scheduled:''
+  };
 
-    const map = {
-      completed:'✔',
-      late:'遲',
-      no_show:'缺',
-      scheduled:'排'
-    };
-
-    return map[s] || '';
+  // ✅ 來源顯示
+  function getSource(){
+    if (p.source === 'assign') return '班';
+    if (p.source === 'signup') return '報名';
+    return '';
   }
 
-  // ✅ ✅ ✅ 是否替補
-  const replaceTag = p.is_replacement 
-    ? '<span class="tag-replace">補</span>' 
+  const replaceTag = p.is_replacement == 1
+    ? '<span class="tag-replace">補</span>'
     : '';
 
   return `
-    <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
+    <div class="person ${p.status} ${p.is_replacement==1?'replacement':''}" 
          data-id="${p.assignment_id}"
          data-role="${p.role}">
 
       <div class="info">
         <div class="info-line">
 
-          ${getRoleText(p.role)}
-          ${replaceTag}
+          ${getRoleText(p.role)} ${replaceTag}
+          ｜ ${p.name || '（待位中）'}
 
-          ｜ ${p.name || '（待位中）'} ｜ 
+          ${getSource() ? `｜ ${getSource()}` : ''}
 
+          ｜ 
           ${
             hasUser
-            ? `<span class="status-mini">${getSimpleStatus(p.status)}</span>`
-            : getStatusText(p.status)
+              ? `<span class="status-mini">${statusMap[p.status]||''}</span>`
+              : getStatusText(p.status)
           }
 
         </div>
@@ -630,42 +701,36 @@ function renderRow(p){
 
       <div class="actions-box">
 
-        ${
-          roleDone
-          ? `
-            <button class="btn-edit"
-              onclick="unlock('${p.assignment_id}')">
-              ✏️
-            </button>
-          `
-          : `
-            <button class="btn btn-ok"
-              onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
+        ${ rowDone ? `
+          <button onclick="unlock('${p.assignment_id}')">✏️ 更正</button>
+        ` : `
+          <button class="btn btn-ok"
+            onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
 
-            <button class="btn btn-late"
-              onclick="updateStatus('${p.assignment_id}','late',this)">遲到</button>
+          <button class="btn btn-late"
+            onclick="updateStatus('${p.assignment_id}','late',this)">遲到</button>
 
-            <button class="btn btn-no"
-              onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
+          <button class="btn btn-no"
+            onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
 
-            ${canAssign ? `
-              <button class="btn btn-assign"
-                onclick="quickAssign('${p.assignment_id}', this)">指派</button>
-            ` : ''}
+          ${canAssign ? `
+            <button class="btn btn-assign"
+              onclick="quickAssign('${p.assignment_id}', this)">指派</button>
+          `:''}
 
-            ${hasNoShow ? `
-              <button class="btn btn-replace"
-                onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
-            ` : ''}
+          ${hasNoShow ? `
+            <button class="btn btn-replace"
+              onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
+          `:''}
 
-            <select class="select-user">
-              <option value="">選擇人員</option>
-              ${userList.map(u =>
-                `<option value="${u.user_id}">${u.name}</option>`
-              ).join('')}
-            </select>
-          `
-        }
+          <!-- ✅ select 放最後 -->
+          <select class="select-user">
+            <option value="">選擇人員</option>
+            ${userList.map(u =>
+              `<option value="${u.user_id}">${u.name}</option>`
+            ).join('')}
+          </select>
+        `}
 
       </div>
     </div>
@@ -907,10 +972,9 @@ function quickAssign(id, btn){
   callApi({
     action:'updateAssignment',
     assignment_id:id,
-    user_id:uid,
-    status:'scheduled'
-  }, () => {
-    toast('✅ 已指派');
+    user_id:uid
+  }, ()=>{
+    toast('✅ 指派完成');
     load();
   });
 }
@@ -924,27 +988,28 @@ function quickReplace(gameId, role, btn){
   const uid = select.value;
 
   if (!uid){
-    toast('請先選替補人員','warn');
+    toast('請先選替補','warn');
     return;
   }
 
   const hasNoShow = checkRoleNoShow(gameId, role);
 
   if (!hasNoShow){
-    toast('⚠️ 該位置尚未標記缺席','warn');
+    toast('⚠️ 尚未標記缺席','warn');
     return;
   }
 
   callApi({
     action:'addReplacement',
     game_id:gameId,
-    role:role,
+    role,
     user_id:uid
   }, ()=>{
-    toast('✅ 已完成替補');
+    toast('✅ 替補完成');
     load();
   });
 }
+
 
 
 // 判斷是否有遲到，才能遞補
@@ -956,11 +1021,8 @@ function checkRoleNoShow(gameId, role){
   const rows = card.querySelectorAll('.person');
 
   for (let r of rows){
-
-    const rowRole = r.getAttribute('data-role');
-
     if (
-      rowRole === role &&
+      r.getAttribute('data-role') === role &&
       r.classList.contains('no_show')
     ){
       return true;
