@@ -560,72 +560,76 @@ function renderGame(g){
   );
 
   // ✅ 共用 render row（避免重複）
-  function renderRow(p){
+function renderRow(p){
 
-    const roleDone = roleDoneMap[p.role] === true;
+  const roleDone = roleDoneMap[p.role] === true;
 
-    const hasNoShow = g.members.some(x =>
-      x.role === p.role && x.status === 'no_show'
-    );
+  const hasNoShow = g.members.some(x =>
+    x.role === p.role && x.status === 'no_show'
+  );
 
-    const canAssign = !hasNoShow;
+  const canAssign = !hasNoShow;
 
-    return `
-      <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
-           data-id="${p.assignment_id}">
+  return `
+    <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
+         data-id="${p.assignment_id}">
 
-        <div class="info">
-          <div class="info-line">
-            ${getRoleText(p.role)} ｜ 
-            ${p.name || '（待位中）'} ｜ 
-            ${getStatusText(p.status)}
-          </div>
-        </div>
-
-        <div class="actions-box">
-
-          ${
-            roleDone
-            ? `
-              <button onclick="unlock('${p.assignment_id}')">
-                ✏️ 更正
-              </button>
-            `
-            : `
-
-              <button class="btn btn-ok"
-                onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
-
-              <button class="btn btn-late"
-                onclick="updateStatus('${p.assignment_id}','late',this)">遲到</button>
-
-              <button class="btn btn-no"
-                onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
-
-              ${canAssign ? `
-                <button class="btn btn-assign"
-                  onclick="quickAssign('${p.assignment_id}', this)">指派</button>
-              ` : ''}
-
-              ${hasNoShow ? `
-                <button class="btn btn-replace"
-                  onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
-              ` : ''}
-
-              <select class="select-user">
-                <option value="">選擇人員</option>
-                ${userList.map(u=>
-                  `<option value="${u.user_id}">${u.name}</option>`
-                ).join('')}
-              </select>
-
-            `
-          }
-
+      <!-- ✅ 左側資訊 -->
+      <div class="info">
+        <div class="info-line">
+          ${getRoleText(p.role)} ｜ 
+          ${p.name || '（待位中）'} ｜ 
+          ${getStatusText(p.status)}
         </div>
       </div>
-    `;
-  }
+
+      <!-- ✅ 右側操作 -->
+      <div class="actions-box">
+
+        ${
+          roleDone
+          ? `
+            <button class="btn-edit"
+              onclick="unlock('${p.assignment_id}')">
+              ✏️ 更正
+            </button>
+          `
+          : `
+            <!-- ✅ 狀態操作 -->
+            <button class="btn btn-ok"
+              onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
+
+            <button class="btn btn-late"
+              onclick="updateStatus('${p.assignment_id}','late',this)">遲到</button>
+
+            <button class="btn btn-no"
+              onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
+
+            <!-- ✅ 指派 / 替補 -->
+            ${canAssign ? `
+              <button class="btn btn-assign"
+                onclick="quickAssign('${p.assignment_id}', this)">指派</button>
+            ` : ''}
+
+            ${hasNoShow ? `
+              <button class="btn btn-replace"
+                onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
+            ` : ''}
+
+            <!-- ✅ ✅ ✅ select 放最後（你要的）-->
+            <select class="select-user">
+              <option value="">選擇人員</option>
+              ${userList.map(u =>
+                `<option value="${u.user_id}">${u.name}</option>`
+              ).join('')}
+            </select>
+          `
+        }
+
+      </div>
+    </div>
+  `;
+}
 
   return `
     <div class="game-card" data-game-id="${g.game_id}">
@@ -849,7 +853,9 @@ function getStatusBadge(s){
 // 快速指派
 function quickAssign(id, btn){
 
-  const select = btn.parentNode.querySelector('.select-user');
+  const row = btn.closest('.person');
+  const select = row.querySelector('.select-user');
+
   const uid = select.value;
 
   if (!uid){
@@ -862,16 +868,18 @@ function quickAssign(id, btn){
     assignment_id:id,
     user_id:uid,
     status:'scheduled'
-  }, ()=> {
+  }, () => {
     toast('✅ 已指派');
-    updateRowUI(id, 'scheduled');
+    load();
   });
 }
 
 // 快速替補
 function quickReplace(gameId, role, btn){
 
-  const select = btn.parentNode.querySelector('.select-user');
+  const row = btn.closest('.person');
+  const select = row.querySelector('.select-user');
+
   const uid = select.value;
 
   if (!uid){
@@ -879,15 +887,12 @@ function quickReplace(gameId, role, btn){
     return;
   }
 
-  // ✅ ✅ ✅ 🔥 檢查有沒有缺席
   const hasNoShow = checkRoleNoShow(gameId, role);
 
   if (!hasNoShow){
-    toast('⚠️ 請先將該位置標記為「缺席」才能替補','error');
+    toast('⚠️ 該位置尚未標記缺席','warn');
     return;
   }
-
-  toast('補位中...','loading');
 
   callApi({
     action:'addReplacement',
@@ -896,9 +901,10 @@ function quickReplace(gameId, role, btn){
     user_id:uid
   }, ()=>{
     toast('✅ 已完成替補');
-    setTimeout(load, 300);
+    load();
   });
 }
+
 
 // 判斷是否有遲到，才能遞補
 function checkRoleNoShow(gameId, role){
