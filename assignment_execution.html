@@ -318,6 +318,25 @@ select{
   font-weight:700;
 }
 
+.tag-replace{
+  margin-left:4px;
+  padding:2px 6px;
+  background:#6366f1;
+  color:#fff;
+  border-radius:6px;
+  font-size:11px;
+}
+
+.status-mini{
+  font-weight:bold;
+}
+
+.actions-box{
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+
 </style>
 </head>
 
@@ -434,29 +453,24 @@ function load(){
 
   const el = document.getElementById('list');
 
-  // ✅ loading畫面
-  el.innerHTML = `
-    <div class="empty">⏳ 資料載入中...</div>
-  `;
+  el.innerHTML = `<div class="empty">⏳ 資料載入中...</div>`;
 
-  // ✅ 🔥 超過3秒提示（關鍵）
-  const timer = setTimeout(()=>{
-    toast('資料載入較慢，請稍候...','warn');
-  },3000);
+  callApi({action:'getAssignments'}, res=>{
 
-  callApi({action:'getAssignmentsByDate'}, res=>{
-
-    // ✅ 清除慢載入提示
-    clearTimeout(timer);
-
-    if(res.result !== 'ok'){
-      el.innerHTML =
-        '<div class="empty">資料讀取失敗</div>';
-      toast(res.message || '讀取失敗','error');
+    if (!res || res.result !== 'ok' || !res.data){
+      console.error('API ERROR', res);
+      el.innerHTML = `<div class="empty">❌ 讀取失敗</div>`;
       return;
     }
 
-    render(res.games || []);
+    const games = res.data;
+
+    const html = games
+      .filter(isGameReady)   // ✅ 只顯示完賽
+      .map(renderGame)
+      .join('');
+
+    el.innerHTML = html || `<div class="empty">沒有資料</div>`;
   });
 }
   
@@ -588,7 +602,7 @@ function renderGame(g){
   );
 
  // 只顯示已完賽
- function isGameReady(g){
+function isGameReady(g){
 
   const gameDate = new Date(g.date);
   const today = new Date();
@@ -635,10 +649,10 @@ function renderGame(g){
     <div class="game-card" data-game-id="${g.game_id}">
 
       <div class="game-title">
-        📅 ${g.date} ｜ ${g.game_code} ｜ ${g.field}
+        📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
       </div>
 
-      ${g.members.map(p => renderRow(p, g)).join('')}
+      ${ (g.list || []).map(p => renderRow(p, g)).join('') }
 
     </div>
   `;
@@ -647,9 +661,11 @@ function renderGame(g){
 // ✅ 共用 render row（避免重複）
 function renderRow(p, g){
 
- const hasNoShow = g.list.some(x =>
-   x.role === p.role && x.status === 'no_show'
- );
+  const list = g.list || []; // ✅ 防爆
+
+  const hasNoShow = list.some(x =>
+    x.role === p.role && x.status === 'no_show'
+  );
 
   const canAssign = !hasNoShow;
 
@@ -665,19 +681,20 @@ function renderRow(p, g){
     scheduled:''
   };
 
-  // ✅ 來源顯示
+  // ✅ 來源（班 / 報名）
   function getSource(){
     if (p.source === 'assign') return '班';
     if (p.source === 'signup') return '報名';
     return '';
   }
 
+  // ✅ 替補標記
   const replaceTag = p.is_replacement == 1
     ? '<span class="tag-replace">補</span>'
     : '';
 
   return `
-    <div class="person ${p.status} ${p.is_replacement==1?'replacement':''}" 
+    <div class="person ${p.status}" 
          data-id="${p.assignment_id}"
          data-role="${p.role}">
 
@@ -692,7 +709,7 @@ function renderRow(p, g){
           ｜ 
           ${
             hasUser
-              ? `<span class="status-mini">${statusMap[p.status]||''}</span>`
+              ? `<span class="status-mini">${statusMap[p.status] || ''}</span>`
               : getStatusText(p.status)
           }
 
@@ -723,7 +740,6 @@ function renderRow(p, g){
               onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
           `:''}
 
-          <!-- ✅ select 放最後 -->
           <select class="select-user">
             <option value="">選擇人員</option>
             ${userList.map(u =>
@@ -914,14 +930,13 @@ function isGameCompleted(g){
 
 
 // 狀態中文化
-
 function getStatusText(s){
 
   const map = {
-    scheduled:'<span class="status-badge status-scheduled">待確認</span>',
-    no_show:'<span class="status-badge status-no_show">缺席，請選擇替補人員</span>',
-    late:'<span class="status-badge status-late">遲到</span>',
-    completed:'<span class="status-badge status-completed">✔ 已完成</span>'
+    scheduled:'待確認',
+    completed:'已完成',
+    late:'遲到',
+    no_show:'缺席'
   };
 
   return map[s] || s;
@@ -972,9 +987,10 @@ function quickAssign(id, btn){
   callApi({
     action:'updateAssignment',
     assignment_id:id,
-    user_id:uid
+    user_id:uid,
+    source:'assign'
   }, ()=>{
-    toast('✅ 指派完成');
+    toast('✅ 已指派');
     load();
   });
 }
@@ -988,7 +1004,7 @@ function quickReplace(gameId, role, btn){
   const uid = select.value;
 
   if (!uid){
-    toast('請先選替補','warn');
+    toast('請選替補人員','warn');
     return;
   }
 
@@ -1021,6 +1037,7 @@ function checkRoleNoShow(gameId, role){
   const rows = card.querySelectorAll('.person');
 
   for (let r of rows){
+
     if (
       r.getAttribute('data-role') === role &&
       r.classList.contains('no_show')
