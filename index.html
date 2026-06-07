@@ -664,16 +664,12 @@
         })
         .catch(err => console.error('Header 載入失敗', err));
     }
-
  
         // ✅ 顯示登入者姓名
         if (session && session.name) {
           const nameEl = document.getElementById('header-username');
           if (nameEl) nameEl.textContent = session.name;
         }
-      })
-      .catch(err => console.error('Header 載入失敗', err));
-  }
     
     document.addEventListener('DOMContentLoaded', loadHeader);
   
