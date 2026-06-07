@@ -597,12 +597,12 @@ function load(){
 
     const games = res.data;
 
-    const html = games
-      .filter(g => isGameReady(g))   // ✅ ✅ ✅ 只顯示完賽
-      .map(renderGame)
-      .join('');
+    // ✅ ✅ ✅ 重點：
+    const data = games.filter(g => isGameReady(g));
 
-    el.innerHTML = html || `<div class="empty">沒有資料</div>`;
+    // ✅ ✅ ✅ 用分頁 render（不要再組 html）
+    render(data);
+
   });
 }
 
