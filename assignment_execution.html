@@ -571,8 +571,9 @@ function renderRow(p){
   const canAssign = !hasNoShow;
 
   return `
-    <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
-         data-id="${p.assignment_id}">
+     <div class="person ${p.status} ${p.is_replacement?'replacement':''}"
+          data-id="${p.assignment_id}"
+          data-role="${p.role}">
 
       <!-- ✅ 左側資訊 -->
       <div class="info">
@@ -916,11 +917,10 @@ function checkRoleNoShow(gameId, role){
 
   for (let r of rows){
 
-    const roleText = r.querySelector('.role')?.innerText || '';
+    const rowRole = r.getAttribute('data-role');
 
-    // ✅ ✅ ✅ 同角色 + 缺席
     if (
-      roleText.includes(getRoleText(role)) &&
+      rowRole === role &&
       r.classList.contains('no_show')
     ){
       return true;
