@@ -446,40 +446,35 @@ select{
     });
   }
 
+
+ // 只顯示已完賽
+function isGameReady(g){
+
+  if (!g) return false;
+
+  const gameDate = new Date(g.date);
+  if (isNaN(gameDate)) return false;
+
+  const today = new Date();
+
+  today.setHours(0,0,0,0);
+  gameDate.setHours(0,0,0,0);
+
+  const isPast = gameDate < today;
+
+  const status = String(g.status || '').toLowerCase();
+
+  return isPast && (
+    status === '0' ||
+    status === 'completed' ||
+    status === ''
+  );
+}
  
 /* ========================
    主載入
  ======================== */
-function load(){
 
-  const el = document.getElementById('list');
-
-  el.innerHTML = `<div class="empty">⏳ 資料載入中...</div>`;
-
-  callApi({action:'getAssignments'}, res=>{
-  
-    if (!res){
-      console.error('API NULL');
-      document.getElementById('list').innerHTML = '❌ API NULL';
-      return;
-    }
-  
-    if (res.result !== 'ok'){
-      console.error('API ERROR', res);
-      document.getElementById('list').innerHTML = '❌ API ERROR';
-      return;
-    }
-  
-    const games = res.data || [];
-
-    const html = games
-      .filter(isGameReady)   // ✅ 只顯示完賽
-      .map(renderGame)
-      .join('');
-
-    el.innerHTML = html || `<div class="empty">沒有資料</div>`;
-  });
-}
   
   /* ========================
      Render 核心程式
@@ -586,52 +581,6 @@ function addReplacement(gameId, role, btn){
 }
 
 
-  /* ========================
-     每場 render，替補＋鎖定＋更正＋顏色
-  ======================== */
-function renderGame(g){
-
-  const roleDoneMap = {};
-
-  g.members.forEach(p=>{
-    if (p.status === 'completed'){
-      roleDoneMap[p.role] = true;
-    }
-  });
-
-  // ✅ ✅ ✅ 🔥 分組（這就是你現在沒做的）
-  const judges = g.members.filter(x =>
-    ['PU','U1','U2','U3'].includes(x.role)
-  );
-
-  const records = g.members.filter(x =>
-    x.role.startsWith('REC')
-  );
-
- // 只顯示已完賽
-function isGameReady(g){
-
-  if (!g) return false;
-
-  const gameDate = new Date(g.date);
-  if (isNaN(gameDate)) return false;
-
-  const today = new Date();
-
-  today.setHours(0,0,0,0);
-  gameDate.setHours(0,0,0,0);
-
-  const isPast = gameDate < today;
-
-  const status = String(g.status || '').toLowerCase();
-
-  return isPast && (
-    status === '0' ||
-    status === 'completed' ||
-    status === ''
-  );
-}
-
 // 主入口
 function load(){
 
@@ -657,7 +606,7 @@ function load(){
   });
 }
 
-//
+// 每場 render，替補＋鎖定＋更正＋顏色
 function renderGame(g){
 
   return `
@@ -767,33 +716,6 @@ function renderRow(p, g){
     </div>
   `;
 }
-
-  return `
-    <div class="game-card" data-game-id="${g.game_id}">
-
-      ${currentTab==='pending' ? `
-        <button class="btn-complete-all"
-          onclick="completeGame('${g.game_id}')">
-          ✅ 本場次人員全部完成
-        </button>
-      ` : ''}
-
-      <div class="game-title">
-        📅 ${g.date}｜${g.game_code}｜${g.field}
-      </div>
-
-      <!-- ✅ ✅ ✅ 裁判 -->
-      <div class="group-title judge">⚾ 裁判</div>
-      ${judges.map(renderRow).join('')}
-
-      <!-- ✅ ✅ ✅ 紀錄 -->
-      <div class="group-title record">📝 紀錄</div>
-      ${records.map(renderRow).join('')}
-
-    </div>
-  `;
-}
-
   
   /* ========================
      更新狀態
@@ -932,13 +854,13 @@ function isGameCompleted(g){
 
   const roleDone = {};
 
-  g.members.forEach(p=>{
+  g.list.forEach(p=>{
     if (p.status === 'completed'){
       roleDone[p.role] = true;
     }
   });
 
-  const roleCount = new Set(g.members.map(x=>x.role)).size;
+  const roleCount = new Set(g.list.map(x=>x.role)).size;
 
   return Object.keys(roleDone).length === roleCount;
 }
