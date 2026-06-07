@@ -290,6 +290,21 @@ select{
   background:#1d4ed8;
 }
 
+.tag-replace{
+  display:inline-block;
+  margin-left:4px;
+  padding:1px 6px;
+  font-size:11px;
+  border-radius:6px;
+  background:#6366f1;
+  color:#fff;
+}
+
+.status-mini{
+  font-weight:700;
+  margin-left:4px;
+}
+ 
 </style>
 </head>
 
@@ -570,21 +585,49 @@ function renderRow(p){
 
   const canAssign = !hasNoShow;
 
-  return `
-     <div class="person ${p.status} ${p.is_replacement?'replacement':''}"
-          data-id="${p.assignment_id}"
-          data-role="${p.role}">
+  // ✅ ✅ ✅ 是否已選人
+  const hasUser = !!p.name;
 
-      <!-- ✅ 左側資訊 -->
+  // ✅ ✅ ✅ 狀態文字（精簡版）
+  function getSimpleStatus(s){
+
+    const map = {
+      completed:'✔',
+      late:'遲',
+      no_show:'缺',
+      scheduled:'排'
+    };
+
+    return map[s] || '';
+  }
+
+  // ✅ ✅ ✅ 是否替補
+  const replaceTag = p.is_replacement 
+    ? '<span class="tag-replace">補</span>' 
+    : '';
+
+  return `
+    <div class="person ${p.status} ${p.is_replacement?'replacement':''}" 
+         data-id="${p.assignment_id}"
+         data-role="${p.role}">
+
       <div class="info">
         <div class="info-line">
-          ${getRoleText(p.role)} ｜ 
-          ${p.name || '（待位中）'} ｜ 
-          ${getStatusText(p.status)}
+
+          ${getRoleText(p.role)}
+          ${replaceTag}
+
+          ｜ ${p.name || '（待位中）'} ｜ 
+
+          ${
+            hasUser
+            ? `<span class="status-mini">${getSimpleStatus(p.status)}</span>`
+            : getStatusText(p.status)
+          }
+
         </div>
       </div>
 
-      <!-- ✅ 右側操作 -->
       <div class="actions-box">
 
         ${
@@ -592,11 +635,10 @@ function renderRow(p){
           ? `
             <button class="btn-edit"
               onclick="unlock('${p.assignment_id}')">
-              ✏️ 更正
+              ✏️
             </button>
           `
           : `
-            <!-- ✅ 狀態操作 -->
             <button class="btn btn-ok"
               onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
 
@@ -606,7 +648,6 @@ function renderRow(p){
             <button class="btn btn-no"
               onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
 
-            <!-- ✅ 指派 / 替補 -->
             ${canAssign ? `
               <button class="btn btn-assign"
                 onclick="quickAssign('${p.assignment_id}', this)">指派</button>
@@ -617,7 +658,6 @@ function renderRow(p){
                 onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
             ` : ''}
 
-            <!-- ✅ ✅ ✅ select 放最後（你要的）-->
             <select class="select-user">
               <option value="">選擇人員</option>
               ${userList.map(u =>
