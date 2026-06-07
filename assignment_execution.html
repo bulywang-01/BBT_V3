@@ -612,11 +612,23 @@ function renderGame(g){
   return `
     <div class="game-card" data-game-id="${g.game_id}">
 
-      <div class="game-title">
-        📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
+      <div class="game-title" style="display:flex;justify-content:space-between;align-items:center;">
+
+        <div>
+          📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
+        </div>
+
+        <!-- ✅ ✅ ✅ 一鍵整場完成 -->
+        <div>
+          <button class="btn-complete-all"
+            onclick="completeGame('${g.game_id}')">
+            ✅ 整場完成
+          </button>
+        </div>
+
       </div>
 
-      ${ (g.list || []).map(p => renderRow(p, g)).join('') }
+      ${(g.list || []).map(p => renderRow(p, g)).join('')}
 
     </div>
   `;
