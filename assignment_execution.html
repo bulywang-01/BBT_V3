@@ -445,10 +445,11 @@ select{
       load();
     });
   }
-  
-  /* ========================
-     主載入
-  ======================== */
+
+ 
+/* ========================
+   主載入
+ ======================== */
 function load(){
 
   const el = document.getElementById('list');
@@ -456,14 +457,20 @@ function load(){
   el.innerHTML = `<div class="empty">⏳ 資料載入中...</div>`;
 
   callApi({action:'getAssignments'}, res=>{
-
-    if (!res || res.result !== 'ok' || !res.data){
-      console.error('API ERROR', res);
-      el.innerHTML = `<div class="empty">❌ 讀取失敗</div>`;
+  
+    if (!res){
+      console.error('API NULL');
+      document.getElementById('list').innerHTML = '❌ API NULL';
       return;
     }
-
-    const games = res.data;
+  
+    if (res.result !== 'ok'){
+      console.error('API ERROR', res);
+      document.getElementById('list').innerHTML = '❌ API ERROR';
+      return;
+    }
+  
+    const games = res.data || [];
 
     const html = games
       .filter(isGameReady)   // ✅ 只顯示完賽
@@ -604,7 +611,11 @@ function renderGame(g){
  // 只顯示已完賽
 function isGameReady(g){
 
+  if (!g) return false;
+
   const gameDate = new Date(g.date);
+  if (isNaN(gameDate)) return false;
+
   const today = new Date();
 
   today.setHours(0,0,0,0);
@@ -614,7 +625,11 @@ function isGameReady(g){
 
   const status = String(g.status || '').toLowerCase();
 
-  return isPast && (status === '0' || status === 'completed' || status === '');
+  return isPast && (
+    status === '0' ||
+    status === 'completed' ||
+    status === ''
+  );
 }
 
 // 主入口
