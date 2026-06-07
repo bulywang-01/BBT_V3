@@ -903,28 +903,27 @@ function quickReplace(gameId, role, btn){
 // 判斷是否有遲到，才能遞補
 function checkRoleNoShow(gameId, role){
 
-  // ✅ 從目前畫面資料判斷（最快）
-  const cards = document.querySelectorAll('.game-card');
+  const card = document.querySelector(`[data-game-id="${gameId}"]`);
+  if (!card) return false;
 
-  for (let card of cards){
+  const rows = card.querySelectorAll('.person');
 
-    if (card.getAttribute('data-game-id') !== String(gameId)) continue;
+  for (let r of rows){
 
-    const rows = card.querySelectorAll('.person');
+    const roleText = r.querySelector('.role')?.innerText || '';
 
-    for (let r of rows){
-
-      const roleText = r.querySelector('.role')?.innerText || '';
-      const statusText = r.innerHTML;
-
-      if (roleText.includes(role) && r.classList.contains('no_show')){
-        return true;
-      }
+    // ✅ ✅ ✅ 同角色 + 缺席
+    if (
+      roleText.includes(getRoleText(role)) &&
+      r.classList.contains('no_show')
+    ){
+      return true;
     }
   }
 
   return false;
 }
+
 
 // 一鍵整場完成
 function completeGame(gameId){
