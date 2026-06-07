@@ -647,9 +647,9 @@ function renderGame(g){
 // ✅ 共用 render row（避免重複）
 function renderRow(p, g){
 
-  const hasNoShow = g.members.some(x =>
-    x.role === p.role && x.status === 'no_show'
-  );
+ const hasNoShow = g.list.some(x =>
+   x.role === p.role && x.status === 'no_show'
+ );
 
   const canAssign = !hasNoShow;
 
@@ -1151,10 +1151,11 @@ function loadYearly(){
     year:year
   }, res=>{
 
-    if (res.result !== 'ok'){
-      toast('❌ 失敗','error');
-      return;
-    }
+
+   if (!res || res.result !== 'ok'){
+     toast('❌ API錯誤','error');
+     return;
+   }
 
     console.table(res.data); // ✅ 先用console看
     toast('✅ 完成，請看 console');
