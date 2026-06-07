@@ -302,6 +302,13 @@ select{
   <div class="header-bar">
     <h2>✅ 出勤管理</h2>
   
+    <button class="btn-create"
+      onclick="runAutoAssign()">
+      ⚙️ 建立出勤
+    </button>
+    <button onclick="loadYearly()">
+      📊 年度統計
+    </button>
     <button class="btn-recalc"
       onclick="recalcScore()">
       🔄 重算分數
@@ -983,9 +990,13 @@ function updateRowUI(id, status){
   }
 }
 
+// 一鍵重新計算分數
 function recalcScore(){
 
-  if(!confirm('確定重新計算所有人員分數？')) return;
+  if(!confirm('確定重新計算所有分數？')) return;
+
+  const btn = document.querySelector('.btn-recalc');
+  if (btn) btn.disabled = true;
 
   toast('分數計算中...','loading');
 
@@ -993,14 +1004,55 @@ function recalcScore(){
 
     if (!res || res.result !== 'ok'){
       toast('❌ 計算失敗','error');
-      return;
+    }else{
+
+      toast(`✅ 分數已更新（${res.users_updated || 0}人）`);
     }
 
-    toast('✅ 分數已更新');
+    if (btn) btn.disabled = false;
+  });
+}
+
+// 建立出勤資料
+function runAutoAssign(){
+
+  if(!confirm('建立尚未產生的出勤資料？')) return;
+
+  toast('建立中...','loading');
+
+  callApi({action:'autoCreateAssignment'}, res=>{
+
+    if (res.result === 'ok'){
+      toast(`✅ 已建立 ${res.created} 筆`);
+      load();
+    }else{
+      toast('❌ 建立失敗','error');
+    }
 
   });
 }
 
+// 年度統計
+function loadYearly(){
+
+  const year = new Date().getFullYear();
+
+  toast('統計中...','loading');
+
+  callApi({
+    action:'getYearlyExperience',
+    year:year
+  }, res=>{
+
+    if (res.result !== 'ok'){
+      toast('❌ 失敗','error');
+      return;
+    }
+
+    console.table(res.data); // ✅ 先用console看
+    toast('✅ 完成，請看 console');
+  });
+}
 
 </script>
 
