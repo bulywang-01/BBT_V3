@@ -612,32 +612,65 @@ function renderGame(g){
   return `
     <div class="game-card" data-game-id="${g.game_id}">
 
-      <div class="game-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="game-title">
+        📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
 
-        <div>
-          📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
-        </div>
-
-        <!-- ✅ ✅ ✅ 一鍵整場完成 -->
-        <div>
-          <button class="btn-complete-all"
-            onclick="completeGame('${g.game_id}')">
-            ✅ 整場完成
-          </button>
-        </div>
-
+        <button class="btn-complete-all"
+          onclick="completeGame('${g.game_id}')">
+          ✅ 整場完成
+        </button>
       </div>
 
-      ${(g.list || []).map(p => renderRow(p, g)).join('')}
+      ${renderGroup(g)}
 
     </div>
   `;
 }
- 
-// ✅ 共用 render row（避免重複）
-function renderRow(p, g){
 
-  const list = g.list || []; // ✅ 防爆
+
+//
+function renderGroup(g){
+
+  const list = g.list || [];
+
+  // ✅ 分 role
+  const roleMap = {};
+
+  list.forEach(p=>{
+    if (!roleMap[p.role]) roleMap[p.role] = [];
+    roleMap[p.role].push(p);
+  });
+
+  let html = '';
+
+  Object.keys(roleMap).forEach(role=>{
+
+    const rows = roleMap[role];
+
+    // ✅ 原人 / 替補
+    const main = rows.filter(x => x.is_replacement != 1);
+    const repl = rows.filter(x => x.is_replacement == 1);
+
+    main.forEach(p=>{
+
+      html += renderRow(p, g);
+
+      // ✅ ✅ ✅ 🔥 替補強制接在下面
+      repl.forEach(r=>{
+        html += renderRow(r, g, true);
+      });
+
+    });
+
+  });
+
+  return html;
+}
+
+// ✅ 共用 render row（避免重複）
+function renderRow(p, g, isReplacement=false){
+
+  const list = g.list || [];
 
   const hasNoShow = list.some(x =>
     x.role === p.role && x.status === 'no_show'
@@ -649,7 +682,6 @@ function renderRow(p, g){
 
   const hasUser = !!p.name;
 
-  // ✅ 狀態縮寫
   const statusMap = {
     completed:'✔',
     late:'遲',
@@ -657,20 +689,20 @@ function renderRow(p, g){
     scheduled:''
   };
 
-  // ✅ 來源（班 / 報名）
+  // ✅ 來源
   function getSource(){
     if (p.source === 'assign') return '班';
     if (p.source === 'signup') return '報名';
     return '';
   }
 
-  // ✅ 替補標記
+  // ✅ ✅ ✅ 補標籤（只看 is_replacement）
   const replaceTag = p.is_replacement == 1
     ? '<span class="tag-replace">補</span>'
     : '';
 
   return `
-    <div class="person ${p.status}" 
+    <div class="person ${p.status} ${isReplacement ? 'replacement' : ''}"
          data-id="${p.assignment_id}"
          data-role="${p.role}">
 
@@ -728,6 +760,7 @@ function renderRow(p, g){
     </div>
   `;
 }
+
   
   /* ========================
      更新狀態
