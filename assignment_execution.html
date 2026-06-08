@@ -833,11 +833,12 @@ function quickAssign(id, btn){
 // 快速替補
 function quickReplace(gameId, role, btn){
 
-  // ✅ ✅ ✅ 關鍵：只抓「當前列」
   const row = btn.closest('.person');
 
   const select = row.querySelector('.select-user');
   const uid = select?.value;
+
+  const assignmentId = row.getAttribute('data-id');  // ✅ ✅ ✅
 
   if (!uid){
     toast('請先選替補人員','warn');
@@ -851,6 +852,7 @@ function quickReplace(gameId, role, btn){
     game_id:gameId,
     role:role,
     user_id:uid,
+    assignment_id: assignmentId,   // ✅ ✅ ✅ 這行是關鍵
     token: localStorage.getItem('token')
   }, (res)=>{
 
@@ -858,13 +860,12 @@ function quickReplace(gameId, role, btn){
       toast('API 無回應','error');
       return;
     }
-    
+
     if(res.result !== 'ok'){
       toast(res.message || '新增失敗','error');
       return;
     }
 
-    // ✅ 原人自動缺席
     autoNoShow(gameId, role);
 
     toast('✅ 替補成功');
@@ -872,6 +873,7 @@ function quickReplace(gameId, role, btn){
     load();
   });
 }
+
 
 
 
