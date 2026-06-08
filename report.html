@@ -274,14 +274,16 @@ function render(data, gameDays){
 
   Object.values(data)
   .filter(u => {
-
-    if(!u.role) return false;
-
+  
+    // ✅ 防呆：沒有 role → 先顯示（避免整頁空掉）
+    if(!u.role) return true;
+  
     const roles = u.role.split(',').map(r=>r.trim());
     const allow = ['judge','chief_judge','record','record_chief'];
-
+  
     return roles.some(r => allow.includes(r));
   })
+    
   .forEach(u=>{
 
     const finished = u.summary.total - u.summary.late - u.summary.no_show;
