@@ -870,34 +870,37 @@ function quickAssign(id, btn){
 // 快速替補
 function quickReplace(gameId, role, btn){
 
-  // ✅ 抓整個比賽卡
   const card = btn.closest('.game-card');
 
-  // ✅ 抓該 role 的所有列
   const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
-
-  // ✅ 抓「最後一列」的 select（就是你選人的那個）
   const lastRow = rows[rows.length - 1];
 
   const select = lastRow.querySelector('.select-user');
-
   const uid = select?.value;
 
   if (!uid){
-    toast('請選替補人員','warn');
+    alert('請先選替補人員');
     return;
   }
 
   callApi({
     action:'addReplacement',
     game_id:gameId,
-    role,
-    user_id:uid   // ✅ ✅ ✅ 這裡完全正確（不動）
-  }, ()=>{
-    toast('✅ 替補完成');
+    role:role,
+    user_id:uid,
+    token: localStorage.getItem('token')  // ✅ ✅ ✅ 關鍵
+  }, (res)=>{
+
+    if(res.result !== 'ok'){
+      alert(res.message);  // ✅ ✅ ✅ debug 用
+      return;
+    }
+
+    alert('✅ 替補成功');
     load();
   });
 }
+
 
 
 
