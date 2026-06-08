@@ -342,7 +342,7 @@ function callApi(params, callback){
     .map(k => `${k}=${encodeURIComponent(params[k])}`)
     .join('&');
 
-  const url = CONFIG.API_URL + '?' + query;
+  const url = CONFIG.API_BASE + '?' + query;
 
   window[params.callback] = function(res){
     callback(res);
