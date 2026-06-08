@@ -831,11 +831,13 @@ function quickAssign(id, btn){
 ======================== */
 function quickReplace(gameId, role, btn){
 
-  // ✅ ✅ ✅ 抓「你按的這一列」
+  // ✅ ✅ ✅ 只抓「你按的那一列」
   const row = btn.closest('.person');
 
   const select = row.querySelector('.select-user');
   const uid = select?.value;
+
+  console.log('送出去的 uid =', uid);  // ✅ 驗證用
 
   if (!uid){
     toast('請先選替補人員','warn');
@@ -861,12 +863,13 @@ function quickReplace(gameId, role, btn){
       return;
     }
 
-    // autoNoShow(gameId, role);
+    autoNoShow(gameId, role);
 
     toast('✅ 替補成功');
     load();
   });
 }
+
 
 
 // 判斷是否有遲到，才能遞補
