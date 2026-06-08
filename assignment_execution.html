@@ -426,42 +426,6 @@ function switchTab(t){
     `;
   }
 
-  /* ========================
-     替補
-  ======================== */
-function genId(gameDate, assigns, ai){
-
-  const dateSeqMap = {};
-
-  assigns.slice(1).forEach(r=>{
-    const id = r[ai.assignment_id] || '';
-
-    const m = id.match(/^A(\d{8})-(\d{3})$/);
-    if (m){
-      const date = m[1];
-      const seq  = Number(m[2]);
-
-      if (!dateSeqMap[date]) dateSeqMap[date] = 0;
-      if (seq > dateSeqMap[date]) dateSeqMap[date] = seq;
-    }
-  });
-
-  const yyyy = gameDate.getFullYear();
-  const mm   = String(gameDate.getMonth()+1).padStart(2,'0');
-  const dd   = String(gameDate.getDate()).padStart(2,'0');
-
-  const key = `${yyyy}${mm}${dd}`;
-
-  if (!dateSeqMap[key]) dateSeqMap[key] = 0;
-
-  dateSeqMap[key]++;
-
-  const seq = String(dateSeqMap[key]).padStart(3,'0');
-
-  return `A${key}-${seq}`;
-}
-
-
 // 主入口
 function load(){
 
