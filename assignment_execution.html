@@ -527,12 +527,15 @@ function renderRow(p, g, isReplacement=false){
     x.role === p.role && x.status === 'no_show'
   );
 
+  const hasReplacement = list.some(x =>
+    x.role === p.role && Number(x.is_replacement) === 1
+  );
+
   const canAssign = !hasNoShow;
 
   const rowDone = p.status === 'completed';
   const hasUser = !!p.name;
 
-  // ✅ ✅ ✅ ✅ ✅ 放這裡（關鍵🔥）
   const usedUserIds = list.map(x => String(x.user_id || ''));
 
   const replaceTag = p.is_replacement == 1
@@ -553,16 +556,13 @@ function renderRow(p, g, isReplacement=false){
 
       <div class="info">
         <div class="info-line">
-
           ${getRoleText(p.role)} ${replaceTag}
           ｜ ${p.name || '（待位）'}
-
           ｜ ${
             hasUser
               ? `<span class="status-mini">${statusTag[p.status] || ''}</span>`
               : getStatusText(p.status)
           }
-
         </div>
       </div>
 
@@ -587,7 +587,10 @@ function renderRow(p, g, isReplacement=false){
 
           ${hasNoShow ? `
             <button class="btn btn-replace"
-              onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
+              ${hasReplacement ? 'disabled style="opacity:.4;cursor:not-allowed;"' : ''}
+              onclick="quickReplace('${g.game_id}','${p.role}', this)">
+              替補
+            </button>
           `:''}
 
           <select class="select-user">
@@ -602,9 +605,7 @@ function renderRow(p, g, isReplacement=false){
                 ).join('')
             }
           </select>
-
         `}
-
       </div>
     </div>
   `;
@@ -831,13 +832,9 @@ function quickAssign(id, btn){
 ======================== */
 function quickReplace(gameId, role, btn){
 
-  // ✅ ✅ ✅ 只抓「你按的那一列」
   const row = btn.closest('.person');
-
   const select = row.querySelector('.select-user');
   const uid = select?.value;
-
-  console.log('送出去的 uid =', uid);  // ✅ 驗證用
 
   if (!uid){
     toast('請先選替補人員','warn');
@@ -869,7 +866,6 @@ function quickReplace(gameId, role, btn){
     load();
   });
 }
-
 
 
 // 判斷是否有遲到，才能遞補
