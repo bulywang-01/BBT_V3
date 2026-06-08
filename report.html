@@ -166,30 +166,48 @@
       document.body.appendChild(script);
     }
 
+
+// 初始化
+  document.addEventListener('DOMContentLoaded',()=>{
+  loadHeader();
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+
+  document.getElementById('monthPicker').value = `${y}-${m}`;
+});
+
+    
     // ✅ 載入報表
-    function loadReport(){
+function loadReport(){
 
-      const month = document.getElementById('monthPicker').value;
+  const month = document.getElementById('monthPicker').value;
 
-      if(!month){
-        alert('請選月份');
-        return;
-      }
+  console.log('month=', month);
 
-      callApi({
-        action:'getMonthlyReport',
-        month:month
-      }, (res)=>{
+  if(!month){
+    alert('請選月份');
+    return;
+  }
 
-        if(!res || res.result !== 'ok'){
-          alert('讀取失敗');
-          return;
-        }
+  callApi({
+    action:'getMonthlyReport',
+    month:month
+  }, (res)=>{
 
-        document.getElementById('reportArea').innerHTML =
-          renderMonthlyReport(res.data, res.gameDays);
-      });
+    console.log('API res=', res);
+
+    if(!res || res.result !== 'ok'){
+      alert('讀取失敗');
+      return;
     }
+
+    document.getElementById('reportArea').innerHTML =
+      renderMonthlyReport(res.data, res.gameDays);
+  });
+}
+
 
     // ✅ 主 render（核心🔥）
 function renderMonthlyReport(report, gameDays){
