@@ -315,30 +315,45 @@ body{
   /* ========================
      Users
   ======================== */
-  function loadUsers(){
-    callApi({action:'getUsers'}, res=>{
-  
-      if(res.result !== 'ok'){
-        toast('讀取使用者失敗','error');
-        return;
-      }
-  
-      userList = res.users || [];
-      load();
-    });
-  }
+function loadUsers(){
+  callApi({action:'getUsers'}, res=>{
 
+    if(!res){
+      toast('API 無回應','error');
+      return;
+    }
 
- function callApi(params, callback){
+    if(res.result !== 'ok'){
+      toast('讀取使用者失敗','error');
+      return;
+    }
 
-  if (!params.token){
-    params.token = localStorage.getItem('token');
-  }
-
-  google.script.run
-    .withSuccessHandler(callback)
-    .api(params);
+    userList = res.users || [];
+    load();
+  });
 }
+
+
+function callApi(params, callback){
+
+  params.callback = 'cb_' + Date.now();
+
+  const query = Object.keys(params)
+    .map(k => `${k}=${encodeURIComponent(params[k])}`)
+    .join('&');
+
+  const url = CONFIG.API_URL + '?' + query;
+
+  window[params.callback] = function(res){
+    callback(res);
+    delete window[params.callback];
+  };
+
+  const script = document.createElement('script');
+  script.src = url;
+  document.body.appendChild(script);
+}
+
 
 
  // 只顯示已完賽
