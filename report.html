@@ -147,14 +147,15 @@
       history.back();
     }
 
-    // ✅ 呼叫 API（沿用你原本的 callApi）
+
+/* ✅ JSONP */
 function callApi(params, callback){
 
   const cbName = 'cb_' + Date.now();
   const script = document.createElement('script');
 
   window[cbName] = function(res){
-    console.log('✅ API res=', res); // 🔥 你要的訊息
+    console.log('✅ API回來:', res);
     callback(res);
 
     delete window[cbName];
@@ -171,11 +172,8 @@ function callApi(params, callback){
   document.body.appendChild(script);
 }
 
-
-// 初始化
-  document.addEventListener('DOMContentLoaded',()=>{
-  loadHeader();
-
+/* ✅ 初始化 */
+document.addEventListener('DOMContentLoaded',()=>{
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth()+1).padStart(2,'0');
@@ -183,96 +181,78 @@ function callApi(params, callback){
   document.getElementById('monthPicker').value = `${y}-${m}`;
 });
 
-    
-    // ✅ 載入報表
+/* ✅ 載入 */
 function loadReport(){
 
-  const month = document.getElementById('monthPicker').value;
-
-  console.log('month=', month);
+  let month = document.getElementById('monthPicker').value;
 
   if(!month){
-    alert('請選月份');
-    return;
+    const now = new Date();
+    month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   }
+
+  console.log('month=', month);
 
   callApi({
     action:'getMonthlyReport',
     month:month
-  }, (res)=>{
-
-    console.log('API res=', res);
+  }, res => {
 
     if(!res || res.result !== 'ok'){
       alert('讀取失敗');
       return;
     }
 
-    document.getElementById('reportArea').innerHTML =
-      renderMonthlyReport(res.data, res.gameDays);
+    render(res.data, res.gameDays);
   });
 }
 
-
-    // ✅ 主 render（核心🔥）
-function renderMonthlyReport(report, gameDays){
+/* ✅ render（用真實日期） */
+function render(data, gameDays){
 
   if(!gameDays || gameDays.length === 0){
-    return `<div class="report">⚠️ 沒有比賽資料</div>`;
+    document.getElementById('reportArea').innerHTML =
+      '⚠️ 沒有比賽資料';
+    return;
   }
 
-  return `
-    <div class="report">
+  let html = '';
 
-    ${Object.values(report).map(u=>{
+  Object.values(data).forEach(u=>{
 
-      return `
-        <div class="user-row">
+    html += `
+      <div class="user-row">
 
-          <div class="user-header">
-            <b>${u.name}</b>
-            ｜總:${u.summary.total}
-            ｜遲:${u.summary.late}
-            ｜缺:${u.summary.no_show}
-            ｜例:${u.summary.regular}
-            ｜季:${u.summary.playoff}
-          </div>
-
-          <div class="calendar">
-
-            ${gameDays.map(d=>{
-
-              const day = u.days[d];
-
-              if(!day){
-                return `<span class="day empty">${parseInt(d)}</span>`;
-              }
-
-              const hasNo = day.some(x=>x.status==='no_show');
-              const hasLate = day.some(x=>x.status==='late');
-              const hasPlayoff = day.some(x=>x.type !== 'regular');
-
-              let cls = 'ok';
-
-              if (hasNo) cls = 'no';
-              else if (hasLate) cls = 'late';
-
-              return `
-                <span class="day ${cls}">
-                  ${parseInt(d)}${hasPlayoff?'★':''}
-                </span>
-              `;
-
-            }).join('')}
-
-          </div>
-
+        <div class="user-header">
+          <b>${u.name}</b>
+          ｜${u.summary.total}場
         </div>
-      `;
-    }).join('')}
 
-    </div>
-  `;
+        <div class="calendar">
+    `;
+
+    gameDays.forEach(d=>{
+
+      const rec = u.days[d];
+
+      let cls = 'empty';
+
+      if(rec){
+        const hasNo = rec.some(x=>x.status==='no_show');
+        const hasLate = rec.some(x=>x.status==='late');
+
+        if(hasNo) cls='no';
+        else if(hasLate) cls='late';
+        else cls='ok';
+      }
+
+      html += `<span class="day ${cls}">${parseInt(d)}</span>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  document.getElementById('reportArea').innerHTML = html;
 }
 
   </script>
