@@ -899,7 +899,8 @@ function completeGame(gameId){
 
   callApi({
     action:'completeGame',
-    game_id:gameId
+    game_id:gameId,
+    status:'completed'
   }, res=>{
 
     if(res.result==='ok'){
@@ -912,7 +913,37 @@ function completeGame(gameId){
   });
 }
 
+// 單一完成
+function completeOne(btn){
 
+  const row = btn.closest('.person');
+
+  const assignmentId = row.dataset.id;   // ✅ 每一個人都要有
+  if(!assignmentId){
+    console.error('❌ 找不到 assignment_id');
+    return;
+  }
+
+  toast('處理中...','loading');
+
+  callApi({
+    action:'updateAssignment',
+    assignment_id: assignmentId,
+    status: 'completed'
+  }, res => {
+
+    console.log('updateAssignment=',res);
+
+    if(res.result==='ok'){
+      toast('✅ 已完成');
+      load();
+    }else{
+      toast('❌ 失敗','error');
+    }
+
+  });
+}
+ 
 //
 function updateRowUI(id, status){
 
