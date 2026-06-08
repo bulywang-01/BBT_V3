@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>出勤報表</title>
+
+  <script src="js/auth.js"></script>
+  <script src="js/config.js"></script>
+
+  <style>
+
+    body {
+      font-family: Arial;
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f5;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .toolbar {
+      margin-bottom: 15px;
+    }
+
+    .report {
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .user-row {
+      margin-bottom: 16px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+
+    .user-header {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .calendar {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .day {
+      width: 26px;
+      height: 26px;
+      line-height: 26px;
+      margin: 2px;
+      text-align: center;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .day.ok {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .day.late {
+      background: #ff9800;
+      color: #fff;
+    }
+
+    .day.no {
+      background: #f44336;
+      color: #fff;
+    }
+
+    .day.empty {
+      background: #eee;
+      color: #999;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <h2>📊 出勤報表</h2>
+
+  <div class="toolbar">
+    <input type="month" id="monthPicker">
+    <button onclick="loadReport()">載入報表</button>
+    <button onclick="goBack()">⬅ 返回</button>
+  </div>
+
+  <div id="reportArea"></div>
+
+  <script>
+
+    // ✅ 回上一頁
+    function goBack(){
+      history.back();
+    }
+
+    // ✅ 呼叫 API（沿用你原本的 callApi）
+    function callApi(params, callback){
+
+      const url = API_URL + '?callback=?&' +
+        Object.keys(params)
+          .map(k => `${k}=${encodeURIComponent(params[k])}`)
+          .join('&');
+
+      const script = document.createElement('script');
+      script.src = url;
+
+      window.callback = function(res){
+        callback(res);
+        document.body.removeChild(script);
+      };
+
+      document.body.appendChild(script);
+    }
+
+    // ✅ 載入報表
+    function loadReport(){
+
+      const month = document.getElementById('monthPicker').value;
+
+      if(!month){
+        alert('請選月份');
+        return;
+      }
+
+      callApi({
+        action:'getMonthlyReport',
+        month:month
+      }, (res)=>{
+
+        if(!res || res.result !== 'ok'){
+          alert('讀取失敗');
+          return;
+        }
+
+        document.getElementById('reportArea').innerHTML =
+          renderMonthlyReport(res.data);
+      });
+    }
+
+    // ✅ 主 render（核心🔥）
+    function renderMonthlyReport(report){
+
+      return `
+        <div class="report">
+
+        ${Object.values(report).map(u=>{
+
+          return `
+            <div class="user-row">
+
+              <div class="user-header">
+                <b>${u.name}</b>
+                ｜總:${u.summary.total}
+                ｜遲:${u.summary.late}
+                ｜缺:${u.summary.no_show}
+                ｜例:${u.summary.regular}
+                ｜季:${u.summary.playoff}
+              </div>
+
+              <div class="calendar">
+
+                ${Array.from({length:31},(_,i)=>{
+
+                  const d = String(i+1).padStart(2,'0');
+                  const day = u.days[d];
+
+                  if (!day){
+                    return `<span class="day empty">${i+1}</span>`;
+                  }
+
+                  const hasNo = day.some(x=>x.status==='no_show');
+                  const hasLate = day.some(x=>x.status==='late');
+                  const hasPlayoff = day.some(x=>x.type !== 'regular');
+
+                  let cls = 'ok';
+
+                  if (hasNo) cls = 'no';
+                  else if (hasLate) cls = 'late';
+
+                  const detail = day
+                    .map(x => `${x.role}:${x.status}`)
+                    .join('\n');
+
+                  return `
+                    <span class="day ${cls}" title="${detail}">
+                      ${i+1}${hasPlayoff?'★':''}
+                    </span>
+                  `;
+                }).join('')}
+
+              </div>
+
+            </div>
+          `;
+        }).join('')}
+
+        </div>
+      `;
+    }
+
+  </script>
+
+</body>
+</html>
