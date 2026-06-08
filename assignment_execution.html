@@ -628,7 +628,7 @@ function renderGame(g){
 }
 
 
-//
+// 替補一定在原人下面
 function renderGroup(g){
 
   const list = g.list || [];
@@ -667,6 +667,7 @@ function renderGroup(g){
   return html;
 }
 
+ 
 // ✅ 共用 render row（避免重複）
 function renderRow(p, g, isReplacement=false){
 
@@ -980,20 +981,20 @@ function quickAssign(id, btn){
 // 快速替補
 function quickReplace(gameId, role, btn){
 
-  const row = btn.closest('.person');
-  const select = row.querySelector('.select-user');
+  const card = btn.closest('.game-card');
 
-  const uid = select.value;
+  // ✅ 找該 role 的所有列
+  const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
+
+  // ✅ 抓最後一列（你的 select 在這裡）
+  const lastRow = rows[rows.length - 1];
+
+  const select = lastRow.querySelector('.select-user');
+
+  const uid = select?.value;
 
   if (!uid){
     toast('請選替補人員','warn');
-    return;
-  }
-
-  const hasNoShow = checkRoleNoShow(gameId, role);
-
-  if (!hasNoShow){
-    toast('⚠️ 尚未標記缺席','warn');
     return;
   }
 
@@ -1007,7 +1008,6 @@ function quickReplace(gameId, role, btn){
     load();
   });
 }
-
 
 
 // 判斷是否有遲到，才能遞補
