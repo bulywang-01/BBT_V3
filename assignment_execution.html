@@ -827,16 +827,14 @@ function quickAssign(id, btn){
 ======================== */
 function quickReplace(gameId, role, btn){
 
-  // ✅ ✅ ✅ 永遠抓「最後一列（替補輸入列）」
-  const card = btn.closest('.game-card');
-  const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
-  const lastRow = rows[rows.length - 1];
+  // ✅ ✅ ✅ 抓「你按的這一列」
+  const row = btn.closest('.person');
 
-  const select = lastRow.querySelector('.select-user');
+  const select = row.querySelector('.select-user');
   const uid = select?.value;
 
   if (!uid){
-    toast('請在最後一列選擇替補人員','warn');
+    toast('請先選替補人員','warn');
     return;
   }
 
@@ -846,13 +844,11 @@ function quickReplace(gameId, role, btn){
     action:'addReplacement',
     game_id:gameId,
     role:role,
-    user_id:uid,
-    token: localStorage.getItem('token')
+    user_id:uid
   }, (res)=>{
 
-    // ✅ ✅ ✅ 防 null（避免你現在的爆錯）
     if(!res){
-      toast('API 無回應（後端錯誤）','error');
+      toast('API 無回應','error');
       return;
     }
 
@@ -861,14 +857,12 @@ function quickReplace(gameId, role, btn){
       return;
     }
 
-    // ✅ 原人自動缺席
     autoNoShow(gameId, role);
 
     toast('✅ 替補成功');
     load();
   });
 }
-
 
 
 // 判斷是否有遲到，才能遞補
