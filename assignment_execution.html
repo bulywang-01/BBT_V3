@@ -328,6 +328,18 @@ body{
     });
   }
 
+ function callApi(params, callback){
+  
+    // ✅ ✅ ✅ 自動補 token
+    if (!params.token){
+      params.token = localStorage.getItem('token');
+    }
+  
+    google.script.run
+      .withSuccessHandler(callback)
+      .api(params);
+  }
+
 
  // 只顯示已完賽
 function isGameReady(g){
@@ -429,37 +441,36 @@ function switchTab(t){
   /* ========================
      替補
   ======================== */
-function addReplacement(gameId, role, btn){
+function genId(gameDate, assigns, ai){
 
-  const select = btn.parentNode.querySelector('.replacement-select');
-  const uid = select.value;
+  const dateSeqMap = {};
 
-  if (!uid){
-    toast('請選擇替補人員','warn');
-    return;
-  }
+  assigns.slice(1).forEach(r=>{
+    const id = r[ai.assignment_id] || '';
 
-  toast('新增替補中...','loading');
+    const m = id.match(/^A(\d{8})-(\d{3})$/);
+    if (m){
+      const date = m[1];
+      const seq  = Number(m[2]);
 
-  callApi({
-    action:'addReplacement',
-    game_id:gameId,
-    role:role,
-    user_id:uid
-  }, res=>{
-
-    if(res.result==='ok'){
-      toast('✅ 已新增替補');
-
-      // ✅ ✅ ✅ 🔥 自動處理原人（這個很重要）
-      autoNoShow(gameId, role);
-
-      load();
-    }else{
-      toast('新增失敗','error');
+      if (!dateSeqMap[date]) dateSeqMap[date] = 0;
+      if (seq > dateSeqMap[date]) dateSeqMap[date] = seq;
     }
-
   });
+
+  const yyyy = gameDate.getFullYear();
+  const mm   = String(gameDate.getMonth()+1).padStart(2,'0');
+  const dd   = String(gameDate.getDate()).padStart(2,'0');
+
+  const key = `${yyyy}${mm}${dd}`;
+
+  if (!dateSeqMap[key]) dateSeqMap[key] = 0;
+
+  dateSeqMap[key]++;
+
+  const seq = String(dateSeqMap[key]).padStart(3,'0');
+
+  return `A${key}-${seq}`;
 }
 
 
@@ -879,28 +890,33 @@ function quickReplace(gameId, role, btn){
   const uid = select?.value;
 
   if (!uid){
-    alert('請先選替補人員');
+    toast('請先選替補人員','warn');
     return;
   }
+
+  toast('新增替補中...','loading');
 
   callApi({
     action:'addReplacement',
     game_id:gameId,
     role:role,
     user_id:uid,
-    token: localStorage.getItem('token')  // ✅ ✅ ✅ 關鍵
+    token: localStorage.getItem('token')   // ✅ ✅ ✅ 一定要
   }, (res)=>{
 
-    if(res.result !== 'ok'){
-      alert(res.message);  // ✅ ✅ ✅ debug 用
+    if(!res || res.result !== 'ok'){
+      toast(res.message || '新增失敗','error');
       return;
     }
 
-    alert('✅ 替補成功');
+    // ✅ ✅ ✅ 補完 → 原人自動 no_show
+    autoNoShow(gameId, role);
+
+    toast('✅ 替補成功');
+
     load();
   });
 }
-
 
 
 
