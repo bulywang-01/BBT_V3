@@ -329,6 +329,18 @@ body{
   }
 
 
+ function callApi(params, callback){
+
+  if (!params.token){
+    params.token = localStorage.getItem('token');
+  }
+
+  google.script.run
+    .withSuccessHandler(callback)
+    .api(params);
+}
+
+
  // 只顯示已完賽
 function isGameReady(g){
 
@@ -601,12 +613,21 @@ function renderRow(p, g, isReplacement=false){
               onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
           `:''}
 
+
+          const usedUserIds = (g.list || [])
+            .map(x => String(x.user_id || ''));
+          
           <select class="select-user">
             <option value="">選擇人員</option>
-            ${userList.map(u =>
-              `<option value="${u.user_id}">${u.name}</option>`
-            ).join('')}
+            ${
+              userList
+                .filter(u => !usedUserIds.includes(String(u.user_id)))
+                .map(u =>
+                  `<option value="${u.user_id}">${u.name}</option>`
+                ).join('')
+            }
           </select>
+
         `}
 
       </div>
@@ -830,12 +851,13 @@ function quickAssign(id, btn){
   });
 }
 
-// 快速替補
+/* ========================
+   快速替補（最終穩定版）
+======================== */
 function quickReplace(gameId, role, btn){
 
+  // ✅ ✅ ✅ 永遠抓「最後一列（替補輸入列）」
   const card = btn.closest('.game-card');
-
-  // ✅ ✅ ✅ 永遠抓「最後一列」（補位專用）
   const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
   const lastRow = rows[rows.length - 1];
 
@@ -843,7 +865,7 @@ function quickReplace(gameId, role, btn){
   const uid = select?.value;
 
   if (!uid){
-    toast('請在最底下選替補人員','warn');
+    toast('請在最後一列選擇替補人員','warn');
     return;
   }
 
@@ -857,8 +879,9 @@ function quickReplace(gameId, role, btn){
     token: localStorage.getItem('token')
   }, (res)=>{
 
+    // ✅ ✅ ✅ 防 null（避免你現在的爆錯）
     if(!res){
-      toast('API 無回應','error');
+      toast('API 無回應（後端錯誤）','error');
       return;
     }
 
@@ -867,13 +890,14 @@ function quickReplace(gameId, role, btn){
       return;
     }
 
+    // ✅ 原人自動缺席
     autoNoShow(gameId, role);
 
     toast('✅ 替補成功');
-
     load();
   });
 }
+
 
 
 // 判斷是否有遲到，才能遞補
