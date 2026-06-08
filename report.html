@@ -256,12 +256,21 @@ function render(data, gameDays){
     return;
   }
 
-  // ✅ ✅ ✅ 分組：yyyy-MM → [dd]
   const monthMap = {};
 
-  gameDays.forEach(fullDate=>{
+  gameDays.forEach(d=>{
 
-    const [y, m, d] = fullDate.split('-');
+    // ✅ ALL → 全部放同一組
+    if(currentMonth === 'ALL'){
+      if(!monthMap['ALL']){
+        monthMap['ALL'] = [];
+      }
+      monthMap['ALL'].push(d);
+      return;
+    }
+
+    // ✅ 單月
+    const m = currentMonth.split('-')[1];
 
     if(!monthMap[m]){
       monthMap[m] = [];
@@ -274,16 +283,15 @@ function render(data, gameDays){
 
   Object.values(data)
   .filter(u => {
-  
-    // ✅ 防呆：沒有 role → 先顯示（避免整頁空掉）
+
+    // ✅ 沒 role → 先顯示（避免整頁空）
     if(!u.role) return true;
-  
+
     const roles = u.role.split(',').map(r=>r.trim());
     const allow = ['judge','chief_judge','record','record_chief'];
-  
+
     return roles.some(r => allow.includes(r));
   })
-    
   .forEach(u=>{
 
     const finished = u.summary.total - u.summary.late - u.summary.no_show;
@@ -303,12 +311,14 @@ function render(data, gameDays){
         <div class="calendar">
     `;
 
-    // ✅ ✅ ✅ 月份 → 日期（同一列）
     Object.keys(monthMap)
       .sort()
       .forEach(m=>{
 
-        html += `<span style="margin:0 8px;color:#666;">【${parseInt(m)}月】</span>`;
+        // ✅ ✅ ✅ ALL 不顯示月份（避免 NaN）
+        if(m !== 'ALL'){
+          html += `<span style="margin:0 8px;color:#666;">【${parseInt(m)}月】</span>`;
+        }
 
         monthMap[m]
           .sort((a,b)=>Number(a)-Number(b))
@@ -364,6 +374,7 @@ function render(data, gameDays){
 
   document.getElementById('reportArea').innerHTML = html;
 }
+
 
   </script>
 
