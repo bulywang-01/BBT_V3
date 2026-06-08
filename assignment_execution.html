@@ -30,66 +30,158 @@ body{
   box-shadow:0 4px 12px rgba(0,0,0,.08);
 }
 
-.game-title{
-  font-weight:800;
+.header-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
   margin-bottom:10px;
 }
 
+.game-title{
+  font-weight:800;
+}
+
+.btn-complete-all{
+  margin-left:10px;
+  background:#16a34a;
+  color:#fff;
+  border:none;
+  padding:4px 10px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* =========================
+   人員卡
+========================= */
 .person{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:10px 0;
+  gap:10px;
+  flex-wrap:wrap;
+
+  padding:10px;
+  margin-bottom:6px;
+  border-radius:10px;
   border-bottom:1px dashed #ddd;
+
+  transition:all .2s ease;
 }
 
-.person:last-child{ border-bottom:none; }
+.person:last-child{
+  border-bottom:none;
+}
+
+.person:hover{
+  background:#f9fafb;
+}
+
+/* 狀態底色 */
+.person.completed{ background:#ecfdf5; }
+.person.no_show{ background:#fef2f2; }
+.person.late{ background:#fffbeb; }
+
+/* 替補左側線 */
+.person.replacement{
+  border-left:4px solid #6366f1;
+}
+
+/* =========================
+   左側資訊
+========================= */
+.info{
+  min-width:160px;
+}
+
+.info-line{
+  font-size:14px;
+  font-weight:500;
+}
 
 .role{ font-weight:700; }
 
-.name{
-  font-size:14px;
-  color:#374151;
+/* =========================
+   操作區
+========================= */
+.actions-box{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  flex-wrap:wrap;
 }
 
-.actions button{
-  margin-left:6px;
-  padding:5px 10px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:12px;
-}
-
-.btn-ok{ background:#16a34a;color:#fff;}
-.btn-no{ background:#dc2626;color:#fff;}
-.btn-late{ background:#f59e0b;color:#fff;}
-.btn-change{ background:#3b82f6;color:#fff;}
-
-.completed{ background:#ecfdf5;}
-.no_show{ background:#fef2f2;}
-.late{ background:#fffbeb;}
-.cancelled{ background:#f3f4f6;opacity:.7;}
-
-.empty{
-  text-align:center;
-  color:#999;
-  padding:40px;
-}
-
-select{
-  margin-left:6px;
+.select-user{
   padding:4px;
   border-radius:6px;
 }
 
-
-.person.replacement {
-  border-left: 4px solid #3b82f6;
+/* =========================
+   按鈕
+========================= */
+.btn{
+  padding:4px 10px;
+  border:none;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.1);
 }
 
-/* UI 升級版 */
-/* === TAB === */
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn-ok{background:#16a34a;}
+.btn-no{background:#dc2626;}
+.btn-late{background:#f59e0b;}
+.btn-assign{background:#3b82f6;}
+.btn-replace{background:#4f46e5;}
+
+/* =========================
+   標籤（重點）
+========================= */
+.tag{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:10px;
+  font-size:12px;
+  margin-left:4px;
+}
+
+.tag-ok{
+  background:#16a34a;
+  color:#fff;
+}
+
+.tag-late{
+  background:#f59e0b;
+  color:#fff;
+}
+
+.tag-no{
+  background:#dc2626;
+  color:#fff;
+}
+
+.tag-replace{
+  background:#4f46e5;
+  color:#fff;
+}
+
+/* =========================
+   小狀態字
+========================= */
+.status-mini{
+  font-weight:700;
+  margin-left:4px;
+}
+
+/* =========================
+   Tabs
+========================= */
 .tabs{
   display:flex;
   gap:10px;
@@ -108,235 +200,24 @@ select{
   color:#fff;
 }
 
-/* === 狀態 badge === */
-.badge{
-  font-size:12px;
-  padding:2px 6px;
-  border-radius:6px;
+/* =========================
+   空資料
+========================= */
+.empty{
+  text-align:center;
+  color:#999;
+  padding:40px;
 }
 
-.badge.done{
-  background:#16a34a;
-  color:#fff;
-}
-
-.badge.no{
-  background:#dc2626;
-  color:#fff;
-}
-
-.badge.late{
-  background:#f59e0b;
-  color:#fff;
-}
-
-/* === 替補 === */
-.replacement-tag{
-  color:#2563eb;
-  font-size:12px;
-}
-
-/* 卡片更乾淨 */
-.person{
-  padding:12px 0;
-}
-
-.person{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.info{
-  min-width:160px;
-}
-
-.actions-box{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.select-user{
-  padding:4px;
-  border-radius:6px;
-}
-
-.btn{
-  padding:4px 8px;
-  border:none;
-  border-radius:6px;
-  color:#fff;
-  cursor:pointer;
-  font-size:12px;
-}
-
-.btn-ok{background:#16a34a;}
-.btn-no{background:#dc2626;}
-.btn-late{background:#f59e0b;}
-.btn-assign{background:#3b82f6;}
-.btn-replace{background:#6366f1;}
-
-.tag{
-  background:#3b82f6;
-  color:#fff;
-  padding:2px 4px;
-  border-radius:4px;
-  margin-left:4px;
-}
-
+/* =========================
+   RWD
+========================= */
 @media(max-width:600px){
   .person{
     flex-direction:column;
     align-items:flex-start;
   }
 }
-
-.btn-complete-all{
-  margin-left:10px;
-  background:#16a34a;
-  color:#fff;
-  border:none;
-  padding:4px 10px;
-  border-radius:6px;
-  cursor:pointer;
-}
-
-.status{
-  margin-top:4px;
-  font-size:12px;
-}
-
-.status-badge{
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:600;
-}
-
-/* 狀態色 */
-.status-scheduled{ background:#e5e7eb;color:#374151; }
-.status-no_show{ background:#fee2e2;color:#991b1b; }
-.status-late{ background:#fef3c7;color:#92400e; }
-.status-completed{ background:#dcfce7;color:#166534; }
-
-.person{
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:6px;
-  transition:all .2s ease;
-}
-
-.person:hover{
-  background:#f9fafb;
-}
-
-/* 狀態底色（更柔和） */
-.person.completed{ background:#ecfdf5; }
-.person.no_show{ background:#fef2f2; }
-.person.late{ background:#fffbeb; }
-
-.group-title{
-  font-weight:700;
-  margin-top:10px;
-  margin-bottom:6px;
-}
-
-.judge{ color:#2563eb; }
-.record{ color:#7c3aed; }
-
-.btn{
-  padding:4px 10px;
-  border-radius:999px;
-  font-weight:600;
-  box-shadow:0 1px 2px rgba(0,0,0,.1);
-}
-
-.btn:hover{
-  transform:translateY(-1px);
-}
-
-.info-line{
-  font-size:14px;
-  font-weight:500;
-}
-
-.info-line span{
-  margin-right:6px;
-}
-
-.header-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
-}
-
-.btn-recalc{
-  background:#2563eb;
-  color:#fff;
-  border:none;
-  padding:6px 12px;
-  border-radius:8px;
-  cursor:pointer;
-  font-size:13px;
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
-}
-
-.btn-recalc:hover{
-  background:#1d4ed8;
-}
-
-.tag-replace{
-  display:inline-block;
-  margin-left:4px;
-  padding:1px 6px;
-  font-size:11px;
-  border-radius:6px;
-  background:#6366f1;
-  color:#fff;
-}
-
-.status-mini{
-  font-weight:700;
-  margin-left:4px;
-}
-
-.tag-replace{
-  margin-left:4px;
-  font-size:11px;
-  background:#6366f1;
-  color:#fff;
-  padding:2px 6px;
-  border-radius:6px;
-}
-
-.status-mini{
-  font-weight:700;
-}
-
-.tag-replace{
-  margin-left:4px;
-  padding:2px 6px;
-  background:#6366f1;
-  color:#fff;
-  border-radius:6px;
-  font-size:11px;
-}
-
-.status-mini{
-  font-weight:bold;
-}
-
-.actions-box{
-  display:flex;
-  gap:6px;
-  align-items:center;
-}
-
 </style>
 </head>
 
@@ -699,8 +580,15 @@ function renderRow(p, g, isReplacement=false){
 
   // ✅ ✅ ✅ 補標籤（只看 is_replacement）
   const replaceTag = p.is_replacement == 1
-    ? '<span class="tag-replace">補</span>'
+    ? '<span class="tag tag-replace">補</span>'
     : '';
+  
+  const statusTag = {
+    completed:'<span class="tag tag-ok">完成</span>',
+    late:'<span class="tag tag-late">遲</span>',
+    no_show:'<span class="tag tag-no">缺</span>',
+    scheduled:''
+  };
 
   return `
     <div class="person ${p.status} ${isReplacement ? 'replacement' : ''}"
@@ -711,14 +599,14 @@ function renderRow(p, g, isReplacement=false){
         <div class="info-line">
 
           ${getRoleText(p.role)} ${replaceTag}
-          ｜ ${p.name || '（待位中）'}
+          ｜ ${p.name || '（待位）'}
 
           ${getSource() ? `｜ ${getSource()}` : ''}
 
           ｜ 
           ${
             hasUser
-              ? `<span class="status-mini">${statusMap[p.status] || ''}</span>`
+              ? `<span class="status-mini">${statusTag[p.status] || ''}</span>`
               : getStatusText(p.status)
           }
 
