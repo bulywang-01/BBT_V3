@@ -328,18 +328,6 @@ body{
     });
   }
 
- function callApi(params, callback){
-  
-    // ✅ ✅ ✅ 自動補 token
-    if (!params.token){
-      params.token = localStorage.getItem('token');
-    }
-  
-    google.script.run
-      .withSuccessHandler(callback)
-      .api(params);
-  }
-
 
  // 只顯示已完賽
 function isGameReady(g){
