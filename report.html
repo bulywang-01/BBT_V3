@@ -74,11 +74,33 @@
       color: #999;
     }
 
+    .day.sub {
+      background: #2196f3;  /* 藍色 */
+      color: #fff;          /* 白字 */
+      border-radius: 4px;
+    }
+
     .user-header .day {
       display: inline-block;
       width: 18px;
       height: 18px;
       margin-left: 4px;
+    }
+
+    .user-name {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    
+    .user-summary {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .user-summary .day {
+      min-width: 24px;
+      text-align: center;
     }
   </style>
 </head>
@@ -282,12 +304,18 @@ function render(data, gameDays){
     html += `
       <div class="user-row">
         <div class="user-header">
-          <b>${u.name}</b>
-
-          <span class="day ok" title="完成">${finished}</span>
-          <span class="day late" title="遲到">${u.summary.late}</span>
-          <span class="day no" title="缺席">${u.summary.no_show}</span>
-          <span class="day empty" title="替補">${u.summary.playoff}</span>
+        
+          <div class="user-name">
+            ${u.name}
+          </div>
+        
+          <div class="user-summary">
+            <span class="day ok" title="完成">${finished}</span>
+            <span class="day late" title="遲到">${u.summary.late}</span>
+            <span class="day no" title="缺席">${u.summary.no_show}</span>
+            <span class="day sub" title="替補">${u.summary.playoff}</span>
+          </div>
+        
         </div>
 
         <div class="calendar">
