@@ -260,24 +260,17 @@ function render(data, gameDays){
 
   Object.values(data)
   .filter(u => {
-    // ✅ ✅ ✅ 1️⃣ 過濾 admin
-    if(!u.name) return false;
-    if(u.role && u.role.includes('admin')) return false;
+    // ✅ 不顯示 admin（用名稱判斷）
+    if(!u.name || u.name.includes('管理')) return false;
     return true;
   })
   .forEach(u=>{
 
     // ✅ ✅ ✅ 統計
-    let ok = u.summary.total - u.summary.late - u.summary.no_show;
-    let late = u.summary.late;
-    let no = u.summary.no_show;
-    let sub = u.summary.playoff; // 👉 你替補可依實際改
-
-    const summaryTooltip =
-`完成: ${ok}
-遲到: ${late}
-缺席: ${no}
-替補: ${sub}`;
+    const completed = u.summary.total - u.summary.late - u.summary.no_show;
+    const late = u.summary.late;
+    const no = u.summary.no_show;
+    const sub = u.summary.playoff; // 👉 之後你可改成專用欄位
 
     html += `
       <div class="user-row">
@@ -285,16 +278,32 @@ function render(data, gameDays){
         <div class="user-header">
           <b>${u.name}</b>
 
-          <span class="day ok" title="${summaryTooltip}"> </span>
-          <span class="day late" title="${summaryTooltip}"> </span>
-          <span class="day no" title="${summaryTooltip}"> </span>
-          <span class="day empty" title="${summaryTooltip}"> </span>
+          <span class="day ok" 
+            title="完成：${completed}">
+            ${completed}
+          </span>
+
+          <span class="day late" 
+            title="遲到：${late}">
+            ${late}
+          </span>
+
+          <span class="day no" 
+            title="缺席：${no}">
+            ${no}
+          </span>
+
+          <span class="day empty" 
+            style="background:#2196f3;color:#fff"
+            title="替補：${sub}">
+            ${sub}
+          </span>
+
         </div>
 
         <div class="calendar">
     `;
 
-    // ✅ ✅ ✅ 只跑有比賽日期
     gameDays.forEach(d=>{
 
       const rec = u.days[d];
@@ -311,10 +320,29 @@ function render(data, gameDays){
         else if(hasLate) cls='late';
         else cls='ok';
 
-        // ✅ ✅ ✅ 3️⃣ tooltip（職務）
-        tooltip = rec
-          .map(x => `${x.role}：${x.status}`)
-          .join('\n');
+        // ✅ ✅ ✅ 中文轉換
+        tooltip = rec.map(x=>{
+          
+          let roleMap = {
+            PU: '主審',
+            U1: '一壘審',
+            U2: '二壘審',
+            U3: '三壘審',
+            REC: '紀錄'
+          };
+
+          let statusMap = {
+            completed: '完成',
+            late: '遲到',
+            no_show: '缺席'
+          };
+
+          const role = roleMap[x.role] || x.role;
+          const status = statusMap[x.status] || x.status;
+
+          return `${role}：${status}`;
+
+        }).join('\n');
       }
 
       html += `
