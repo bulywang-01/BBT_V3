@@ -552,28 +552,15 @@ function renderRow(p, g, isReplacement=false){
   const canAssign = !hasNoShow;
 
   const rowDone = p.status === 'completed';
-
   const hasUser = !!p.name;
 
-  const statusMap = {
-    completed:'✔',
-    late:'遲',
-    no_show:'缺',
-    scheduled:''
-  };
+  // ✅ ✅ ✅ ✅ ✅ 放這裡（關鍵🔥）
+  const usedUserIds = list.map(x => String(x.user_id || ''));
 
-  // ✅ 來源
-  function getSource(){
-    if (p.source === 'assign') return '班';
-    if (p.source === 'signup') return '報名';
-    return '';
-  }
-
-  // ✅ ✅ ✅ 補標籤（只看 is_replacement）
   const replaceTag = p.is_replacement == 1
     ? '<span class="tag tag-replace">補</span>'
     : '';
-  
+
   const statusTag = {
     completed:'<span class="tag tag-ok">完成</span>',
     late:'<span class="tag tag-late">遲</span>',
@@ -592,10 +579,7 @@ function renderRow(p, g, isReplacement=false){
           ${getRoleText(p.role)} ${replaceTag}
           ｜ ${p.name || '（待位）'}
 
-          ${getSource() ? `｜ ${getSource()}` : ''}
-
-          ｜ 
-          ${
+          ｜ ${
             hasUser
               ? `<span class="status-mini">${statusTag[p.status] || ''}</span>`
               : getStatusText(p.status)
@@ -628,10 +612,6 @@ function renderRow(p, g, isReplacement=false){
               onclick="quickReplace('${g.game_id}','${p.role}', this)">替補</button>
           `:''}
 
-
-          const usedUserIds = (g.list || [])
-            .map(x => String(x.user_id || ''));
-          
           <select class="select-user">
             <option value="">選擇人員</option>
             ${
@@ -642,7 +622,6 @@ function renderRow(p, g, isReplacement=false){
                 ).join('')
             }
           </select>
-
         `}
 
       </div>
