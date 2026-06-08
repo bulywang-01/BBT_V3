@@ -257,7 +257,11 @@ function render(data, gameDays){
   }
 
   // ✅ ✅ ✅ 建立月份排序（用目前選的月份推）
-  const month = document.get = '';  const month = document.getElementById('monthPicker')?.value;
+
+  const month = document.getElementById('monthPicker') 
+    ? document.getElementById('monthPicker').value
+    : null;
+
 
   Object.values(data)
   .filter(u => {
