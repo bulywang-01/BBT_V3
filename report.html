@@ -194,6 +194,10 @@
     // ✅ 主 render（核心🔥）
 function renderMonthlyReport(report, gameDays){
 
+  if(!gameDays || gameDays.length === 0){
+    return `<div class="report">⚠️ 沒有比賽資料</div>`;
+  }
+
   return `
     <div class="report">
 
@@ -230,12 +234,8 @@ function renderMonthlyReport(report, gameDays){
               if (hasNo) cls = 'no';
               else if (hasLate) cls = 'late';
 
-              const detail = day
-                .map(x => `${x.role}:${x.status}`)
-                .join('\n');
-
               return `
-                <span class="day ${cls}" title="${detail}">
+                <span class="day ${cls}">
                   ${parseInt(d)}${hasPlayoff?'★':''}
                 </span>
               `;
