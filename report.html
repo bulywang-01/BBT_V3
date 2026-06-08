@@ -8,7 +8,6 @@
   <script src="js/config.js"></script>
 
   <style>
-
     body {
       font-family: Arial;
       margin: 0;
@@ -16,420 +15,131 @@
       background: #f5f5f5;
     }
 
-    h2 {
-      margin-bottom: 10px;
-    }
-
-    .toolbar {
-      margin-bottom: 15px;
-    }
-
-    .report {
-      background: #fff;
-      padding: 10px;
-      border-radius: 6px;
-    }
-
     .user-row {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       border-bottom: 1px solid #ddd;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
 
     .user-header {
       font-size: 14px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
-
-    .calendar {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .day {
-      width: 26px;
-      height: 26px;
-      line-height: 26px;
-      margin: 2px;
-      text-align: center;
-      font-size: 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .day.ok {
-      background: #4caf50;
-      color: #fff;
-    }
-
-    .day.late {
-      background: #ff9800;
-      color: #fff;
-    }
-
-    .day.no {
-      background: #f44336;
-      color: #fff;
-    }
-
-    .day.empty {
-      background: #eee;
-      color: #999;
-    }
-
-    .badge {
-      padding:2px 6px;
-      margin-left:4px;
-      border-radius:4px;
-      font-size:12px;
-      color:#fff;
-    }
-    
-    .badge.total { background:#9e9e9e; }
-    .badge.late { background:#ff9800; }
-    .badge.no { background:#f44336; }
-    .badge.regular { background:#4caf50; }
-    .badge.playoff { background:#3f51b5; }
-    
-    .day {
-      width:26px;
-      height:26px;
-      margin:2px;
-      display:inline-block;
-      text-align:center;
-      border-radius:4px;
-    }
-    
-    .day.ok { background:#4caf50; color:#fff; }
-    .day.late { background:#ff9800; color:#fff; }
-    .day.no { background:#f44336; color:#fff; }
-    .day.empty { background:#eee; }
-
-    .month-block {
-      margin-bottom: 8px;
-    }
-    
-    .month-title {
-      font-size: 12px;
-      color: #666;
-      margin-left: 4px;
-    }
-    
-    .week-row {
-      display: flex;
-      align-items: center;
-    }
-    
-    .day {
-      width: 28px;
-      height: 28px;
-      margin: 2px;
-      text-align: center;
-      line-height: 28px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-    
-    /* ✅ 顏色 */
-    .day.ok { background:#4caf50; color:#fff; }
-    .day.late { background:#ff9800; color:#fff; }
-    .day.no { background:#f44336; color:#fff; }
-    .day.empty { background:#eee; color:#999; }
-    
-    /* ✅ header badge */
-    .badge {
-      padding:2px 6px;
-      margin-left:4px;
-      border-radius:4px;
-      font-size:12px;
-      color:#fff;
-    }
-    
-    .badge.total { background:#9e9e9e; }
-    .badge.late { background:#ff9800; }
-    .badge.no { background:#f44336; }
-    .badge.regular { background:#4caf50; }
-    .badge.playoff { background:#3f51b5; }
 
     .year-row {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
+      gap: 4px;
     }
-    
-    .month-col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-right: 8px;
-    }
-    
+
     .month-title {
       font-size: 11px;
       color: #666;
-      margin-bottom: 2px;
+      margin: 0 4px;
     }
-    
-    .day-row {
-      display: flex;
-    }
-    
+
     .day {
-      width: 22px;
-      height: 22px;
-      margin: 1px;
+      width: 24px;
+      height: 24px;
       text-align: center;
-      line-height: 22px;
-      border-radius: 3px;
+      line-height: 24px;
+      border-radius: 4px;
       font-size: 11px;
     }
 
+    .day.ok { background:#4caf50;color:#fff; }
+    .day.late { background:#ff9800;color:#fff; }
+    .day.no { background:#f44336;color:#fff; }
+    .day.empty { background:#eee;color:#999; }
+
+    .badge {
+      padding:2px 6px;
+      margin-left:4px;
+      border-radius:4px;
+      font-size:12px;
+      color:#fff;
+    }
+
+    .badge.total { background:#9e9e9e; }
+    .badge.late { background:#ff9800; }
+    .badge.no { background:#f44336; }
+    .badge.regular { background:#4caf50; }
+    .badge.playoff { background:#3f51b5; }
   </style>
 </head>
 
 <body>
+
 <div id="header-container"></div>
 
-  <h2>📊 出勤報表</h2>
+<h2>📊 出勤報表</h2>
 
-    <div class="toolbar">
-    
-      <select id="mode" onchange="onModeChange()">
-        <option value="year">📊 全年</option>
-        <option value="month">📅 分月</option>
-      </select>
-    
-      <select id="monthSelect" style="display:none">
-        <option value="01">1月</option>
-        <option value="02">2月</option>
-        <option value="03">3月</option>
-        <option value="04">4月</option>
-        <option value="05">5月</option>
-        <option value="06">6月</option>
-        <option value="07">7月</option>
-        <option value="08">8月</option>
-        <option value="09">9月</option>
-        <option value="10">10月</option>
-        <option value="11">11月</option>
-        <option value="12">12月</option>
-      </select>
-    
-      <button onclick="loadReport()">載入</button>
-    
-    </div>
+<div id="reportArea"></div>
 
-  <div id="reportArea"></div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  loadHeader();
+  loadReport();
+});
 
-  <script>
-  // ✅ 初始化
-  document.addEventListener('DOMContentLoaded',()=>{
-    loadHeader();
+/* ========= API ========= */
+function callApi(params, callback){
+
+  const cbName = 'cb_' + Date.now();
+  const script = document.createElement('script');
+
+  window[cbName] = function(res){
+    callback(res);
+    delete window[cbName];
+    script.remove();
+  };
+
+  const url = API_BASE + '?' +
+    Object.keys(params)
+      .map(k => `${k}=${encodeURIComponent(params[k])}`)
+      .join('&')
+    + '&callback=' + cbName;
+
+  script.src = url;
+  document.body.appendChild(script);
+}
+
+/* ========= 報表 ========= */
+
+function loadReport(){
+
+  callApi({
+    action:'getMonthlyReport',
+    month:'ALL'
+  }, (res)=>{
+
+    if(res.result !== 'ok'){
+      alert('讀取失敗');
+      return;
+    }
+
+    document.getElementById('reportArea').innerHTML =
+      renderYearSundayReport(res.data);
   });
-  
-  /* ========================
-     Header
-  ======================== */
+}
 
-  function loadHeader() {
-    fetch('header.html')
-      .then(r => r.text())
-      .then(html => {
-        const hc = document.getElementById('header-container');
-        if (!hc) return;
-  
-        hc.innerHTML = html;
-  
-        // ✅ 一律從 session 重新設定 role（唯一正解）
-        const session = (typeof getSession === 'function')
-          ? getSession()
-          : JSON.parse(localStorage.getItem('session_user') || '{}');
-  
-        document.body.classList.remove(
-          'role-admin',
-          'role-judge',
-          'role-record'
-        );
-  
-        if (session && session.role) {
-          const roles = session.role.split(',').map(r => r.trim());
-  
-          if (roles.includes('admin')) {
-            document.body.classList.add('role-admin');
-          }
-          if (roles.includes('judge') || roles.includes('chief_judge')) {
-            document.body.classList.add('role-judge');
-          }
-          if (roles.includes('record') || roles.includes('record_chief')) {
-            document.body.classList.add('role-record');
-          }
-        }
-  
-        // ✅ 顯示登入者姓名
-        if (session && session.name) {
-          const nameEl = document.getElementById('header-username');
-          if (nameEl) nameEl.textContent = session.name;
-        }
-      })
-      .catch(err => console.error('Header 載入失敗', err));
+/* ========= 核心 render（最穩定版） ========= */
+
+function renderYearSundayReport(report){
+
+  const dates = buildGameDateMap(report);
+
+  if(dates.length === 0){
+    return `<div>⚠️ 沒有任何比賽資料</div>`;
   }
-    
-    // ✅ 回上一頁
-    function goBack(){
-      history.back();
-    }
-
-    // ✅ 呼叫 API（沿用你原本的 callApi）
-    function callApi(params, callback){
-    
-      const cbName = 'cb_' + Date.now();
-    
-      const script = document.createElement('script');
-    
-      window[cbName] = function(res){
-    
-        callback(res);
-    
-        delete window[cbName];
-    
-        if (script.parentNode){
-          script.parentNode.removeChild(script);
-        }
-      };
-    
-      const url = API_BASE + '?' +
-        Object.keys(params)
-          .map(k => `${k}=${encodeURIComponent(params[k])}`)
-          .join('&')
-        + '&callback=' + cbName;
-    
-      script.src = url;
-    
-      document.body.appendChild(script);
-    }
-
-    // 切換控制
-    function onModeChange(){
-
-      const mode = document.getElementById('mode').value;
-    
-      document.getElementById('monthSelect').style.display =
-        (mode === 'month') ? 'inline-block' : 'none';
-    }
-
-    // ✅ 載入報表
-    function loadReport(){
-    
-      callApi({
-        action:'getMonthlyReport',
-        month:'ALL'   // ✅ 預設全年
-      }, (res)=>{
-    
-        if(res.result !== 'ok'){
-          alert('讀取失敗');
-          return;
-        }
-    
-        document.getElementById('reportArea').innerHTML =
-          renderYearSundayReport(res.data);
-      });
-    }
-    
-    // ✅ 頁面載入直接跑
-    window.onload = loadReport;
-
-
-    // ✅ 主 render（核心, 六日版）
-    function renderMonthlyReport(report, month){
-    
-      return Object.values(report).map(u=>{
-    
-        return `
-          <div class="user-row">
-    
-            <div class="user-header">
-              <b>${u.name}</b>
-    
-              <span class="badge total">總 ${u.summary.total}</span>
-              <span class="badge late">遲 ${u.summary.late}</span>
-              <span class="badge no">缺 ${u.summary.no_show}</span>
-              <span class="badge regular">例 ${u.summary.regular}</span>
-              <span class="badge playoff">季 ${u.summary.playoff}</span>
-            </div>
-    
-            <div class="calendar">
-    
-              ${renderWeekendDays(u, month)}
-    
-            </div>
-    
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 只顯示六日
-    function renderWeekendDays(user, month){
-    
-      const y = (month && month !== 'ALL')
-        ? Number(month.split('-')[0])
-        : 2026;
-    
-      const m = (month && month !== 'ALL')
-        ? Number(month.split('-')[1]) - 1
-        : 0;
-    
-      let html = '';
-    
-      for(let i=1;i<=31;i++){
-    
-        const date = new Date(y, m, i);
-    
-        if(date.getMonth() !== m && month !== 'ALL') continue;
-    
-        const day = date.getDay();
-    
-        // ✅ ✅ ✅ 只留六日
-        if(day !== 0 && day !== 6) continue;
-    
-        const key = String(i).padStart(2,'0');
-        const d = user.days[key];
-    
-        if(!d){
-          html += `<span class="day empty">${i}</span>`;
-          continue;
-        }
-    
-        const hasNo = d.some(x=>x.status==='no_show');
-        const hasLate = d.some(x=>x.status==='late');
-        const hasPlayoff = d.some(x=>x.type!=='regular');
-    
-        let cls = 'ok';
-        if(hasNo) cls='no';
-        else if(hasLate) cls='late';
-    
-        html += `
-          <span class="day ${cls}">
-            ${i}${hasPlayoff?'★':''}
-          </span>
-        `;
-      }
-    
-      return html;
-    }
-
-  // 只顯示「全年＋週日＋月份」
- function renderYearSundayReport(report){
-
-  const allDates = buildGameDateMap(report);
 
   return Object.values(report).map(u=>{
 
     let html = `
       <div class="user-row">
-
         <div class="user-header">
           <b>${u.name}</b>
-
           <span class="badge total">總 ${u.summary.total}</span>
           <span class="badge late">遲 ${u.summary.late}</span>
           <span class="badge no">缺 ${u.summary.no_show}</span>
@@ -442,15 +152,14 @@
 
     let currentMonth = '';
 
-    allDates.forEach(dateStr=>{
+    dates.forEach(dateStr=>{
 
       const date = new Date(dateStr);
-      const m = date.getMonth() + 1;
+      const month = date.getMonth() + 1;
 
-      // ✅ ✅ ✅ 月份只顯示一次
-      if(currentMonth !== m){
-        currentMonth = m;
-        html += `<div class="month-title">${m}</div>`;
+      if(currentMonth !== month){
+        currentMonth = month;
+        html += `<span class="month-title">${month}</span>`;
       }
 
       const data = u.days[dateStr];
@@ -483,17 +192,20 @@
 
   }).join('');
 }
-    
-// 先整理「所有比賽日期（只抓週日）」
+
+/* ========= 建立「真實比賽日期」 ========= */
+
 function buildGameDateMap(report){
 
   const set = new Set();
 
   Object.values(report).forEach(u=>{
-    Object.keys(u.days).forEach(d=>{
+    Object.keys(u.days || {}).forEach(d=>{
+
       const date = new Date(d);
 
-      if(date.getDay() === 0){ // ✅ 只週日
+      // ✅ 只週日
+      if(date.getDay() === 0){
         set.add(d);
       }
     });
@@ -501,7 +213,18 @@ function buildGameDateMap(report){
 
   return Array.from(set).sort();
 }
-  </script>
+
+/* ========= Header ========= */
+
+function loadHeader(){
+  fetch('header.html')
+    .then(r=>r.text())
+    .then(html=>{
+      const el = document.getElementById('header-container');
+      if(el) el.innerHTML = html;
+    });
+}
+</script>
 
 </body>
 </html>
