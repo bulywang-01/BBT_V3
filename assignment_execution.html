@@ -833,15 +833,17 @@ function quickAssign(id, btn){
 // 快速替補
 function quickReplace(gameId, role, btn){
 
-  const row = btn.closest('.person');
+  const card = btn.closest('.game-card');
 
-  const select = row.querySelector('.select-user');
+  // ✅ ✅ ✅ 永遠抓「最後一列」（補位專用）
+  const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
+  const lastRow = rows[rows.length - 1];
+
+  const select = lastRow.querySelector('.select-user');
   const uid = select?.value;
 
-  const assignmentId = row.getAttribute('data-id');  // ✅ ✅ ✅
-
   if (!uid){
-    toast('請先選替補人員','warn');
+    toast('請在最底下選替補人員','warn');
     return;
   }
 
@@ -852,7 +854,6 @@ function quickReplace(gameId, role, btn){
     game_id:gameId,
     role:role,
     user_id:uid,
-    assignment_id: assignmentId,   // ✅ ✅ ✅ 這行是關鍵
     token: localStorage.getItem('token')
   }, (res)=>{
 
@@ -873,8 +874,6 @@ function quickReplace(gameId, role, btn){
     load();
   });
 }
-
-
 
 
 // 判斷是否有遲到，才能遞補
