@@ -156,7 +156,6 @@
     
       const cbName = 'cb_' + Date.now();
     
-      // ✅ 先宣告 script（關鍵）
       const script = document.createElement('script');
     
       window[cbName] = function(res){
@@ -170,7 +169,7 @@
         }
       };
     
-      const url = API_URL + '?' +
+      const url = API_BASE + '?' +
         Object.keys(params)
           .map(k => `${k}=${encodeURIComponent(params[k])}`)
           .join('&')
