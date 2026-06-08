@@ -438,6 +438,8 @@
         <div class="card card-execution">✅ 出勤確認</div>
       </a>
 
+      <button onclick="goReport()">📊 出勤報表</button>
+      
     </div>
 
   <!-- ✅ Modal 永遠在最外層，而且預設 hidden -->
@@ -477,6 +479,11 @@
           // initHeaderVisibility();
         });
     });
+
+    /* 出勤報表 */
+    function goReport(){
+      location.href = 'report.html';
+    }
 
     /* ===== 年度總表 Modal ===== */
     let currentAnnualType = null;
