@@ -146,6 +146,51 @@
       background: #2196f3;
       color: #fff;
     }
+
+      /* ✅ 左側整體 */
+    .left-panel {
+      width: 140px;
+      text-align: center;   /* ✅ 姓名 + 數字一起置中 */
+    }
+    
+    /* ✅ 姓名 */
+    .user-name {
+      font-size: 16px;      /* 原本 18 → 縮小 */
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-align: center;   /* 再保險一次 */
+    }
+    
+    /* ✅ 統計（綠黃紅藍） */
+    .user-summary {
+      display: flex;
+      justify-content: center; /* ✅ 置中 */
+      gap: 4px;                /* 間距縮小 */
+    }
+    
+    /* ✅ 所有 day（核心縮小） */
+    .day {
+      width: 22px;      /* 原本 26 → 縮 */
+      height: 22px;
+      line-height: 22px;
+      font-size: 11px;  /* 原本 12~14 → 縮 */
+      margin: 2px;
+    }
+    
+    /* ✅ 月份 */
+    .month-label {
+      font-size: 12px;    /* 縮小 */
+      margin: 0 4px;      /* 間距更緊 */
+      color: #666;
+    }
+    
+    /* ✅ 右側排版（壓緊整體） */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+
   </style>
 </head>
 
