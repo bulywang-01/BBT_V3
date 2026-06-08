@@ -833,12 +833,10 @@ function quickAssign(id, btn){
 // 快速替補
 function quickReplace(gameId, role, btn){
 
-  const card = btn.closest('.game-card');
+  // ✅ ✅ ✅ 關鍵：只抓「當前列」
+  const row = btn.closest('.person');
 
-  const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
-  const lastRow = rows[rows.length - 1];
-
-  const select = lastRow.querySelector('.select-user');
+  const select = row.querySelector('.select-user');
   const uid = select?.value;
 
   if (!uid){
@@ -853,7 +851,7 @@ function quickReplace(gameId, role, btn){
     game_id:gameId,
     role:role,
     user_id:uid,
-    token: localStorage.getItem('token')   // ✅ ✅ ✅ 一定要
+    token: localStorage.getItem('token')
   }, (res)=>{
 
     if(!res || res.result !== 'ok'){
@@ -861,7 +859,7 @@ function quickReplace(gameId, role, btn){
       return;
     }
 
-    // ✅ ✅ ✅ 補完 → 原人自動 no_show
+    // ✅ 原人自動缺席
     autoNoShow(gameId, role);
 
     toast('✅ 替補成功');
