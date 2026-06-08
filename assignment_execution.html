@@ -596,7 +596,9 @@ function renderRow(p, g, isReplacement=false){
               userList
                 .filter(u => !usedUserIds.includes(String(u.user_id)))
                 .map(u =>
-                  `<option value="${u.user_id}">${u.username}</option>`
+                  `<option value="${u.user_id}">
+                    ${u.name || u.username}
+                  </option>`
                 ).join('')
             }
           </select>
