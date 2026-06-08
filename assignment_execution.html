@@ -854,7 +854,12 @@ function quickReplace(gameId, role, btn){
     token: localStorage.getItem('token')
   }, (res)=>{
 
-    if(!res || res.result !== 'ok'){
+    if(!res){
+      toast('API 無回應','error');
+      return;
+    }
+    
+    if(res.result !== 'ok'){
       toast(res.message || '新增失敗','error');
       return;
     }
