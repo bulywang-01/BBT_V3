@@ -256,21 +256,28 @@ function render(data, gameDays){
     return;
   }
 
-  let html = '';
+  // ✅ ✅ ✅ 建立月份排序（用目前選的月份推）
+  const month = document.get = '';  const month = document.getElementById('monthPicker')?.value;
 
   Object.values(data)
   .filter(u => {
-    // ✅ 不顯示 admin（用名稱判斷）
-    if(!u.name || u.name.includes('管理')) return false;
-    return true;
+
+    // ✅ ✅ ✅ 用 role 過濾（最正確）
+    if(!u.role) return false;
+
+    const roles = u.role.split(',').map(r=>r.trim());
+
+    const allow = ['judge','chief_judge','record','record_chief'];
+
+    return roles.some(r => allow.includes(r));
   })
   .forEach(u=>{
 
     // ✅ ✅ ✅ 統計
-    const completed = u.summary.total - u.summary.late - u.summary.no_show;
+    const finished = u.summary.total - u.summary.late - u.summary.no_show;
     const late = u.summary.late;
     const no = u.summary.no_show;
-    const sub = u.summary.playoff; // 👉 之後你可改成專用欄位
+    const sub = u.summary.playoff;
 
     html += `
       <div class="user-row">
@@ -278,35 +285,23 @@ function render(data, gameDays){
         <div class="user-header">
           <b>${u.name}</b>
 
-          <span class="day ok" 
-            title="完成：${completed}">
-            ${completed}
-          </span>
-
-          <span class="day late" 
-            title="遲到：${late}">
-            ${late}
-          </span>
-
-          <span class="day no" 
-            title="缺席：${no}">
-            ${no}
-          </span>
-
-          <span class="day empty" 
-            style="background:#2196f3;color:#fff"
-            title="替補：${sub}">
-            ${sub}
-          </span>
-
+          <span class="day ok" title="完成">${finished}</span>
+          <span class="day late" title="遲到">${late}</span>
+          <span class="day no" title="缺席">${no}</span>
+          <span class="day empty" title="替補">${sub}</span>
         </div>
 
         <div class="calendar">
+
+          <span style="margin-right:8px;color:#666;">
+            【${monthLabel}】
+          </span>
     `;
 
-    gameDays.forEach(d=>{
+    sortedDays.forEach(d=>{
 
-      const rec = u.days[d];
+      const key = String(d).padStart(2,'0');
+      const rec = u.days[key];
 
       let cls = 'empty';
       let tooltip = '';
@@ -320,43 +315,55 @@ function render(data, gameDays){
         else if(hasLate) cls='late';
         else cls='ok';
 
-        // ✅ ✅ ✅ 中文轉換
+        // ✅ ✅ ✅ 中文職務
         tooltip = rec.map(x=>{
-          
-          let roleMap = {
-            PU: '主審',
-            U1: '一壘審',
-            U2: '二壘審',
-            U3: '三壘審',
-            REC: '紀錄'
+          const roleMap = {
+            'PU':'主審',
+            'U1':'一壘審',
+            'U2':'二壘審',
+            'U3':'三壘審',
+            'REC':'紀錄'
           };
 
-          let statusMap = {
-            completed: '完成',
-            late: '遲到',
-            no_show: '缺席'
+          const statusMap = {
+            'completed':'完成',
+            'late':'遲到',
+            'no_show':'缺席'
           };
 
-          const role = roleMap[x.role] || x.role;
-          const status = statusMap[x.status] || x.status;
+          const roleName = roleMap[x.role] || x.role;
+          const statusName = statusMap[x.status] || x.status;
 
-          return `${role}：${status}`;
-
+          return `${roleName}：${statusName}`;
         }).join('\n');
       }
 
       html += `
         <span class="day ${cls}" title="${tooltip}">
-          ${parseInt(d)}
+          ${d}
         </span>
       `;
     });
 
-    html += `</div></div>`;
+    html += `
+        </div>
+      </div>
+    `;
   });
 
   document.getElementById('reportArea').innerHTML = html;
 }
+
+  const monthLabel = month
+    ? `${parseInt(month.split('-')[1])}月`
+    : '全年';
+
+  // ✅ 日期排序（數字）
+  const sortedDays = gameDays
+    .map(x=>Number(x))
+    .sort((a,b)=>a-b);
+
+
 
 
   </script>
