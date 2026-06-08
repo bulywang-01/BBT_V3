@@ -148,23 +148,28 @@
     }
 
     // ✅ 呼叫 API（沿用你原本的 callApi）
-    function callApi(params, callback){
+function callApi(params, callback){
 
-      const url = API_BASE + '?callback=?&' +
-        Object.keys(params)
-          .map(k => `${k}=${encodeURIComponent(params[k])}`)
-          .join('&');
+  const cbName = 'cb_' + Date.now();
+  const script = document.createElement('script');
 
-      const script = document.createElement('script');
-      script.src = url;
+  window[cbName] = function(res){
+    console.log('✅ API res=', res); // 🔥 你要的訊息
+    callback(res);
 
-      window.callback = function(res){
-        callback(res);
-        document.body.removeChild(script);
-      };
+    delete window[cbName];
+    script.remove();
+  };
 
-      document.body.appendChild(script);
-    }
+  const url = API_BASE + '?' +
+    Object.keys(params)
+      .map(k => `${k}=${encodeURIComponent(params[k])}`)
+      .join('&')
+    + '&callback=' + cbName;
+
+  script.src = url;
+  document.body.appendChild(script);
+}
 
 
 // 初始化
