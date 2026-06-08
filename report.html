@@ -150,7 +150,40 @@
     .badge.no { background:#f44336; }
     .badge.regular { background:#4caf50; }
     .badge.playoff { background:#3f51b5; }
-        
+
+    .year-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .month-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 8px;
+    }
+    
+    .month-title {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 2px;
+    }
+    
+    .day-row {
+      display: flex;
+    }
+    
+    .day {
+      width: 22px;
+      height: 22px;
+      margin: 1px;
+      text-align: center;
+      line-height: 22px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
   </style>
 </head>
 
@@ -385,87 +418,89 @@
     }
 
   // 只顯示「全年＋週日＋月份」
-  function renderYearSundayReport(report){
-  
-    return Object.values(report).map(u=>{
-  
-      let html = `
-        <div class="user-row">
-  
-          <div class="user-header">
-            <b>${u.name}</b>
-  
-            <span class="badge total">總 ${u.summary.total}</span>
-            <span class="badge late">遲 ${u.summary.late}</span>
-            <span class="badge no">缺 ${u.summary.no_show}</span>
-            <span class="badge regular">例 ${u.summary.regular}</span>
-            <span class="badge playoff">季 ${u.summary.playoff}</span>
-          </div>
-      `;
-  
-      // ✅ 每個月份
-      for(let m=0; m<12; m++){
-  
-        const sundays = [];
-  
-        for(let d=1; d<=31; d++){
-  
-          const date = new Date(2026, m, d);
-  
-          if(date.getMonth() !== m) continue;
-  
-          // ✅ 只抓星期日
-          if(date.getDay() !== 0) continue;
-  
-          const dayStr = String(d).padStart(2,'0');
-          const data = u.days[dayStr];
-  
-          let cls = 'empty';
-          let star = '';
-  
-          if(data){
-            const hasNo = data.some(x=>x.status==='no_show');
-            const hasLate = data.some(x=>x.status==='late');
-            const hasPlayoff = data.some(x=>x.type!=='regular');
-  
-            if(hasNo) cls='no';
-            else if(hasLate) cls='late';
-            else cls='ok';
-  
-            if(hasPlayoff) star = '★';
-          }
-  
-          sundays.push(`
-            <span class="day ${cls}">
-              ${d}${star}
-            </span>
-          `);
-        }
-  
-        // ✅ 如果這個月完全沒週日（理論不會）就跳過
-        if(sundays.length === 0) continue;
-  
-        html += `
-          <div class="month-block">
-  
-            <div class="month-title">
-              ${m+1}
-            </div>
-  
-            <div class="week-row">
-              ${sundays.join('')}
-            </div>
-  
-          </div>
-        `;
+ function renderYearSundayReport(report){
+
+  const allDates = buildGameDateMap(report);
+
+  return Object.values(report).map(u=>{
+
+    let html = `
+      <div class="user-row">
+
+        <div class="user-header">
+          <b>${u.name}</b>
+
+          <span class="badge total">總 ${u.summary.total}</span>
+          <span class="badge late">遲 ${u.summary.late}</span>
+          <span class="badge no">缺 ${u.summary.no_show}</span>
+          <span class="badge regular">例 ${u.summary.regular}</span>
+          <span class="badge playoff">季 ${u.summary.playoff}</span>
+        </div>
+
+        <div class="year-row">
+    `;
+
+    let currentMonth = '';
+
+    allDates.forEach(dateStr=>{
+
+      const date = new Date(dateStr);
+      const m = date.getMonth() + 1;
+
+      // ✅ ✅ ✅ 月份只顯示一次
+      if(currentMonth !== m){
+        currentMonth = m;
+        html += `<div class="month-title">${m}</div>`;
       }
-  
-      html += `</div>`;
-  
-      return html;
-  
-    }).join('');
-  }
+
+      const data = u.days[dateStr];
+
+      let cls = 'empty';
+      let star = '';
+
+      if(data){
+        const hasNo = data.some(x=>x.status==='no_show');
+        const hasLate = data.some(x=>x.status==='late');
+        const hasPlayoff = data.some(x=>x.type!=='regular');
+
+        if(hasNo) cls='no';
+        else if(hasLate) cls='late';
+        else cls='ok';
+
+        if(hasPlayoff) star='★';
+      }
+
+      html += `
+        <span class="day ${cls}">
+          ${date.getDate()}${star}
+        </span>
+      `;
+    });
+
+    html += `</div></div>`;
+
+    return html;
+
+  }).join('');
+}
+    
+// 先整理「所有比賽日期（只抓週日）」
+function buildGameDateMap(report){
+
+  const set = new Set();
+
+  Object.values(report).forEach(u=>{
+    Object.keys(u.days).forEach(d=>{
+      const date = new Date(d);
+
+      if(date.getDay() === 0){ // ✅ 只週日
+        set.add(d);
+      }
+    });
+  });
+
+  return Array.from(set).sort();
+}
   </script>
 
 </body>
