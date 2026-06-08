@@ -521,6 +521,8 @@ function renderGroup(g){
 // ✅ 共用 render row（避免重複）
 function renderRow(p, g, isReplacement=false){
 
+ console.log('ROW', p.role, p.assignment_id);  // ✅ 加這行
+
   const list = g.list || [];
 
   const hasNoShow = list.some(x =>
