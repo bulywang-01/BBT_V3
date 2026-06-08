@@ -11,6 +11,7 @@
       margin: 0;
       padding: 16px;
       background: #f5f5f5;
+      font-size: 13px;  /* 整體再縮 */
     }
 
     h2 {
@@ -25,12 +26,6 @@
       background: #fff;
       padding: 10px;
       border-radius: 6px;
-    }
-
-    .user-row {
-      margin-bottom: 16px;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 10px;
     }
 
     .user-header {
@@ -86,17 +81,6 @@
       height: 18px;
       margin-left: 4px;
     }
-
-    .user-name {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    
-    .user-summary {
-      display: flex;
-      gap: 6px;
-    }
     
     .user-summary .day {
       min-width: 24px;
@@ -108,7 +92,10 @@
       justify-content: space-between;
       align-items: flex-start;
       border-bottom: 1px solid #ddd;
-      padding: 10px 0;
+      padding-bottom: 10px;
+      padding: 6px 0;          /* 原本約 10 → 縮小 */
+      /* margin-bottom: 4px;      行與行間距再縮 */
+      border-bottom: 1px solid #eee;  /* 淡一點更乾淨 */
     }
     
     /* 左側 */
@@ -116,29 +103,11 @@
       width: 160px;
     }
     
-    .user-name {
-      font-size: 18px;   /* ✅ 放大 */
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    
-    /* 統計 */
-    .user-summary {
-      display: flex;
-      gap: 6px;
-    }
-    
     /* 右側 */
     .right-panel {
       flex: 1;
       display: flex;
       flex-wrap: wrap;
-    }
-    
-    /* 月份 */
-    .month-label {
-      margin: 0 6px;
-      color: #666;
     }
     
     /* 替補藍色 */
@@ -157,30 +126,34 @@
     .user-name {
       font-size: 16px;      /* 原本 18 → 縮小 */
       font-weight: 700;
-      margin-bottom: 4px;
       text-align: center;   /* 再保險一次 */
+      margin-bottom: 2px;      /* 原本 6 → 縮 */
+      line-height: 1.2;        /* 改緊一點 */
     }
     
     /* ✅ 統計（綠黃紅藍） */
     .user-summary {
       display: flex;
       justify-content: center; /* ✅ 置中 */
-      gap: 4px;                /* 間距縮小 */
+      gap: 3px;                /* 間距縮小 */
     }
     
     /* ✅ 所有 day（核心縮小） */
     .day {
-      width: 22px;      /* 原本 26 → 縮 */
-      height: 22px;
-      line-height: 22px;
-      font-size: 11px;  /* 原本 12~14 → 縮 */
-      margin: 2px;
+      width: 20px;      /* 原本 26 → 縮 */
+      height: 20px;    /* 原本 26 → 縮 */
+      line-height: 20px;  /* 原本 26 → 縮 */
+      font-size: 10px;  /* 原本 12~14 → 縮 */
+      margin: 1px;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
     }
     
     /* ✅ 月份 */
     .month-label {
-      font-size: 12px;    /* 縮小 */
-      margin: 0 4px;      /* 間距更緊 */
+      font-size: 11px;    /* 縮小 */
+      margin: 0 3px;      /* 間距更緊 */
       color: #666;
     }
     
