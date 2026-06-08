@@ -981,12 +981,13 @@ function quickAssign(id, btn){
 // 快速替補
 function quickReplace(gameId, role, btn){
 
+  // ✅ 抓整個比賽卡
   const card = btn.closest('.game-card');
 
-  // ✅ 找該 role 的所有列
+  // ✅ 抓該 role 的所有列
   const rows = card.querySelectorAll(`.person[data-role="${role}"]`);
 
-  // ✅ 抓最後一列（你的 select 在這裡）
+  // ✅ 抓「最後一列」的 select（就是你選人的那個）
   const lastRow = rows[rows.length - 1];
 
   const select = lastRow.querySelector('.select-user');
@@ -1002,12 +1003,13 @@ function quickReplace(gameId, role, btn){
     action:'addReplacement',
     game_id:gameId,
     role,
-    user_id:uid
+    user_id:uid   // ✅ ✅ ✅ 這裡完全正確（不動）
   }, ()=>{
     toast('✅ 替補完成');
     load();
   });
 }
+
 
 
 // 判斷是否有遲到，才能遞補
