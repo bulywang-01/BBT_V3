@@ -100,25 +100,27 @@
     }
 
     // ✅ 呼叫 API（沿用你原本的 callApi）
-    /*
     function callApi(params, callback){
-
-      const url = API_URL + '?callback=?&' +
-        Object.keys(params)
-          .map(k => `${k}=${encodeURIComponent(params[k])}`)
-          .join('&');
-
-      const script = document.createElement('script');
-      script.src = url;
-
-      window.callback = function(res){
+    
+      const cbName = 'cb_' + Date.now();
+    
+      window[cbName] = function(res){
         callback(res);
+        delete window[cbName];
         document.body.removeChild(script);
       };
-
+    
+      const url = API_URL + '?' +
+        Object.keys(params)
+          .map(k => `${k}=${encodeURIComponent(params[k])}`)
+          .join('&')
+        + '&callback=' + cbName;
+    
+      const script = document.createElement('script');
+      script.src = url;
+    
       document.body.appendChild(script);
     }
-    */
 
     // ✅ 載入報表
     function loadReport(){
