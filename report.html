@@ -74,6 +74,12 @@
       color: #999;
     }
 
+    .user-header .day {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin-left: 4px;
+    }
   </style>
 </head>
 
@@ -83,8 +89,7 @@
   <h2>📊 出勤報表</h2>
 
   <div class="toolbar">
-    <input type="month" id="monthPicker">
-    <button onclick="loadReport()">載入報表</button>
+    <div id="monthButtons" class="toolbar"></div>
     <button onclick="goBack()">⬅ 返回</button>
   </div>
 
@@ -147,6 +152,36 @@
       history.back();
     }
 
+    // 生成按鈕
+    function renderMonthButtons(gameDays){
+    
+      // ✅ 從 gameDays 推月份（靠 Games）
+      const monthsSet = new Set();
+    
+      gameDays.forEach(d=>{
+        // 先假設用當前選擇月（因為現在後端是 dd）
+        // 👉 所以這裡直接用目前 monthPicker 的值
+        const current = document.getElementById('currentMonth')?.value;
+        if(current){
+          monthsSet.add(current);
+        }
+      });
+    
+      // 👉 因為你現在後端是用 month filter
+      // 👉 所以這裡簡化：直接列固定月份（從資料來會再升級）
+    
+      const months = Array.from(monthsSet);
+    
+      let html = `<button onclick="selectMonth('ALL')">全年</button>`;
+    
+      months.forEach(m=>{
+        const mm = m.split('-')[1];
+        html += `<button onclick="selectMonth('${m}')">${Number(mm)}月</button>`;
+      });
+    
+      document.getElementById('monthButtons').innerHTML = html;
+    }
+
 
 /* ✅ JSONP */
 function callApi(params, callback){
@@ -174,38 +209,43 @@ function callApi(params, callback){
 
 /* ✅ 初始化 */
 document.addEventListener('DOMContentLoaded',()=>{
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth()+1).padStart(2,'0');
-
-  document.getElementById('monthPicker').value = `${y}-${m}`;
+  currentMonth = 'ALL'; // ✅ 預設全年
+  loadReport();
 });
 
 /* ✅ 載入 */
+let currentMonth = 'ALL';
+
+function selectMonth(m){
+  currentMonth = m;
+  loadReport();
+}
+
 function loadReport(){
 
-  let month = document.getElementById('monthPicker').value;
+  const m = currentMonth;
 
-  if(!month){
-    const now = new Date();
-    month = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  }
-
-  console.log('month=', month);
+  console.log('month=', m);
 
   callApi({
     action:'getMonthlyReport',
-    month:month
+    month:m
   }, res => {
+
+    console.log('✅ API res:', res);
 
     if(!res || res.result !== 'ok'){
       alert('讀取失敗');
       return;
     }
 
+    // ✅ render 按鈕（第一次）
+    renderMonthButtons(res.gameDays);
+
     render(res.data, res.gameDays);
   });
 }
+
 
 /* ✅ render（用真實日期） */
 function render(data, gameDays){
@@ -218,35 +258,70 @@ function render(data, gameDays){
 
   let html = '';
 
-  Object.values(data).forEach(u=>{
+  Object.values(data)
+  .filter(u => {
+    // ✅ ✅ ✅ 1️⃣ 過濾 admin
+    if(!u.name) return false;
+    if(u.role && u.role.includes('admin')) return false;
+    return true;
+  })
+  .forEach(u=>{
+
+    // ✅ ✅ ✅ 統計
+    let ok = u.summary.total - u.summary.late - u.summary.no_show;
+    let late = u.summary.late;
+    let no = u.summary.no_show;
+    let sub = u.summary.playoff; // 👉 你替補可依實際改
+
+    const summaryTooltip =
+`完成: ${ok}
+遲到: ${late}
+缺席: ${no}
+替補: ${sub}`;
 
     html += `
       <div class="user-row">
 
         <div class="user-header">
           <b>${u.name}</b>
-          ｜${u.summary.total}場
+
+          <span class="day ok" title="${summaryTooltip}"> </span>
+          <span class="day late" title="${summaryTooltip}"> </span>
+          <span class="day no" title="${summaryTooltip}"> </span>
+          <span class="day empty" title="${summaryTooltip}"> </span>
         </div>
 
         <div class="calendar">
     `;
 
+    // ✅ ✅ ✅ 只跑有比賽日期
     gameDays.forEach(d=>{
 
       const rec = u.days[d];
 
       let cls = 'empty';
+      let tooltip = '';
 
       if(rec){
+
         const hasNo = rec.some(x=>x.status==='no_show');
         const hasLate = rec.some(x=>x.status==='late');
 
         if(hasNo) cls='no';
         else if(hasLate) cls='late';
         else cls='ok';
+
+        // ✅ ✅ ✅ 3️⃣ tooltip（職務）
+        tooltip = rec
+          .map(x => `${x.role}：${x.status}`)
+          .join('\n');
       }
 
-      html += `<span class="day ${cls}">${parseInt(d)}</span>`;
+      html += `
+        <span class="day ${cls}" title="${tooltip}">
+          ${parseInt(d)}
+        </span>
+      `;
     });
 
     html += `</div></div>`;
@@ -254,6 +329,7 @@ function render(data, gameDays){
 
   document.getElementById('reportArea').innerHTML = html;
 }
+
 
   </script>
 
