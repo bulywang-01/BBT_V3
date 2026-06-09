@@ -584,7 +584,7 @@ function renderRow(p, g, isReplacement=false){
 
           ${canAssign ? `
             <button class="btn btn-assign"
-              onclick="quickAssign('${p.assignment_id}', this)">指派</button>
+              onclick="quickAssign('${p.assignment_id}', this)">改派</button>
           `:''}
 
           ${hasNoShow ? `
@@ -805,7 +805,7 @@ function getStatusBadge(s){
   return map[s] || '';
 }
 
-// 快速指派
+// 快速改派
 function quickAssign(id, btn){
 
   const row = btn.closest('.person');
@@ -824,7 +824,7 @@ function quickAssign(id, btn){
     user_id:uid,
     source:'assign'
   }, ()=>{
-    toast('✅ 已指派');
+    toast('✅ 已改派');
     load();
   });
 }
