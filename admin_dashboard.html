@@ -601,11 +601,35 @@ function renderAnnualList(list, type){
 
   const el = document.getElementById('annualList');
 
-  // ✅ 過濾
-  list.sort((a,b)=> (b.final_score||0) - (a.final_score||0));
+  // ✅ ✅ ✅ 1️⃣ 過濾：角色
+  list = list.filter(u => {
 
-  // ✅ 排序
-  list.sort((a,b)=> b.final_score - a.final_score);
+    if (!u.role) return false;
+
+    const roles = String(u.role).toLowerCase();
+
+    if (type === 'judge'){
+      return roles.includes('judge');   // ✅ 只裁判
+    }
+
+    if (type === 'record'){
+      return roles.includes('record');  // ✅ 只紀錄
+    }
+
+    return false;
+  });
+
+  // ✅ ✅ ✅ 2️⃣ 過濾：admin
+  list = list.filter(u => {
+    const r = String(u.role || '').toLowerCase();
+    return !r.includes('admin');
+  });
+
+  // ✅ ✅ ✅ 3️⃣ 過濾：沒出勤
+  list = list.filter(u => (u.exp_total || 0) > 0);
+
+  // ✅ ✅ ✅ 4️⃣ 排序（改這裡）
+  list.sort((a,b)=> (b.final_score||0) - (a.final_score||0));
 
   // ✅ 排名
   list.forEach((p,i)=> p.rank = i+1);
@@ -613,12 +637,10 @@ function renderAnnualList(list, type){
   const html = `
     <div class="annual-layout">
 
-      <!-- ✅ 左：表格 -->
       <div class="annual-left">
         ${renderTable(list, type)}
       </div>
 
-      <!-- ✅ 右：說明 -->
       <div class="annual-right">
         ${renderScoreNote(type)}
       </div>
@@ -677,7 +699,7 @@ function renderTable(list, type){
               </td>
 
               <td class="num">
-                ${safe(p.total)}
+                ${safe(p.exp_total)}
               </td>
 
               <td class="num">
