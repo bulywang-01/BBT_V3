@@ -248,6 +248,17 @@ body{
 </div>
 
 <script>
+
+  /* ========================
+     按是否鎖定只顯示更正鍵
+  ======================== */
+function isGameLocked(g){
+  return g.list.every(p => p.status !== 'scheduled');
+}
+
+  /* ========================
+     Header
+  ======================== */ 
   let userList = [];
   
   // ✅ 初始化
@@ -255,21 +266,8 @@ body{
     loadHeader();
     loadUsers();
   });
-  
-  /* ========================
-     Header
-  ======================== */
-/*
- function loadHeader(){
-    fetch('header.html')
-      .then(r=>r.text())
-      .then(html=>{
-        document.getElementById('header-container').innerHTML = html;
-      });
-  }
-  */
-
-  function loadHeader() {
+ 
+    function loadHeader() {
     fetch('header.html')
       .then(r => r.text())
       .then(html => {
@@ -465,10 +463,17 @@ function renderGame(g){
       <div class="game-title">
         📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
 
+      ${!isGameLocked(g) ? `
         <button class="btn-complete-all"
           onclick="completeGame('${g.game_id}')">
           ✅ 整場完成
         </button>
+      ` : `
+        <span style="margin-left:10px;color:#16a34a;font-weight:700;">
+          ✅ 已完成
+        </span>
+      `}
+
       </div>
 
       ${renderGroup(g)}
@@ -535,7 +540,11 @@ function renderRow(p, g, isReplacement=false){
 
   const canAssign = !hasNoShow;
 
-  const rowDone = p.status === 'completed';
+  // const rowDone = p.status === 'completed';
+  
+  const locked = isGameLocked(g);
+  const rowDone = p.status !== 'scheduled';
+
   const hasUser = !!p.name;
 
   const usedUserIds = list.map(x => String(x.user_id || ''));
@@ -570,7 +579,7 @@ function renderRow(p, g, isReplacement=false){
 
       <div class="actions-box">
 
-        ${ rowDone ? `
+        ${ (locked || rowDone) ? `
           <button onclick="unlock('${p.assignment_id}')">✏️ 更正</button>
         ` : `
           <button class="btn btn-ok"
