@@ -740,11 +740,11 @@ function renderTable(list, type){
               </td>
 
               <td class="num">
-                ${safe(p.quality_score)}
+                ${Number(p.quality_score || 0).toFixed(2)}
               </td>
 
               <td class="score">
-                ${safe(p.final_score)}
+                ${Number(p.final_score || 0).toFixed(2)}
               </td>
 
             </tr>
