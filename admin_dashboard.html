@@ -669,47 +669,34 @@ function renderTable(list){
 }
 
 function renderScoreNote(){
-
   return `
   <div style="line-height:1.8">
 
-    <div style="font-weight:700;margin-bottom:6px;">
-      📌 評分公式
-    </div>
+    <div style="font-weight:700;">📌 評分公式</div>
 
-    <div>
-      ✅ 總分 = Assignment分數 + 品質加權
-      註：Assignment分數 = 每一場出勤的基礎分
-    </div>
+    ✅ 總分 = 出勤分（角色加權） + 品質分
 
     <div style="margin-top:10px;">
-      <b>1️⃣ 出勤數（左表）</b><br>
-      出勤 = 完成 + 遲到 + 缺席（不含 scheduled）
+    <b>1️⃣ 出勤分（左表）</b><br>
+    每場分數 =
+    角色基礎分 × 出勤狀態 × 角色權重 × 比賽倍率 × 替補折算
     </div>
 
     <div style="margin-top:8px;">
-      <b>2️⃣ 完成率（左表）</b><br>
-      完成率 = 完成 ÷ 出勤
+    <b>2️⃣ 品質分（左表）</b><br>
+    品質 = (完成率 × 10)
+         − (遲到率 × 5)
+         − (缺席率 × 10)
     </div>
 
     <div style="margin-top:8px;">
-      <b>3️⃣ 品質分（左表）</b><br>
-      品質 = (完成率 × 10)
-           − (遲到率 × 5)
-           − (缺席率 × 10)
-    </div>
-
-    <div style="margin-top:8px;">
-      <b>4️⃣ 總分（左表）</b><br>
-      總分 = score_total（Assignment）
-           + (品質 × 10)
+    <b>3️⃣ 總分（左表）</b><br>
+    總分 = 出勤分 + (品質 × 10)
     </div>
 
     <div style="margin-top:12px;">
-      ✅ 重點：<br>
-      • 完成率越高 → 分數越高<br>
-      • 缺席會大幅扣分<br>
-      • 場次少者僅供參考
+    <b>📌 聯盟等級</b><br>
+    S / A / B / C / N 依出勤、分數與品質自動評定
     </div>
 
   </div>
