@@ -387,6 +387,17 @@
   <div id="header-container"></div>
 
   <script>
+
+    function guardAdminPage(){
+      const session = JSON.parse(localStorage.getItem('session_user') || '{}');
+      if (!session.user_id){
+        alert('尚未登入');
+        location.replace('login.html');
+        return false;
+      }
+      return true;
+    }
+
     function loadHeader() {
       fetch('header.html')
         .then(res => res.text())
