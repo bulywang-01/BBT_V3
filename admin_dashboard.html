@@ -552,7 +552,8 @@
       const year = document.getElementById('annualYearSelect').value;
     
       callApi({
-        action:'getUsers'
+        action:'getYearlySummary',
+        year: year
       }, res => {
       
         if (!res || res.result !== 'ok'){
@@ -560,15 +561,7 @@
           return;
         }
       
-        let users = res.users || [];
-      
-        // ✅ ✅ ✅ 這段超重要（過濾有出勤的人）
-        users = users.filter(u => 
-          (u.exp_total || 0) > 0 ||
-          (u.final_score || 0) > 0
-        );
-      
-        renderAnnualList(users, currentAnnualType);
+        renderAnnualList(res.list, currentAnnualType);
       });
 
     }
@@ -639,21 +632,16 @@ function renderAnnualList(list, type){
 
     const sa = Number(a.final_score || 0);
     const sb = Number(b.final_score || 0);
-  
-    if (sb !== sa){
-      return sb - sa;
-    }
-  
-    // ✅ 第二排序：品質
-    const qa = Number(a.quality_score || 0);
-    const qb = Number(b.quality_score || 0);
-  
-    if (qb !== qa){
-      return qb - qa;
-    }
-  
-    // ✅ 第三排序：出勤
-    return (b.exp_total || 0) - (a.exp_total || 0);
+    
+    if (sb !== sa) return sb - sa;
+    
+    const qa = Number(a.quality || 0);
+    const qb = Number(b.quality || 0);
+    
+    if (qb !== qa) return qb - qa;
+    
+    return (b.attendance || 0) - (a.attendance || 0);
+
   });
 
   // ✅ 排名
@@ -711,35 +699,16 @@ function renderTable(list, type){
           return `
             <tr>
 
-              <td class="rank-badge">
-                ${badge} ${p.rank}
-              </td>
+              <td class="rank-badge">${badge} ${p.rank}</td>
+              <td style="font-weight:600;">${p.name}</td>
+              <td>${p.league_level || '-'}</td>
+              <td class="num">${safe(p.attendance)}</td>
+              <td class="num">${p.completed || 0}</td>
+              <td class="num">${p.late || 0}</td>
+              <td class="num">${p.no_show || 0}</td>
+              <td class="num">${Number(p.quality || 0).toFixed(2)}</td>
+              <td class="score">${Number(p.final_score || 0).toFixed(2)}</td>
 
-              <td style="font-weight:600;">
-                ${p.name}
-              </td>
-
-              <td>
-                ${p.league_level || '-'}
-              </td>
-
-              <td class="num">
-                ${safe(p.exp_total)}
-              </td>
-
-              <td class="num">${p.completed_count || 0}</td>
-
-              <td class="num">${p.late_count || 0}</td>
-
-              <td class="num">${p.no_show_count || 0}</td>
-
-              <td class="num">
-                ${Number(p.quality_score || 0).toFixed(2)}
-              </td>
-
-              <td class="score">
-                ${Number(p.final_score || 0).toFixed(2)}
-              </td>
 
             </tr>
           `;
