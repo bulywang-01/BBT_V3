@@ -635,7 +635,26 @@ function renderAnnualList(list, type){
   list = list.filter(u => (u.exp_total || 0) > 0);
 
   // ✅ ✅ ✅ 4️⃣ 排序（改這裡）
-  list.sort((a,b)=> (b.final_score||0) - (a.final_score||0));
+  list.sort((a,b)=>{
+
+    const sa = Number(a.final_score || 0);
+    const sb = Number(b.final_score || 0);
+  
+    if (sb !== sa){
+      return sb - sa;
+    }
+  
+    // ✅ 第二排序：品質
+    const qa = Number(a.quality_score || 0);
+    const qb = Number(b.quality_score || 0);
+  
+    if (qb !== qa){
+      return qb - qa;
+    }
+  
+    // ✅ 第三排序：出勤
+    return (b.exp_total || 0) - (a.exp_total || 0);
+  });
 
   // ✅ 排名
   list.forEach((p,i)=> p.rank = i+1);
