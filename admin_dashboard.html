@@ -518,7 +518,8 @@
 /* ===== 年度總表 Modal ===== */
 let currentAnnualType = null;
 
-function openAnnualModal(type) {
+function openAnnualModal(type){
+
   currentAnnualType = type;
 
   document.getElementById('annualModalTitle').textContent =
@@ -530,16 +531,16 @@ function openAnnualModal(type) {
   loadAvailableYears();
 }
 
-function closeAnnualModal() {
+function closeAnnualModal(){
   document.getElementById('annualModal').classList.add('hidden');
 }
 
-/* ===== 年份 ===== */
-function loadAvailableYears() {
-  callApi({ action: 'getAvailableGameYears' }, res => {
+function loadAvailableYears(){
 
-    if (res.result !== 'ok'){
-      document.getElementById('annualList').textContent = res.message;
+  callApi({ action:'getAvailableGameYears' }, res=>{
+
+    if (!res || res.result !== 'ok'){
+      document.getElementById('annualList').textContent = '讀取失敗';
       return;
     }
 
@@ -558,7 +559,6 @@ function loadAvailableYears() {
   });
 }
 
-/* ===== 核心讀資料 ===== */
 function reloadAnnualByYear(){
 
   const year = document.getElementById('annualYearSelect').value;
@@ -568,12 +568,14 @@ function reloadAnnualByYear(){
     year: year
   }, res=>{
 
+    console.log(res); // ✅ debug
+
     if (!res || res.result !== 'ok'){
-      document.getElementById('annualList').textContent = '讀取失敗';
+      document.getElementById('annualList').textContent =
+        res?.message || '讀取失敗';
       return;
     }
 
-    // ✅ ✅ ✅ 分群（後端已分）
     const list = currentAnnualType === 'judge'
       ? (res.judge || [])
       : (res.record || []);
@@ -582,28 +584,20 @@ function reloadAnnualByYear(){
   });
 }
 
-/* ===== 主畫面 ===== */
 function renderAnnualList(list){
 
-  const el = document.getElementById('annualList');
+  list = list.filter(u => (u.attendance||0) > 0);
 
-  // ✅ 只留有出勤
-  list = list.filter(u => (u.attendance || 0) > 0);
-
-  // ✅ 排序
   list.sort((a,b)=>{
-    const sa = Number(b.final_score||0) - Number(a.final_score||0);
-    if (sa !== 0) return sa;
-
-    const qa = Number(b.quality||0) - Number(a.quality||0);
-    if (qa !== 0) return qa;
+    if (b.final_score !== a.final_score)
+      return b.final_score - a.final_score;
 
     return (b.attendance||0) - (a.attendance||0);
   });
 
   list.forEach((u,i)=>u.rank=i+1);
 
-  el.innerHTML = `
+  document.getElementById('annualList').innerHTML = `
     <div class="annual-layout">
       <div class="annual-left">
         ${renderTable(list)}
@@ -615,12 +609,10 @@ function renderAnnualList(list){
   `;
 }
 
-/* ===== 表格 ===== */
 function renderTable(list){
 
   return `
   <table class="annual-table">
-
   <thead>
     <tr>
       <th>排名</th>
@@ -636,91 +628,52 @@ function renderTable(list){
   </thead>
 
   <tbody>
-
   ${list.map(p=>{
 
     const total = p.attendance || 1;
-    const completeRate = (p.completed / total * 100);
+    const rate = (p.completed/total*100);
 
     let badge='';
-    if (p.rank===1) badge='🏆';
-    else if (p.rank===2) badge='🥈';
-    else if (p.rank===3) badge='🥉';
-    else if (p.rank<=10) badge='⭐';
+    if(p.rank===1) badge='🏆';
+    else if(p.rank===2) badge='🥈';
+    else if(p.rank===3) badge='🥉';
+    else if(p.rank<=10) badge='⭐';
 
     return `
     <tr>
-
-      <td class="rank-badge">${badge} ${p.rank}</td>
-
-      <td style="font-weight:700;">
-        ${p.name}
-      </td>
-
-      <td class="num">${p.attendance||0}</td>
-
-      <td class="num" style="color:#16a34a">
-        ${p.completed||0}
-      </td>
-
-      <td class="num" style="color:#d97706">
-        ${p.late||0}
-      </td>
-
-      <td class="num" style="color:#dc2626">
-        ${p.no_show||0}
-      </td>
-
-      <td class="num">
-        ${isNaN(completeRate)?0:completeRate.toFixed(0)}%
-      </td>
-
-      <td class="num">
-        ${Number(p.quality||0).toFixed(2)}
-      </td>
-
-      <td class="score">
-        ${Number(p.final_score||0).toFixed(0)}
-      </td>
-
+      <td>${badge} ${p.rank}</td>
+      <td style="font-weight:700;">${p.name}</td>
+      <td class="num">${p.attendance}</td>
+      <td class="num" style="color:#16a34a">${p.completed}</td>
+      <td class="num" style="color:#d97706">${p.late}</td>
+      <td class="num" style="color:#dc2626">${p.no_show}</td>
+      <td class="num">${rate.toFixed(0)}%</td>
+      <td class="num">${p.quality.toFixed(2)}</td>
+      <td class="score">${p.final_score.toFixed(0)}</td>
     </tr>
     `;
-  }).join('')}
 
+  }).join('')}
   </tbody>
   </table>
   `;
 }
 
-/* ===== 說明 ===== */
 function renderScoreNote(){
 
   return `
   <div style="line-height:1.8">
 
-    <div style="font-weight:700">📌 評分制度</div>
+    <b>📌 評分</b><br>
+    總分 = Assignment分數 + 品質分<br><br>
 
-    <div>
-      ✅ 總分 = 出勤分 + 品質分 + 證照加權
-    </div>
-
-    <div style="margin-top:8px;">
-      • 出勤：完成 + 遲到 + 缺席<br>
-      • 品質：完成率 - 遲到與缺席影響<br>
-      • 分數來源：Assignment 實際紀錄
-    </div>
-
-    <div style="margin-top:12px;font-weight:700">📌 解讀方式</div>
-
-    <div>
-      ✅ 出勤高 + 品質高 → 排名前<br>
-      ⚠️ 場次少者排名僅供參考
-    </div>
+    • 完成率越高 → 品質越高<br>
+    • 遲到 / 缺席 → 扣分<br>
+    • 全部依實際出勤計算
 
   </div>
   `;
 }
-
   </script>
 </body>
 </html>
