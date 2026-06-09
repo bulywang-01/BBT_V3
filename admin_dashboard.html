@@ -638,8 +638,15 @@ function renderTable(list){
   <tbody>
   ${list.map(p=>{
 
-    // const total = p.attendance || 1;
-    // const rate = (p.completed/total*100);
+
+    let note = '';
+    
+    if (p.attendance < 3){
+      note = ' ⚠️';
+    }
+    else if (p.attendance < 5){
+      note = ' ⭐';
+    }
 
     let badge='';
     if(p.rank===1) badge='🏆';
@@ -650,7 +657,7 @@ function renderTable(list){
     return `
     <tr>
       <td>${badge} ${p.rank}</td>
-      <td style="font-weight:700;">${p.name}</td>
+      <td style="font-weight:700;">${note}${p.name}</td>
       <td class="num" style="color:#16a34a;font-weight:600;">${renderLevel(p.league_level)}</td>
       <td class="num" style="color:#16a34a;font-weight:600;">${p.attendance}</td>
       <td class="num" style="color:#16a34a">${p.completed}</td>
@@ -694,34 +701,53 @@ function renderScoreNote(){
       </div>
   
       <div style="margin-top:12px;">
-      <b>📌 聯盟等級</b><br>
-      S / A / B / C / N 依出勤、分數與品質自動評定
+        <b>📌 聯盟等級（左表）</b><br>
+      
+        等級依「出勤數 + 總分 + 品質」綜合判定：
+      
+        <div style="margin-top:6px;">
+        🟣 S級：高出勤 + 高品質 + 高總分（核心主力）<br>
+        🔵 A級：穩定出勤 + 表現良好（主力班底）<br>
+        🟢 B級：基本出勤達標（穩定支援）<br>
+        🟠 C級：出勤偏少或需提升<br>
+        ⚪ N級：新進或場次不足
+        </div>
+      
+        <div style="margin-top:10px;">
+        <b>📌 場次不足判定</b><br>
+      
+        • 出勤 < 3 場 → 視為 N級（不列入評比）<br>
+        • 出勤 3～4 場 → 僅供參考（不影響核心排名）<br>
+        • 出勤 ≥ 5 場 → 納入正式排名與等級評定
+        </div>
+      
+        <div style="margin-top:8px;">
+        ✅ 等級會依年度統計自動更新
+        </div>
       </div>
+
+
   </div>
   `;
 }
 
 // 顯示等級
-function renderLevel(level){
-
-  if (!level) return '-';
-
-  level = String(level).toUpperCase();
+function renderLevel(lv){
 
   const map = {
-    'S':'#9333ea',
-    'A':'#2563eb',
-    'B':'#16a34a',
-    'C':'#d97706',
-    'N':'#6b7280'
+    S:{color:'#9333ea', icon:'🟣'},
+    A:{color:'#2563eb', icon:'🔵'},
+    B:{color:'#16a34a', icon:'🟢'},
+    C:{color:'#d97706', icon:'🟠'},
+    N:{color:'#6b7280', icon:'⚪'}
   };
 
-  const color = map[level] || '#6b7280';
+  const m = map[lv] || map['N'];
 
-  return `<span style="
-    font-weight:700;
-    color:${color};
-  ">${level}</span>`;
+  return `
+  <span style="font-weight:700;color:${m.color}">
+    ${m.icon} ${lv}
+  </span>`;
 }
 
 // 品質顏色
