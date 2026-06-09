@@ -727,17 +727,11 @@ function renderTable(list, type){
                 ${safe(p.exp_total)}
               </td>
 
-              <td class="num">
-                ${(safe(p.completed_rate)*100).toFixed(0)}%
-              </td>
+              <td class="num">${p.completed_count || 0}</td>
 
-              <td class="num">
-                ${(safe(p.late_rate)*100).toFixed(0)}%
-              </td>
+              <td class="num">${p.late_count || 0}</td>
 
-              <td class="num">
-                ${(safe(p.no_show_rate)*100).toFixed(0)}%
-              </td>
+              <td class="num">${p.no_show_count || 0}</td>
 
               <td class="num">
                 ${Number(p.quality_score || 0).toFixed(2)}
