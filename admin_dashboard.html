@@ -377,6 +377,13 @@
     color:#374151;
     font-size:14px;
   }
+
+  
+  .annual-table td.num {
+    text-align:right;
+    font-variant-numeric: tabular-nums;
+  }
+
   </style>
   
 </head>
@@ -617,6 +624,7 @@ function renderTable(list){
     <tr>
       <th>排名</th>
       <th>姓名</th>
+      <th>等級</th>
       <th>出勤</th>
       <th>完成</th>
       <th>遲到</th>
@@ -643,12 +651,13 @@ function renderTable(list){
     <tr>
       <td>${badge} ${p.rank}</td>
       <td style="font-weight:700;">${p.name}</td>
-      <td class="num">${p.attendance}</td>
+      <td class="num" style="color:#16a34a;font-weight:600;">${renderLevel(p.level)}</td>
+      <td class="num" style="color:#16a34a;font-weight:600;">${p.attendance}</td>
       <td class="num" style="color:#16a34a">${p.completed}</td>
       <td class="num" style="color:#d97706">${p.late}</td>
       <td class="num" style="color:#dc2626">${p.no_show}</td>
-      <td class="num">${rate.toFixed(0)}%</td>
-      <td class="num">${p.quality.toFixed(2)}</td>
+      <td class="num" style="color:#16a34a;font-weight:600;">${rate.toFixed(0)}%</td>
+      <td class="num" style="color:#16a34a;font-weight:600;">${p.quality.toFixed(2)}</td>
       <td class="score">${p.final_score.toFixed(0)}</td>
     </tr>
     `;
@@ -664,16 +673,82 @@ function renderScoreNote(){
   return `
   <div style="line-height:1.8">
 
-    <b>📌 評分</b><br>
-    總分 = Assignment分數 + 品質分<br><br>
+    <div style="font-weight:700;margin-bottom:6px;">
+      📌 評分公式
+    </div>
 
-    • 完成率越高 → 品質越高<br>
-    • 遲到 / 缺席 → 扣分<br>
-    • 全部依實際出勤計算
+    <div>
+      ✅ 總分 = Assignment分數 + 品質加權
+      註：Assignment分數 = 每一場出勤的基礎分
+    </div>
+
+    <div style="margin-top:10px;">
+      <b>1️⃣ 出勤數（左表）</b><br>
+      出勤 = 完成 + 遲到 + 缺席（不含 scheduled）
+    </div>
+
+    <div style="margin-top:8px;">
+      <b>2️⃣ 完成率（左表）</b><br>
+      完成率 = 完成 ÷ 出勤
+    </div>
+
+    <div style="margin-top:8px;">
+      <b>3️⃣ 品質分（左表）</b><br>
+      品質 = (完成率 × 10)
+           − (遲到率 × 5)
+           − (缺席率 × 10)
+    </div>
+
+    <div style="margin-top:8px;">
+      <b>4️⃣ 總分（左表）</b><br>
+      總分 = score_total（Assignment）
+           + (品質 × 10)
+    </div>
+
+    <div style="margin-top:12px;">
+      ✅ 重點：<br>
+      • 完成率越高 → 分數越高<br>
+      • 缺席會大幅扣分<br>
+      • 場次少者僅供參考
+    </div>
 
   </div>
   `;
 }
+
+// 顯示等級
+function renderLevel(level){
+
+  if (!level) return '-';
+
+  level = String(level).toUpperCase();
+
+  const map = {
+    'S':'#9333ea',
+    'A':'#2563eb',
+    'B':'#16a34a',
+    'C':'#d97706',
+    'N':'#6b7280'
+  };
+
+  const color = map[level] || '#6b7280';
+
+  return `<span style="
+    font-weight:700;
+    color:${color};
+  ">${level}</span>`;
+}
+
+// 品質顏色
+
+function getQualityColor(q){
+  if (q >= 9) return '#16a34a';   // 綠
+  if (q >= 7) return '#2563eb';   // 藍
+  if (q >= 5) return '#d97706';   // 橘
+  return '#dc2626';              // 紅
+}
+
+
   </script>
 </body>
 </html>
