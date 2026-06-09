@@ -504,271 +504,211 @@
       location.href = 'report.html';
     }
 
-    /* ===== 年度總表 Modal ===== */
-    let currentAnnualType = null;
+/* ===== 年度總表 Modal ===== */
+let currentAnnualType = null;
 
-    function openAnnualModal(type) {
-      currentAnnualType = type;
+function openAnnualModal(type) {
+  currentAnnualType = type;
 
-      const container = document.getElementById('annualList');
-      // container.innerHTML = '載入中…';   // ✅ 清空 + loading
+  document.getElementById('annualModalTitle').textContent =
+    type === 'judge' ? '裁判員年度總表' : '紀錄員年度總表';
 
-      document.getElementById('annualModalTitle').textContent =
-        type === 'judge' ? '裁判員年度總表' : '紀錄員年度總表';
+  document.getElementById('annualList').textContent = '載入中…';
+  document.getElementById('annualModal').classList.remove('hidden');
 
-      document.getElementById('annualList').textContent = '載入中…';
-      document.getElementById('annualModal').classList.remove('hidden');
-
-      loadAvailableYears();
-    }
-
-    function closeAnnualModal() {
-      document.getElementById('annualModal').classList.add('hidden');
-    }
-
-    function loadAvailableYears() {
-      callApi({ action: 'getAvailableGameYears' }, res => {
-        if (res.result !== 'ok') {
-          document.getElementById('annualList').textContent = res.message;
-          return;
-        }
-
-        const sel = document.getElementById('annualYearSelect');
-        sel.innerHTML = '';
-
-        res.years.forEach((y, i) => {
-          const opt = document.createElement('option');
-          opt.value = y;
-          opt.textContent = y + ' 年';
-          if (i === 0) opt.selected = true;
-          sel.appendChild(opt);
-        });
-
-        reloadAnnualByYear();
-      });
-    }
-
-    function reloadAnnualByYear() {
-      const year = document.getElementById('annualYearSelect').value;
-    
-      callApi({
-        action:'getYearlySummary',
-        year: year
-      }, res => {
-      
-        if (!res || res.result !== 'ok'){
-          document.getElementById('annualList').textContent = '讀取失敗';
-          return;
-        }
-      
-        renderAnnualList(res.list, currentAnnualType);
-      });
-
-    }
-
-  // 匯出功能
-  function exportCSV() {
-    const header = ['姓名','年度','生涯','站位分佈'];
-    const rows = data.map(u => [
-      u.name,
-      u.annual,
-      u.career,
-    ]);
-  
-    const csv = [header, ...rows]
-      .map(r => r.map(v => `"${v}"`).join(','))
-      .join('\n');
-  
-    download(csv, '年度總表.csv');
-  }
-
-  function guardAdminPage(){
-
-  const session = JSON.parse(localStorage.getItem('session_user') || '{}');
-
-  if (!session.user_id){
-    alert('尚未登入');
-    location.replace('login.html');
-    return false;
-  }
-
-  return true;
+  loadAvailableYears();
 }
 
-/* 新年度總表 */
-function renderAnnualList(list, type){
+function closeAnnualModal() {
+  document.getElementById('annualModal').classList.add('hidden');
+}
+
+/* ===== 年份 ===== */
+function loadAvailableYears() {
+  callApi({ action: 'getAvailableGameYears' }, res => {
+
+    if (res.result !== 'ok'){
+      document.getElementById('annualList').textContent = res.message;
+      return;
+    }
+
+    const sel = document.getElementById('annualYearSelect');
+    sel.innerHTML = '';
+
+    res.years.forEach((y,i)=>{
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y + ' 年';
+      if (i===0) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    reloadAnnualByYear();
+  });
+}
+
+/* ===== 核心讀資料 ===== */
+function reloadAnnualByYear(){
+
+  const year = document.getElementById('annualYearSelect').value;
+
+  callApi({
+    action:'getYearlySummary',
+    year: year
+  }, res=>{
+
+    if (!res || res.result !== 'ok'){
+      document.getElementById('annualList').textContent = '讀取失敗';
+      return;
+    }
+
+    // ✅ ✅ ✅ 分群（後端已分）
+    const list = currentAnnualType === 'judge'
+      ? (res.judge || [])
+      : (res.record || []);
+
+    renderAnnualList(list);
+  });
+}
+
+/* ===== 主畫面 ===== */
+function renderAnnualList(list){
 
   const el = document.getElementById('annualList');
 
-  // ✅ ✅ ✅ 1️⃣ 過濾：角色
-  /*
-  list = list.filter(u => {
-
-    if (!u.role) return false;
-
-    const roles = String(u.role).toLowerCase();
-
-    if (type === 'judge'){
-      return roles.includes('judge');   // ✅ 只裁判
-    }
-
-    if (type === 'record'){
-      return roles.includes('record');  // ✅ 只紀錄
-    }
-
-    return false;
-  });
-  */
-  
-  // ✅ ✅ ✅ 2️⃣ 過濾：admin
-  /*
-  list = list.filter(u => {
-    const r = String(u.role || '').toLowerCase();
-    return !r.includes('admin');
-  });
-  */
-
-  // ✅ ✅ ✅ 3️⃣ 過濾：沒出勤
+  // ✅ 只留有出勤
   list = list.filter(u => (u.attendance || 0) > 0);
-  
-  // ✅ ✅ ✅ 4️⃣ 排序（改這裡）
+
+  // ✅ 排序
   list.sort((a,b)=>{
+    const sa = Number(b.final_score||0) - Number(a.final_score||0);
+    if (sa !== 0) return sa;
 
-    const sa = Number(a.final_score || 0);
-    const sb = Number(b.final_score || 0);
-    
-    if (sb !== sa) return sb - sa;
-    
-    const qa = Number(a.quality || 0);
-    const qb = Number(b.quality || 0);
-    
-    if (qb !== qa) return qb - qa;
-    
-    return (b.attendance || 0) - (a.attendance || 0);
+    const qa = Number(b.quality||0) - Number(a.quality||0);
+    if (qa !== 0) return qa;
 
+    return (b.attendance||0) - (a.attendance||0);
   });
 
-  // ✅ 排名
-  list.forEach((p,i)=> p.rank = i+1);
+  list.forEach((u,i)=>u.rank=i+1);
 
-  const html = `
+  el.innerHTML = `
     <div class="annual-layout">
-
       <div class="annual-left">
-        ${renderTable(list, type)}
+        ${renderTable(list)}
       </div>
-
       <div class="annual-right">
-        ${renderScoreNote(type)}
+        ${renderScoreNote()}
       </div>
-
-    </div>
-  `;
-
-  el.innerHTML = html;
-}
-
-/* Table */
-function renderTable(list, type){
-
-  return `
-    <table class="annual-table">
-
-      <thead>
-        <tr>
-          <th style="width:60px;">排名</th>
-          <th>姓名</th>
-          <th style="width:80px;">聯盟等級</th>
-          <th style="width:90px;">出勤</th>
-          <th style="width:90px;">完成</th>
-          <th style="width:80px;">遲到</th>
-          <th style="width:80px;">缺席</th>
-          <th style="width:90px;">品質</th>
-          <th style="width:100px;text-align:right;">總分</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        ${list.map(p=>{
-
-          let badge='';
-          if (p.rank===1) badge='🏆';
-          else if (p.rank===2) badge='🥈';
-          else if (p.rank===3) badge='🥉';
-          else if (p.rank<=10) badge='⭐';
-
-          // ✅ 防 NaN
-          const safe = (v)=> isNaN(v) ? 0 : v;
-
-          return `
-            <tr>
-
-              <td class="rank-badge">${badge} ${p.rank}</td>
-              <td style="font-weight:600;">${p.name}</td>
-              <td>${p.league_level || '-'}</td>
-              <td class="num">${safe(p.attendance)}</td>
-              <td class="num">${p.completed || 0}</td>
-              <td class="num">${p.late || 0}</td>
-              <td class="num">${p.no_show || 0}</td>
-              <td class="num">${Number(p.quality || 0).toFixed(2)}</td>
-              <td class="score">${Number(p.final_score || 0).toFixed(2)}</td>
-
-
-            </tr>
-          `;
-        }).join('')}
-      </tbody>
-
-    </table>
-  `;
-}
-
-
-/* 計算說明 */
-function renderScoreNote(type){
-
-  return `
-    <div style="line-height:1.8;">
-
-      <div style="font-weight:700;margin-bottom:6px;">
-        📌 評分制度
-      </div>
-
-      <div>
-        分數 = 出勤分 + 證照分 + 品質分
-      </div>
-
-      <div style="margin-top:10px;">
-        • 出勤分：依角色與出勤狀態計算<br>
-        • 品質分：依完成率 / 遲到率 / 缺席率計算<br>
-        • 證照分：A / B / C 等級加權
-      </div>
-
-      <div style="margin-top:12px;font-weight:700;">
-        📌 聯盟等級
-      </div>
-
-      <div>
-        S ＞ A ＞ B ＞ C ＞ N<br>
-        （依出勤、品質與穩定性計算）
-      </div>
-
-      <div style="margin-top:12px;font-weight:700;">
-        📌 說明
-      </div>
-
-      <div>
-        本表已納入：<br>
-        • 出勤統計（Assignment）<br>
-        • 使用者資料（Users）<br>
-        • 分數規則（Role_Score_Config）
-      </div>
-
     </div>
   `;
 }
 
+/* ===== 表格 ===== */
+function renderTable(list){
 
+  return `
+  <table class="annual-table">
+
+  <thead>
+    <tr>
+      <th>排名</th>
+      <th>姓名</th>
+      <th>出勤</th>
+      <th>完成</th>
+      <th>遲到</th>
+      <th>缺席</th>
+      <th>完成率</th>
+      <th>品質</th>
+      <th>總分</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+  ${list.map(p=>{
+
+    const total = p.attendance || 1;
+    const completeRate = (p.completed / total * 100);
+
+    let badge='';
+    if (p.rank===1) badge='🏆';
+    else if (p.rank===2) badge='🥈';
+    else if (p.rank===3) badge='🥉';
+    else if (p.rank<=10) badge='⭐';
+
+    return `
+    <tr>
+
+      <td class="rank-badge">${badge} ${p.rank}</td>
+
+      <td style="font-weight:700;">
+        ${p.name}
+      </td>
+
+      <td class="num">${p.attendance||0}</td>
+
+      <td class="num" style="color:#16a34a">
+        ${p.completed||0}
+      </td>
+
+      <td class="num" style="color:#d97706">
+        ${p.late||0}
+      </td>
+
+      <td class="num" style="color:#dc2626">
+        ${p.no_show||0}
+      </td>
+
+      <td class="num">
+        ${isNaN(completeRate)?0:completeRate.toFixed(0)}%
+      </td>
+
+      <td class="num">
+        ${Number(p.quality||0).toFixed(2)}
+      </td>
+
+      <td class="score">
+        ${Number(p.final_score||0).toFixed(0)}
+      </td>
+
+    </tr>
+    `;
+  }).join('')}
+
+  </tbody>
+  </table>
+  `;
+}
+
+/* ===== 說明 ===== */
+function renderScoreNote(){
+
+  return `
+  <div style="line-height:1.8">
+
+    <div style="font-weight:700">📌 評分制度</div>
+
+    <div>
+      ✅ 總分 = 出勤分 + 品質分 + 證照加權
+    </div>
+
+    <div style="margin-top:8px;">
+      • 出勤：完成 + 遲到 + 缺席<br>
+      • 品質：完成率 - 遲到與缺席影響<br>
+      • 分數來源：Assignment 實際紀錄
+    </div>
+
+    <div style="margin-top:12px;font-weight:700">📌 解讀方式</div>
+
+    <div>
+      ✅ 出勤高 + 品質高 → 排名前<br>
+      ⚠️ 場次少者排名僅供參考
+    </div>
+
+  </div>
+  `;
+}
 
   </script>
 </body>
