@@ -560,9 +560,15 @@
           return;
         }
       
-        data = res.users || [];
+        let users = res.users || [];
       
-        renderAnnualList(data, currentAnnualType);
+        // ✅ ✅ ✅ 這段超重要（過濾有出勤的人）
+        users = users.filter(u => 
+          (u.exp_total || 0) > 0 ||
+          (u.final_score || 0) > 0
+        );
+      
+        renderAnnualList(users, currentAnnualType);
       });
 
     }
