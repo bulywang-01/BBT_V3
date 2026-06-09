@@ -601,6 +601,7 @@ function renderAnnualList(list, type){
   const el = document.getElementById('annualList');
 
   // ✅ ✅ ✅ 1️⃣ 過濾：角色
+  /*
   list = list.filter(u => {
 
     if (!u.role) return false;
@@ -617,16 +618,19 @@ function renderAnnualList(list, type){
 
     return false;
   });
-
+  */
+  
   // ✅ ✅ ✅ 2️⃣ 過濾：admin
+  /*
   list = list.filter(u => {
     const r = String(u.role || '').toLowerCase();
     return !r.includes('admin');
   });
+  */
 
   // ✅ ✅ ✅ 3️⃣ 過濾：沒出勤
-  list = list.filter(u => (u.exp_total || 0) > 0);
-
+  list = list.filter(u => (u.attendance || 0) > 0);
+  
   // ✅ ✅ ✅ 4️⃣ 排序（改這裡）
   list.sort((a,b)=>{
 
