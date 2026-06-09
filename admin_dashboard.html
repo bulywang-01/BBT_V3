@@ -552,20 +552,19 @@
       const year = document.getElementById('annualYearSelect').value;
     
       callApi({
-        action: currentAnnualType === 'judge'
-          ? 'getJudgeAnnualSummary_'
-          : 'getRecordAnnualSummary_',
-        year
+        action:'getUsers'
       }, res => {
-    
-        if (res.result !== 'ok') {
-          document.getElementById('annualList').textContent = res.message;
+      
+        if (!res || res.result !== 'ok'){
+          document.getElementById('annualList').textContent = '讀取失敗';
           return;
         }
-    
-        data = res.list;   // ✅ 🔥 很重要
+      
+        data = res.users || [];
+      
         renderAnnualList(data, currentAnnualType);
       });
+
     }
 
   // 匯出功能
@@ -603,7 +602,7 @@ function renderAnnualList(list, type){
   const el = document.getElementById('annualList');
 
   // ✅ 過濾
-  list = list.filter(x => (x.total || 0) > 0);
+  list.sort((a,b)=> (b.final_score||0) - (a.final_score||0));
 
   // ✅ 排序
   list.sort((a,b)=> b.final_score - a.final_score);
