@@ -910,48 +910,6 @@ function loadHomeUserAnalysis(){
 }
 
 // 搭配上面的function
-function renderHomeUserAnalysis(p){
-
-  const total = p.attendance ?? 0;
-  const completed = p.completed ?? 0;
-  const rate = total ? Math.round((completed/total)*100) : 0;
-
-  document.getElementById('home-user-analysis').innerHTML = `
-
-    <div class="user-stats">
-
-      <div class="stat-card">
-        <div class="stat-title">經驗值</div>
-        <div class="stat-value">${p.score_total}</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">參與度</div>
-        <div class="stat-value">${total}</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-title">出勤率</div>
-        <div class="stat-value">${rate}%</div>
-      </div>
-
-    </div>
-
-    <div style="
-      display:flex;
-      justify-content:flex-end;
-      margin-top:6px;
-    ">
-      <button class="pill pill-blue"
-        onclick="openFullAnalysis('${p.user_id}')">
-        查看完整分析 →
-      </button>
-    </div>
-
-  `;
-}
-
-
 // 個人數據分析 - 數據
 function renderHomeUserAnalysis(p){
 
@@ -959,52 +917,50 @@ function renderHomeUserAnalysis(p){
   const completed = p.completed ?? 0;
   const rate = total ? Math.round((completed/total)*100) : 0;
 
-  const stable =
-    p.no_show === 0 && p.completed >= 10 ? '🔥' : '';
-
   document.getElementById('home-user-analysis').innerHTML = `
 
-    <!-- ✅ 使用你既有卡片風格 -->
-    <div class="user-stats">
+    <div style="
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    ">
 
-      <div class="stat-card">
-        <div class="stat-title">經驗值</div>
-        <div class="stat-value">${p.score_total}</div>
+      <!-- ✅ KPI -->
+      <div class="user-stats">
+
+        <div class="stat-card">
+          <div class="stat-title">經驗值</div>
+          <div class="stat-value">${p.score_total}</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">參與度</div>
+          <div class="stat-value">${total}</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">出勤率</div>
+          <div class="stat-value">${rate}%</div>
+        </div>
+
       </div>
 
-      <div class="stat-card">
-        <div class="stat-title">參與度</div>
-        <div class="stat-value">${total}</div>
+      <!-- ✅ 只留按鈕 -->
+      <div style="
+        display:flex;
+        justify-content:flex-end;
+      ">
+        <button class="pill pill-blue"
+          onclick="openFullAnalysis('${p.user_id}')">
+          查看完整分析 →
+        </button>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-title">出勤率</div>
-        <div class="stat-value">${rate}%</div>
-      </div>
-
-    </div>
-
-    <!-- ✅ 精簡表格 -->
-    <table class="mini-table">
-      <tr>
-        <td>完成</td>
-        <td>${completed}</td>
-        <td>遲到</td>
-        <td>${p.late}</td>
-        <td>缺席</td>
-        <td>${p.no_show}</td>
-      </tr>
-    </table>
-
-    <div style="text-align:right;margin-top:8px;">
-      <button class="pill pill-blue"
-        onclick="openFullAnalysis('${p.user_id}')">
-        查看完整分析 →
-      </button>
     </div>
 
   `;
 }
+
 
 // 打開完整個人數據分析
 function openFullAnalysis(userId){
