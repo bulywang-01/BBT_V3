@@ -1002,20 +1002,49 @@ function recalcScore(){
   if(!confirm('確定重新計算所有分數？')) return;
 
   const btn = document.querySelector('.btn-recalc');
-  if (btn) btn.disabled = true;
+
+  // ✅ 防連點
+  if (btn && btn.dataset.loading === '1') return;
+
+  if (btn){
+    btn.dataset.loading = '1';
+    btn.disabled = true;
+    btn.innerText = '計算中...';
+  }
 
   toast('分數計算中...','loading');
 
   callApi({action:'recalcAllScores'}, res=>{
 
-    if (!res || res.result !== 'ok'){
-      toast('❌ 計算失敗','error');
-    }else{
+    console.log('recalc result =', res);
 
-      toast(`✅ 分數已更新（${res.users_updated || 0}人）`);
+    // ✅ 清按鈕狀態
+    if (btn){
+      btn.dataset.loading = '0';
+      btn.disabled = false;
+      btn.innerText = '🔄 重算分數';
     }
 
-    if (btn) btn.disabled = false;
+    // ✅ ✅ ✅ 正確判斷（只看 result）
+    if (!res || res.result !== 'ok'){
+      toast(res?.message || '❌ 計算失敗','error');
+      return;
+    }
+
+    // ✅ ✅ ✅ 統一欄位（關鍵）
+    const count =
+      res.users_updated ??
+      res.updated ??
+      res.count ??
+      0;
+
+    // ✅ 永遠成功（不看 count）
+    toast(`✅ 分數已更新（${count}人）`);
+    
+    setTimeout(()=>{
+      load();   // ✅ 重新載入畫面
+    }, 800);
+
   });
 }
 
