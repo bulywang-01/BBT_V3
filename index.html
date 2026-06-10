@@ -623,12 +623,98 @@
     100% { transform: scale(1); }
   }
 
+  /* 個人數據分析 */
+  #panel-user-analysis .user-stats{
+    grid-template-columns: repeat(3,1fr);
+  }
+    
+  #panel-user-analysis .stat-card{
+    padding:8px 6px;
+    min-height:60px;
+    border-radius:10px;
+  }
+  
+  #panel-user-analysis .stat-title{
+    font-size:11px;
+    margin-bottom:2px;
+  }
+  
+  #panel-user-analysis .stat-value{
+    font-size:20px;
+    font-weight:700;
+  }
+
+  /* ✅ 2x2 grid */
+  .grid-4{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+  }
+  
+  /* ✅ 小卡（超關鍵） */
+  .card-mini{
+    background:#fff;
+    border-radius:10px;
+    padding:8px;
+  
+    text-align:center;
+    border:1px solid #eee;
+  
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  }
+  
+  .mini-title{
+    font-size:11px;
+    color:#666;
+  }
+  
+  .mini-value{
+    font-size:18px;
+    font-weight:800;
+    margin-top:2px;
+  }
+  
+  /* ✅ 表格 */
+  .table-compact{
+    width:100%;
+    border-collapse:collapse;
+    text-align:center;
+    font-size:13px;
+  }
+  
+  .table-compact th,
+  .table-compact td{
+    padding:6px;
+    border-bottom:1px solid #eee;
+  }
+  
+  .table-compact th{
+    color:#6b7280;
+    font-size:12px;
+  }
   </style>
 
 </head>
 
 <body>
 
+<!-- ✅ 個人分析 Modal -->
+<div id="userModal" class="overlay">
+
+  <div class="overlay-box">
+
+    <h2>📊 個人數據分析</h2>
+
+    <div id="userContent"></div>
+
+    <button class="close-btn full" onclick="closeUserModal()">
+      關閉
+    </button>
+
+  </div>
+
+</div>
+  
   <!-- Header -->
   <div id="header-container"></div>
 
@@ -679,11 +765,15 @@
   <div class="main">
     <div id="content"></div>
     <!-- ✅ Welcome -->
+    
     <div class="panel welcome-box">
+      
       <div class="welcome-role" id="welcome-role"></div>
       <div class="welcome-name" id="welcome-name"></div>
+
       <!-- ✅ 本週提醒 -->
       <div id="welcome-alert"></div>
+      
       <div class="user-stats">
       
         <div class="stat-card">
@@ -705,7 +795,11 @@
         </div>
       
       </div>
-
+      
+      <div id="home-user-analysis">
+         個人數據資料載入中...
+      </div>
+      
 
       <div class="welcome-actions">
         <button id="open-schedule" class="pill pill-orange">📅 我的班表</button>
