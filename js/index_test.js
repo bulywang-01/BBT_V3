@@ -891,9 +891,66 @@ function loadHomeUserAnalysis(){
       return;
     }
 
-    renderHomeUserAnalysis(me);
+    // ✅ ✅ ✅ ✅ ✅ 🔥 補這段（關鍵）
+    callApi({action:'getAssignments'}, res2=>{
+
+      window._yearRaw = {
+        judge: res.judge || [],
+        record: res.record || [],
+        allAssignments: res2?.data || []
+      };
+
+      window._yearData = all;
+
+      renderHomeUserAnalysis(me);
+
+    });
+
   });
 }
+
+// 搭配上面的function
+function renderHomeUserAnalysis(p){
+
+  const total = p.attendance ?? 0;
+  const completed = p.completed ?? 0;
+  const rate = total ? Math.round((completed/total)*100) : 0;
+
+  document.getElementById('home-user-analysis').innerHTML = `
+
+    <div class="user-stats">
+
+      <div class="stat-card">
+        <div class="stat-title">經驗值</div>
+        <div class="stat-value">${p.score_total}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">參與度</div>
+        <div class="stat-value">${total}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">出勤率</div>
+        <div class="stat-value">${rate}%</div>
+      </div>
+
+    </div>
+
+    <div style="
+      display:flex;
+      justify-content:flex-end;
+      margin-top:6px;
+    ">
+      <button class="pill pill-blue"
+        onclick="openFullAnalysis('${p.user_id}')">
+        查看完整分析 →
+      </button>
+    </div>
+
+  `;
+}
+
 
 // 個人數據分析 - 數據
 function renderHomeUserAnalysis(p){
