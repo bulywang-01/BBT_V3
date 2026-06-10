@@ -289,6 +289,20 @@ body{
     </div>
   </div>
 
+ <!-- 個人分析 Modal -->
+ <div id="userModal" class="modal hidden">
+   <div class="modal-box">
+ 
+     <div class="modal-header">
+       <span>📊 個人數據分析</span>
+       <button onclick="closeUserModal()">✖</button>
+     </div>
+ 
+     <div id="userContent">載入中...</div>
+ 
+   </div>
+ </div>
+ 
   <div class="header-bar">
     <h2>✅ 出勤管理</h2>
   
@@ -1307,8 +1321,10 @@ function drawTable(list){
 
     html += '<td>'+rankIcon(p.rank)+'</td>';
 
-    html += '<td style="font-weight:700;">';
+    html += '<td style="font-weight:700;"><span style="cursor:pointer;color:#2563eb;" onclick="openUserDetail('+ "'"+p.user_id+"'" +')">';
     html += (p.name || '-') + ' ' + stable;
+    html += '</span>';
+   
     html += '<div style="font-size:11px;color:#6b7280;">';
     html += '生涯 ' + career + ' 場';
     html += '</div>';
@@ -1366,6 +1382,86 @@ function closeYearModal(){
 function switchYearType(type){
   window._yearType = type;
   renderYearTable(type);
+}
+
+// 個人分析模組
+function openUserDetail(userId){
+
+  const all = window._yearData || [];
+  const p = all.find(x => String(x.user_id) === String(userId));
+
+  if (!p){
+    alert('找不到資料');
+    return;
+  }
+
+  document.getElementById('userModal').classList.remove('hidden');
+
+  const total = p.attendance ?? 0;
+  const completed = p.completed ?? 0;
+  const late = p.late ?? 0;
+  const no_show = p.no_show ?? 0;
+
+  const completedRate = total ? Math.round((completed/total)*100) : 0;
+  const lateRate = total ? Math.round((late/total)*100) : 0;
+  const noShowRate = total ? Math.round((no_show/total)*100) : 0;
+
+  const stable =
+    no_show === 0 && completed >= 10 ? '🔥 穩定' : '—';
+
+  document.getElementById('userContent').innerHTML = `
+
+    <div style="padding:10px;">
+
+      <h3 style="margin-bottom:6px;">
+        ${p.name} ${stable}
+      </h3>
+
+      <div style="color:#666;font-size:13px;margin-bottom:12px;">
+        聯盟等級：${p.league_level}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+        <div class="game-card">
+          經驗值<br>
+          <b style="font-size:22px;">${fmt(p.score_total)}</b>
+        </div>
+
+        <div class="game-card">
+          參與度<br>
+          <b style="font-size:22px;">${total}</b>
+        </div>
+
+        <div class="game-card">
+          出勤品質<br>
+          <b style="font-size:22px;">${fmt(p.quality)}</b>
+        </div>
+
+        <div class="game-card">
+          排位分數<br>
+          <b style="font-size:22px;">${fmt(p.final_score)}</b>
+        </div>
+
+      </div>
+
+      <hr style="margin:14px 0;">
+
+      <div style="font-size:14px;">
+
+        ✅ 完成：${completed} (${completedRate}%)<br>
+        ⚠️ 遲到：${late} (${lateRate}%)<br>
+        ❌ 缺席：${no_show} (${noShowRate}%)
+
+      </div>
+
+    </div>
+  `;
+}
+
+// 關閉個人分析模組
+function closeUserModal(){
+  document.getElementById('userModal').classList.add('hidden');
 }
 </script>
 
