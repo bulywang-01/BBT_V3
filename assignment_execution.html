@@ -218,7 +218,54 @@ body{
     align-items:flex-start;
   }
 }
- 
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal.hidden{
+  display:none;
+}
+
+.modal-box{
+  width:90%;
+  max-width:900px;
+  background:#fff;
+  border-radius:12px;
+  padding:12px;
+  max-height:85vh;
+  overflow:auto;
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+  margin-bottom:8px;
+}
+
+.year-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+.year-table th{
+  text-align:left;
+  padding:6px;
+  border-bottom:2px solid #ddd;
+}
+
+.year-table td{
+  padding:6px;
+  border-bottom:1px solid #eee;
+}
 </style>
 </head>
 
@@ -227,6 +274,20 @@ body{
 <div id="header-container"></div>
 
 <div class="main">
+
+  <!-- 年度統計 Modal -->
+  <div id="yearModal" class="modal hidden">
+    <div class="modal-box">
+  
+      <div class="modal-header">
+        <span>📊 年度統計</span>
+        <button onclick="closeYearModal()">✖</button>
+      </div>
+  
+      <div id="yearContent">載入中...</div>
+  
+    </div>
+  </div>
 
   <div class="header-bar">
     <h2>✅ 出勤管理</h2>
@@ -1068,24 +1129,72 @@ function loadYearly(){
 
   const year = new Date().getFullYear();
 
-  toast('統計中...','loading');
+  // ✅ 打開 modal
+  document.getElementById('yearModal').classList.remove('hidden');
+  document.getElementById('yearContent').innerHTML = '載入中...';
 
   callApi({
     action:'getYearlyExperience',
     year:year
   }, res=>{
 
+    console.log(res);
 
-   if (!res || res.result !== 'ok'){
-     toast('❌ API錯誤','error');
-     return;
-   }
+    if (!res || res.result !== 'ok'){
+      document.getElementById('yearContent').innerHTML = '❌ 讀取失敗';
+      return;
+    }
 
-    console.table(res.data); // ✅ 先用console看
-    toast('✅ 完成，請看 console');
+    renderYearly(res.data || []);
   });
 }
 
+// 年度統計的表格
+function renderYearly(list){
+
+  if (!list.length){
+    document.getElementById('yearContent').innerHTML =
+      '<div class="empty">沒有資料</div>';
+    return;
+  }
+
+  list.sort((a,b)=> (b.total||0) - (a.total||0));
+
+  document.getElementById('yearContent').innerHTML = `
+    <table class="year-table">
+      <thead>
+        <tr>
+          <th>排名</th>
+          <th>姓名</th>
+          <th>出勤</th>
+          <th>完成</th>
+          <th>遲到</th>
+          <th>缺席</th>
+          <th>總分</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${list.map((u,i)=>`
+          <tr>
+            <td>${i+1}</td>
+            <td style="font-weight:700">${u.name}</td>
+            <td>${u.total || 0}</td>
+            <td style="color:#16a34a">${u.completed || 0}</td>
+            <td style="color:#f59e0b">${u.late || 0}</td>
+            <td style="color:#dc2626">${u.no_show || 0}</td>
+            <td>${(u.final_score||0).toFixed(0)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// 關閉年度統計的按
+function closeYearModal(){
+  document.getElementById('yearModal').classList.add('hidden');
+}
 </script>
 
 </body>
