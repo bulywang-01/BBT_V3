@@ -1224,3 +1224,9 @@ function card(label, value){
     </div>
   `;
 }
+
+// ✅ 分數格式
+function fmt(n){
+  const num = Number(n ?? 0);
+  return Number.isInteger(num) ? num : num.toFixed(2);
+}
