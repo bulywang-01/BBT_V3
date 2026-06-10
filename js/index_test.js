@@ -979,7 +979,10 @@ function openUserDetail(userId){
   const p = all.find(x => String(x.user_id) === String(userId));
   if (!p) return;
 
-  document.getElementById('userModal').classList.remove('hidden');
+  const modal = document.getElementById('userModal');
+    if (!modal) return;   // ✅ 防炸
+    modal.style.display = 'flex';
+
 
   // =========================
   // ✅ 年度資料
