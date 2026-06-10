@@ -623,6 +623,15 @@
     100% { transform: scale(1); }
   }
 
+  /* 個人數據分析 */
+  #panel-user-analysis .user-stats{
+    grid-template-columns: repeat(3,1fr);
+  }
+  
+  #panel-user-analysis .stat-value{
+    font-size:20px;
+  }
+
   </style>
 
 </head>
@@ -679,6 +688,14 @@
   <div class="main">
     <div id="content"></div>
     <!-- ✅ Welcome -->
+    
+    <div class="panel" id="panel-user-analysis">
+      <h3>📊 個人數據分析</h3>
+      <div id="home-user-analysis">
+        載入中...
+      </div>
+    </div>
+
     <div class="panel welcome-box">
       <div class="welcome-role" id="welcome-role"></div>
       <div class="welcome-name" id="welcome-name"></div>
