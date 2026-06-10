@@ -1264,8 +1264,8 @@ function drawTable(list){
       <tbody>
         ${list.map(p=>{
 
-          const total = p.total ?? p.exp_total ?? 0;   // ✅ 修 undefined
-          const career = p.career_total ?? total ?? 0; // ✅ 修生涯0錯誤
+          const total = p.total ?? p.attendance ?? p.exp_total ?? 0;
+          const career = p.career_total ?? p.career_games ?? total;
 
           return `
             <tr>
