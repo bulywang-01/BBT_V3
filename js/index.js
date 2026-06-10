@@ -887,7 +887,7 @@ function loadHomeUserAnalysis(){
 
     if (!me){
       document.getElementById('home-user-analysis').innerHTML =
-        '查無資料';
+        '沒有執勤資料';
       return;
     }
 
