@@ -1146,6 +1146,10 @@ function loadYearly(){
   document.getElementById('yearModal').classList.remove('hidden');
   document.getElementById('yearContent').innerHTML = '載入中...';
 
+  callApi({action:'getAssignments'}, res=>{
+    window._yearRaw.allAssignments = res.data || [];
+  });
+
   callApi({
     action:'getYearlyExperience',
     year:year
@@ -1390,10 +1394,7 @@ function openUserDetail(userId){
   const all = window._yearData || [];
   const p = all.find(x => String(x.user_id) === String(userId));
 
-  if (!p){
-    alert('找不到資料');
-    return;
-  }
+  if (!p) return;
 
   document.getElementById('userModal').classList.remove('hidden');
 
@@ -1407,57 +1408,117 @@ function openUserDetail(userId){
   const noShowRate = total ? Math.round((no_show/total)*100) : 0;
 
   const stable =
-    no_show === 0 && completed >= 10 ? '🔥 穩定' : '—';
+    no_show === 0 && completed >= 10 ? '🔥 穩定' : '-';
+
+
+  // ✅ ✅ ✅ 🔥 角色分布（直接從 raw 計算）
+  const roleMap = {};
+
+  const rawList = window._yearRaw?.allAssignments || [];
+
+  rawList.forEach(r=>{
+    if (String(r.user_id) !== String(userId)) return;
+
+    const role = r.role || '其他';
+
+    if (!roleMap[role]){
+      roleMap[role] = 0;
+    }
+    roleMap[role]++;
+  });
 
   document.getElementById('userContent').innerHTML = `
 
     <div style="padding:10px;">
 
-      <h3 style="margin-bottom:6px;">
+      <h3>
         ${p.name} ${stable}
       </h3>
 
-      <div style="color:#666;font-size:13px;margin-bottom:12px;">
+      <div style="color:#666;margin-bottom:12px;">
         聯盟等級：${p.league_level}
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
 
-        <div class="game-card">
-          經驗值<br>
-          <b style="font-size:22px;">${fmt(p.score_total)}</b>
-        </div>
-
-        <div class="game-card">
-          參與度<br>
-          <b style="font-size:22px;">${total}</b>
-        </div>
-
-        <div class="game-card">
-          出勤品質<br>
-          <b style="font-size:22px;">${fmt(p.quality)}</b>
-        </div>
-
-        <div class="game-card">
-          排位分數<br>
-          <b style="font-size:22px;">${fmt(p.final_score)}</b>
-        </div>
+        <div class="game-card">經驗值<br><b>${fmt(p.score_total)}</b></div>
+        <div class="game-card">參與度<br><b>${total}</b></div>
+        <div class="game-card">出勤品質<br><b>${fmt(p.quality)}</b></div>
+        <div class="game-card">排位分數<br><b>${fmt(p.final_score)}</b></div>
 
       </div>
 
-      <hr style="margin:14px 0;">
+      <hr>
 
-      <div style="font-size:14px;">
-
-        ✅ 完成：${completed} (${completedRate}%)<br>
-        ⚠️ 遲到：${late} (${lateRate}%)<br>
-        ❌ 缺席：${no_show} (${noShowRate}%)
-
+      <div style="margin-bottom:10px;">
+        完成：${completed} (${completedRate}%)<br>
+        遲到：${late} (${lateRate}%)<br>
+        缺席：${no_show} (${noShowRate}%)
       </div>
+
+      <hr>
+
+      <h4>📊 各角色分布</h4>
+      <canvas id="roleChart" width="260" height="260"></canvas>
 
     </div>
   `;
+
+  drawRoleChart(roleMap);
 }
+
+// 畫圓餅圖
+function drawRoleChart(data){
+
+  const canvas = document.getElementById('roleChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+
+  const values = Object.values(data);
+  const labels = Object.keys(data);
+
+  const total = values.reduce((a,b)=>a+b, 0);
+
+  if (!total){
+    ctx.fillText('無資料', 80, 120);
+    return;
+  }
+
+  const colors = [
+    '#2563eb','#16a34a','#f59e0b','#dc2626',
+    '#9333ea','#0ea5e9','#4f46e5','#6b7280'
+  ];
+
+  let start = 0;
+
+  values.forEach((v,i)=>{
+
+    const slice = (v/total) * Math.PI * 2;
+
+    ctx.beginPath();
+    ctx.moveTo(130,130);
+    ctx.arc(130,130,100, start, start+slice);
+    ctx.closePath();
+
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+
+    start += slice;
+  });
+
+  // ✅ ✅ ✅ 圖例
+  ctx.font = "12px sans-serif";
+
+  labels.forEach((l,i)=>{
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(10, 10 + i*16, 10, 10);
+
+    ctx.fillStyle = "#333";
+    ctx.fillText(l + ' (' + data[l] + ')', 25, 20 + i*16);
+  });
+}
+
 
 // 關閉個人分析模組
 function closeUserModal(){
