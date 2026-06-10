@@ -1492,7 +1492,6 @@ function drawRoleChart(data){
     return;
   }
 
-  // ✅ ✅ ✅ 固定角色顏色（重要）
   const colorMap = {
     '主審':'#2563eb',
     '一壘審':'#16a34a',
@@ -1505,7 +1504,7 @@ function drawRoleChart(data){
 
   let start = 0;
 
-  // ✅ ✅ ✅ 圓餅圖（左側）
+  // ✅ 圓餅
   values.forEach((v,i)=>{
 
     const slice = (v/total) * Math.PI * 2;
@@ -1523,7 +1522,12 @@ function drawRoleChart(data){
     start += slice;
   });
 
-  // ✅ ✅ ✅ 圖例（右側）
+  // ✅ ✅ 中心數（只畫一次）
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText(total + '場', 90, 135);
+
+  // ✅ 圖例
   ctx.font = "13px sans-serif";
 
   labels.forEach((l,i)=>{
@@ -1531,25 +1535,22 @@ function drawRoleChart(data){
     const count = data[l];
     const percent = Math.round((count/total) * 100);
 
-    const y = 40 + i * 20;
+    const y = 60 + i * 26;
 
     const color = colorMap[l] || '#999';
 
-    // 色塊
     ctx.fillStyle = color;
-    ctx.fillRect(220, y, 12, 12);
+    ctx.fillRect(240, y, 12, 12);
 
-    // 文字
     ctx.fillStyle = "#333";
     ctx.fillText(
-      `${l} ${count} (${percent}%)`,
-      240,
+      `${l}  ${count} (${percent}%)`,
+      260,
       y + 10
     );
 
   });
 }
-
 
 
 // 關閉個人分析模組
