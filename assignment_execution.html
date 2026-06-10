@@ -1146,10 +1146,6 @@ function loadYearly(){
   document.getElementById('yearModal').classList.remove('hidden');
   document.getElementById('yearContent').innerHTML = '載入中...';
 
-  callApi({action:'getAssignments'}, res=>{
-    window._yearRaw.allAssignments = res.data || [];
-  });
-
   callApi({
     action:'getYearlyExperience',
     year:year
@@ -1173,6 +1169,10 @@ function loadYearly(){
     window._yearRaw = { judge, record };
     window._yearData = all;
     window._yearType = 'all';
+
+    callApi({action:'getAssignments'}, res=>{
+      window._yearRaw.allAssignments = res.data || [];
+    });
 
     // ✅ ✅ ✅ 防空
     if (!all.length){
@@ -1419,7 +1419,8 @@ function openUserDetail(userId){
   rawList.forEach(r=>{
     if (String(r.user_id) !== String(userId)) return;
 
-    const role = r.role || '其他';
+    // const role = r.role || '其他';
+    const role = mapRole(r.role) || '其他';
 
     if (!roleMap[role]){
       roleMap[role] = 0;
@@ -1523,6 +1524,22 @@ function drawRoleChart(data){
 // 關閉個人分析模組
 function closeUserModal(){
   document.getElementById('userModal').classList.add('hidden');
+}
+
+// 
+function mapRole(role){
+
+  const m = {
+    PU:'主審',
+    U1:'一壘審',
+    U2:'二壘審',
+    U3:'三壘審',
+    REC_MAIN:'紀錄員',
+    REC_VIDEO:'影像',
+    REC_TRAINEE:'實習'
+  };
+
+  return m[role] || role;
 }
 </script>
 
