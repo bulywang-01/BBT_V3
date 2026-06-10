@@ -1140,21 +1140,28 @@ function loadYearly(){
     console.log('年度API=', res);
 
     if (!res || res.result !== 'ok'){
-      document.getElementById('yearContent').innerHTML = '<div class="empty">❌ 讀取失敗</div>';
+      document.getElementById('yearContent').innerHTML =
+        '<div class="empty">❌ 讀取失敗</div>';
       return;
     }
 
-    const data = res.data || [];
+    // ✅ ✅ ✅ ✅ ✅ ✅✅✅✅ 關鍵修正（這行）
+    const judge = res.judge || [];
+    const record = res.record || [];
 
-    // ✅ ✅ ✅ 防真正空資料
-    if (!data.length){
+    const all = [...judge, ...record];
+
+    // ✅ ✅ ✅ 保存
+    window._yearRaw = { judge, record };
+    window._yearData = all;
+    window._yearType = 'all';
+
+    // ✅ ✅ ✅ 防空
+    if (!all.length){
       document.getElementById('yearContent').innerHTML =
         '<div class="empty">目前沒有統計資料</div>';
       return;
     }
-
-    window._yearData = data;
-    window._yearType = 'all';
 
     renderYearTable('all');
   });
@@ -1166,21 +1173,18 @@ function renderYearTable(type){
 
   window._yearType = type;
 
-  let list = window._yearData || [];
+  let list = [];
 
-  // ✅ role分類（正確版）
   if (type === 'judge'){
-    list = list.filter(x =>
-      ['PU','U1','U2','U3'].includes(x.role)
-    );
+    list = window._yearRaw?.judge || [];
   }
   else if (type === 'record'){
-    list = list.filter(x =>
-      String(x.role).includes('REC')
-    );
+    list = window._yearRaw?.record || [];
+  }
+  else {
+    list = window._yearData || [];
   }
 
-  // ✅ ✅ ✅ 防 filter 後變空
   if (!list.length){
     document.getElementById('yearContent').innerHTML = `
       <div style="margin-bottom:8px;">
@@ -1188,9 +1192,9 @@ function renderYearTable(type){
       </div>
       <div class="empty">此分類沒有資料</div>
     `;
-
     return;
   }
+
   drawTable(list);
 }
 
