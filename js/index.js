@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ✅ 載入本週出勤提醒
   loadWeeklyReminder();
   
-  // ✅ 
-  // loadHomeGames();
+  // ✅ 截入個人數據分析
+  loadHomeUserAnalysis();
 
 });
 
@@ -867,4 +867,387 @@ function renderWeeklyCard(g){
 
     </div>
   `;
+}
+
+// 個人數據分析
+function loadHomeUserAnalysis(){
+
+  callApi({
+    action:'getYearlyExperience',
+    year: new Date().getFullYear()
+  }, res=>{
+
+    if (!res || res.result !== 'ok') return;
+
+    const all = [...(res.judge||[]), ...(res.record||[])];
+
+    const me = all.find(x =>
+      String(x.user_id) === String(session.user_id)
+    );
+
+    if (!me){
+      document.getElementById('home-user-analysis').innerHTML =
+        '查無資料';
+      return;
+    }
+
+    // ✅ ✅ ✅ ✅ ✅ 🔥 補這段（關鍵）
+    callApi({action:'getAssignments'}, res2=>{
+
+      window._yearRaw = {
+        judge: res.judge || [],
+        record: res.record || [],
+        allAssignments: res2?.data || []
+      };
+
+      window._yearData = all;
+
+      renderHomeUserAnalysis(me);
+
+    });
+
+  });
+}
+
+// 搭配上面的function
+// 個人數據分析 - 數據
+function renderHomeUserAnalysis(p){
+
+  const total = p.attendance ?? 0;
+  const completed = p.completed ?? 0;
+  const rate = total ? Math.round((completed/total)*100) : 0;
+
+  document.getElementById('home-user-analysis').innerHTML = `
+
+    <div style="
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    ">
+
+      <!-- ✅ KPI -->
+      <div class="user-stats">
+
+        <div class="stat-card">
+          <div class="stat-title">經驗值</div>
+          <div class="stat-value">${p.score_total}</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">參與度</div>
+          <div class="stat-value">${total}</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">出勤率</div>
+          <div class="stat-value">${rate}%</div>
+        </div>
+
+      </div>
+
+      <!-- ✅ 只留按鈕 -->
+      <div style="
+        display:flex;
+        justify-content:flex-end;
+      ">
+        <button class="pill pill-blue"
+          onclick="openFullAnalysis('${p.user_id}')">
+          查看完整分析 →
+        </button>
+      </div>
+
+    </div>
+
+  `;
+}
+
+
+// 打開完整個人數據分析
+function openFullAnalysis(userId){
+  openUserDetail(userId);
+}
+
+// 個人分析模組
+function openUserDetail(userId){
+
+  if (!window._yearRaw?.allAssignments?.length){
+    alert('資料尚未載入完成');
+    return;
+  }
+
+  const all = window._yearData || [];
+  const p = all.find(x => String(x.user_id) === String(userId));
+  if (!p) return;
+
+  const modal = document.getElementById('userModal');
+    if (!modal) return;   // ✅ 防炸
+    modal.style.display = 'flex';
+
+
+  // =========================
+  // ✅ 年度資料
+  // =========================
+  const total = p.attendance ?? 0;
+  const completed = p.completed ?? 0;
+  const late = p.late ?? 0;
+  const no_show = p.no_show ?? 0;
+
+  const rate = total ? Math.round((completed/total)*100) : 0;
+
+  // =========================
+  // ✅ 生涯資料（從 assignment 算🔥）
+  // =========================
+  let career_completed = 0;
+  let career_late = 0;
+  let career_no_show = 0;
+
+  const roleMap = {};
+
+  window._yearRaw.allAssignments.forEach(g=>{
+
+    (g.list || []).forEach(item=>{
+
+      if (String(item.user_id) !== String(userId)) return;
+
+      // ✅ 生涯出勤狀態
+      if (item.status === 'completed') career_completed++;
+      if (item.status === 'late') career_late++;
+      if (item.status === 'no_show') career_no_show++;
+
+      // ✅ 生涯角色分布
+      const role = mapRole(item.role);
+
+      roleMap[role] = (roleMap[role] || 0) + 1;
+
+    });
+
+  });
+
+  const career_total = career_completed + career_late + career_no_show;
+
+  const stable =
+    no_show === 0 && completed >= 10 ? '🔥 穩定' : '';
+
+document.getElementById('userContent').innerHTML = `
+<div style="padding:12px;">
+
+  <!-- ✅ 頭 -->
+  <div style="margin-bottom:10px;">
+    <div style="font-size:20px;font-weight:800;">
+      ${p.name}
+    </div>
+    <div style="color:#6b7280;font-size:13px;">
+      聯盟等級：${renderLevel(p.league_level)}
+    </div>
+  </div>
+
+  <!-- ✅ KPI（2x2） -->
+  <div class="grid-4">
+
+    ${cardMini('經驗值', fmt(p.score_total))}
+    ${cardMini('參與度', total)}
+    ${cardMini('出勤品質', fmt(p.quality))}
+    ${cardMini('排位分數', fmt(p.final_score))}
+
+  </div>
+
+  <hr style="margin:14px 0;">
+
+  <!-- ✅ 出勤表 -->
+  <div>
+    <div style="font-weight:700;margin-bottom:6px;">
+      📊 出勤概況
+    </div>
+
+    <table class="table-compact">
+      <tr>
+        <th></th>
+        <th>完成</th>
+        <th>遲到</th>
+        <th>缺席</th>
+      </tr>
+      <tr>
+        <td>年度</td>
+        <td>${completed}</td>
+        <td>${late}</td>
+        <td>${no_show}</td>
+      </tr>
+      <tr>
+        <td>生涯</td>
+        <td>${career_completed}</td>
+        <td>${career_late}</td>
+        <td>${career_no_show}</td>
+      </tr>
+    </table>
+  </div>
+
+  <hr style="margin:14px 0;">
+
+  <!-- ✅ 圓餅圖 -->
+  <div>
+    <div style="font-weight:700;margin-bottom:6px;">
+      📊 角色分布
+    </div>
+    <canvas id="roleChart" width="320" height="240"></canvas>
+  </div>
+
+</div>
+`;
+
+  drawRoleChart(roleMap);
+}
+
+// 畫圓餅圖
+function drawRoleChart(data){
+
+  const canvas = document.getElementById('roleChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const values = Object.values(data);
+  const labels = Object.keys(data);
+
+  const total = values.reduce((a,b)=>a+b, 0);
+
+  if (!total){
+    ctx.font = "14px sans-serif";
+    ctx.fillText('無資料', 90, 130);
+    return;
+  }
+
+  const colorMap = {
+    '主審':'#2563eb',
+    '一壘審':'#16a34a',
+    '二壘審':'#f59e0b',
+    '三壘審':'#dc2626',
+    '紀錄員':'#9333ea',
+    '影像紀錄員':'#0ea5e9',
+    '實習紀錄員':'#6b7280'
+  };
+
+  let start = 0;
+
+  // ✅ 圓餅
+  values.forEach((v,i)=>{
+
+    const slice = (v/total) * Math.PI * 2;
+
+    ctx.beginPath();
+    ctx.moveTo(110,130);
+    ctx.arc(110,130,90, start, start+slice);
+    ctx.closePath();
+
+    const color = colorMap[labels[i]] || '#999';
+
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    start += slice;
+  });
+
+  // ✅ ✅ 中心數（只畫一次）
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 16px sans-serif";
+  ctx.fillText(total + '場', 90, 135);
+
+  // ✅ 圖例
+  ctx.font = "13px sans-serif";
+
+  labels.forEach((l,i)=>{
+
+    const count = data[l];
+    const percent = Math.round((count/total) * 100);
+
+    const y = 60 + i * 26;
+
+    const color = colorMap[l] || '#999';
+
+
+    // ✅ ① 先畫色塊
+    ctx.fillStyle = color;
+    ctx.fillRect(210, y, 12, 12);
+  
+    // ✅ ② 再畫文字（蓋在上面）
+    ctx.fillStyle = "#333";
+    ctx.font = "13px sans-serif";
+
+    // 調整圖示文字位置
+    ctx.fillText(
+      `${l}  ${count} (${percent}%)`,
+       230,
+      y + 10
+    );
+
+  });
+}
+
+// 等級
+function renderLevel(lv){
+
+  const map = {
+    S:{c:'#9333ea',t:'S'},
+    A:{c:'#2563eb',t:'A'},
+    B:{c:'#16a34a',t:'B'},
+    C:{c:'#d97706',t:'C'},
+    N:{c:'#6b7280',t:'N'}
+  };
+
+  const m = map[lv] || map.N;
+
+  return `<span style="color:${m.c};font-weight:700">${m.t}</span>`;
+}
+
+// 關閉個人分析模組
+function closeUserModal(){
+  const modal = document.getElementById('userModal');
+  if (!modal) return;
+
+  modal.style.display = 'none';   // ✅ 關鍵
+}
+
+
+// 英文代碼中文化
+function mapRole(role){
+
+  const m = {
+    PU:'主審',
+    U1:'一壘審',
+    U2:'二壘審',
+    U3:'三壘審',
+    REC_MAIN:'紀錄員',
+    REC_VIDEO:'影像紀錄員',
+    REC_TRAINEE:'實習紀錄員'
+  };
+
+  return m[role] || role;
+}
+
+// 卡片美化用
+function card(label, value){
+  return `
+    <div class="stat-card">
+      <div class="stat-title">${label}</div>
+      <div class="stat-value">${value}</div>
+    </div>
+  `;
+}
+
+function cardMini(label, value){
+  return `
+    <div class="card-mini">
+      <div class="mini-title">${label}</div>
+      <div class="mini-value">${value}</div>
+    </div>
+  `;
+}
+
+// ✅ 分數格式
+function fmt(n){
+  const num = Number(n ?? 0);
+  return Number.isInteger(num) ? num : num.toFixed(2);
 }
