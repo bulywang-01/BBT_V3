@@ -166,22 +166,30 @@ function openRecordModal(gameId, role) {
     };
 
     const sorted = res.records.sort((a, b) => {
-
-      // ✅ 第二碼（紀錄證）
-      const levelA = (a.level || 'N,N').split(',')[1].trim().toUpperCase();
-      const levelB = (b.level || 'N,N').split(',')[1].trim().toUpperCase();
-
-      const scoreA = levelPriority[levelA] || 0;
-      const scoreB = levelPriority[levelB] || 0;
-
+    
+      const getLevel = (item) => {
+        const raw = item?.level || 'N,N';
+    
+        const parts = raw.split(',');
+    
+        // ✅ 如果沒有第二段 → fallback N
+        const lv = (parts[1] || parts[0] || 'N').trim().toUpperCase();
+    
+        return levelPriority[lv] || 0;
+      };
+    
+      const scoreA = getLevel(a);
+      const scoreB = getLevel(b);
+    
       // ✅ 1️⃣ 證照優先
       if (scoreA !== scoreB) {
         return scoreB - scoreA;
       }
-
-      // ✅ 2️⃣ 姓名排序
+    
+      // ✅ 2️⃣ 姓名排序（安全）
       return (a.name || '').localeCompare(b.name || '', 'zh-Hant');
     });
+
 
     /* ✅ 建立 UI */
     sorted.forEach(r => {
