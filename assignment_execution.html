@@ -1129,7 +1129,6 @@ function loadYearly(){
 
   const year = new Date().getFullYear();
 
-  // ✅ 打開 modal
   document.getElementById('yearModal').classList.remove('hidden');
   document.getElementById('yearContent').innerHTML = '載入中...';
 
@@ -1138,62 +1137,145 @@ function loadYearly(){
     year:year
   }, res=>{
 
-    console.log(res);
-
     if (!res || res.result !== 'ok'){
       document.getElementById('yearContent').innerHTML = '❌ 讀取失敗';
       return;
     }
 
-    renderYearly(res.data || []);
+    window._yearData = res.data || [];
+    renderYearTable('all');
   });
 }
 
-// 年度統計的表格
-function renderYearly(list){
+// 切換（裁判 / 紀錄）
+function renderYearTable(type){
 
-  if (!list.length){
-    document.getElementById('yearContent').innerHTML =
-      '<div class="empty">沒有資料</div>';
-    return;
+  let list = window._yearData || [];
+
+  if (type === 'judge'){
+    list = list.filter(x => String(x.role).includes('judge'));
+  }
+  else if (type === 'record'){
+    list = list.filter(x => String(x.role).includes('record'));
   }
 
-  list.sort((a,b)=> (b.total||0) - (a.total||0));
+  drawTable(list);
+}
 
+// 年度統計的表格
+// 表格（最終UI）
+function drawTable(list){
+
+ // ✅ 排序 + rank（補上）
+  list.sort((a,b)=>{
+    if (b.completed !== a.completed){
+      return b.completed - a.completed;
+    }
+    return b.final_score - a.final_score;
+  });
+  
+  list.forEach((u,i)=> u.rank = i+1);
+   
   document.getElementById('yearContent').innerHTML = `
+    <div style="margin-bottom:8px;">
+     <button
+       onclick="switchYearType('all')"
+       style="${window._yearType==='all'?'background:#2563eb;color:#fff':''}">
+       全部
+     </button>
+     
+     <button 
+       onclick="switchYearType('judge')"
+       style="${window._yearType==='judge'?'background:#2563eb;color:#fff':''}">
+       裁判
+     </button>
+     
+     <button 
+       onclick="switchYearType('record')"
+       style="${window._yearType==='record'?'background:#2563eb;color:#fff':''}">
+       紀錄
+     </button>
+    </div>
+
     <table class="year-table">
       <thead>
         <tr>
           <th>排名</th>
           <th>姓名</th>
+          <th>等級</th>
           <th>出勤</th>
           <th>完成</th>
           <th>遲到</th>
           <th>缺席</th>
+          <th>出勤分</th>
+          <th>品質</th>
           <th>總分</th>
         </tr>
       </thead>
 
       <tbody>
-        ${list.map((u,i)=>`
+        ${list.map(p=>`
+
           <tr>
-            <td>${i+1}</td>
-            <td style="font-weight:700">${u.name}</td>
-            <td>${u.total || 0}</td>
-            <td style="color:#16a34a">${u.completed || 0}</td>
-            <td style="color:#f59e0b">${u.late || 0}</td>
-            <td style="color:#dc2626">${u.no_show || 0}</td>
-            <td>${(u.final_score||0).toFixed(0)}</td>
+            <td>${p.rank}</td>
+
+            <td style="font-weight:700;">
+              ${p.name}
+              <div style="font-size:11px;color:#6b7280;">
+                生涯 ${p.career_total || 0} 場
+              </div>
+            </td>
+
+            <td>${renderLevel(p.league_level)}</td>
+
+            <td>${p.total}</td>
+            <td style="color:#16a34a">${p.completed}</td>
+            <td style="color:#f59e0b">${p.late}</td>
+            <td style="color:#dc2626">${p.no_show}</td>
+
+            <td style="color:#2563eb;font-weight:700;">
+              ${p.score_total || 0}
+            </td>
+
+            <td>${p.quality || 0}</td>
+
+            <td style="font-weight:800;">
+              ${p.final_score || 0}
+            </td>
+
           </tr>
+
         `).join('')}
       </tbody>
     </table>
   `;
 }
 
+// 等級
+function renderLevel(lv){
+
+  const map = {
+    S:{c:'#9333ea',t:'S'},
+    A:{c:'#2563eb',t:'A'},
+    B:{c:'#16a34a',t:'B'},
+    C:{c:'#d97706',t:'C'},
+    N:{c:'#6b7280',t:'N'}
+  };
+
+  const m = map[lv] || map.N;
+
+  return `<span style="color:${m.c};font-weight:700">${m.t}</span>`;
+}
+
 // 關閉年度統計的按
 function closeYearModal(){
   document.getElementById('yearModal').classList.add('hidden');
+}
+
+//
+function switchYearType(type){
+  window._yearType = type;
+  renderYearTable(type);
 }
 </script>
 
