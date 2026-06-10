@@ -1492,38 +1492,64 @@ function drawRoleChart(data){
     return;
   }
 
-  const colors = [
-    '#2563eb','#16a34a','#f59e0b','#dc2626',
-    '#9333ea','#0ea5e9','#4f46e5','#6b7280'
-  ];
+  // ✅ ✅ ✅ 固定角色顏色（重要）
+  const colorMap = {
+    '主審':'#2563eb',
+    '一壘審':'#16a34a',
+    '二壘審':'#f59e0b',
+    '三壘審':'#dc2626',
+    '紀錄員':'#9333ea',
+    '影像紀錄員':'#0ea5e9',
+    '實習紀錄員':'#6b7280'
+  };
 
   let start = 0;
 
+  // ✅ ✅ ✅ 圓餅圖（左側）
   values.forEach((v,i)=>{
 
     const slice = (v/total) * Math.PI * 2;
 
     ctx.beginPath();
-    ctx.moveTo(130,130);
-    ctx.arc(130,130,100, start, start+slice);
+    ctx.moveTo(110,130);
+    ctx.arc(110,130,90, start, start+slice);
     ctx.closePath();
 
-    ctx.fillStyle = colors[i % colors.length];
+    const color = colorMap[labels[i]] || '#999';
+
+    ctx.fillStyle = color;
     ctx.fill();
 
     start += slice;
   });
 
-  ctx.font = "12px sans-serif";
+  // ✅ ✅ ✅ 圖例（右側）
+  ctx.font = "13px sans-serif";
 
   labels.forEach((l,i)=>{
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.fillRect(10, 10 + i*16, 10, 10);
 
+    const count = data[l];
+    const percent = Math.round((count/total) * 100);
+
+    const y = 40 + i * 20;
+
+    const color = colorMap[l] || '#999';
+
+    // 色塊
+    ctx.fillStyle = color;
+    ctx.fillRect(220, y, 12, 12);
+
+    // 文字
     ctx.fillStyle = "#333";
-    ctx.fillText(l + ' (' + data[l] + ')', 25, 20 + i*16);
+    ctx.fillText(
+      `${l} ${count} (${percent}%)`,
+      240,
+      y + 10
+    );
+
   });
 }
+
 
 
 // 關閉個人分析模組
