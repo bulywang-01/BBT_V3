@@ -1465,7 +1465,7 @@ function openUserDetail(userId){
       <hr>
 
       <h4>📊 各角色分布</h4>
-      <canvas id="roleChart" width="260" height="260"></canvas>
+      <canvas id="roleChart" width="360" height="260"></canvas>
 
     </div>
   `;
@@ -1540,12 +1540,12 @@ function drawRoleChart(data){
     const color = colorMap[l] || '#999';
 
     ctx.fillStyle = color;
-    ctx.fillRect(240, y, 12, 12);
+    ctx.fillRect(220, y, 12, 12);
 
     ctx.fillStyle = "#333";
     ctx.fillText(
       `${l}  ${count} (${percent}%)`,
-      260,
+      220,
       y + 10
     );
 
