@@ -1028,63 +1028,71 @@ function openUserDetail(userId){
   const stable =
     no_show === 0 && completed >= 10 ? '🔥 穩定' : '';
 
-    document.getElementById('userContent').innerHTML = `
-    <div style="padding:12px;">
-  
-      <h3 style="margin-bottom:6px;">
-        ${p.name} ${stable}
-      </h3>
-  
-      <div style="color:#666;margin-bottom:14px;">
-        聯盟等級：${renderLevel(p.league_level)}
-      </div>
-  
-      <!-- ✅ ✅ ✅ 卡片（自適應） -->
-      <div class="stat-grid">
-  
-        ${card('經驗值', fmt(p.score_total))}
-        ${card('參與度', total)}
-        ${card('出勤品質', fmt(p.quality))}
-        ${card('排位分數', fmt(p.final_score))}
-  
-      </div>
-  
-      <hr style="margin:14px 0;">
-  
-      <!-- ✅ ✅ ✅ 表格 -->
-      <table class="mini-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>完成</th>
-            <th>遲到</th>
-            <th>缺席</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>年度</td>
-            <td>${completed}</td>
-            <td>${late}</td>
-            <td>${no_show}</td>
-          </tr>
-          <tr>
-            <td>生涯</td>
-            <td>${career_completed}</td>
-            <td>${career_late}</td>
-            <td>${career_no_show}</td>
-          </tr>
-        </tbody>
-      </table>
-  
-      <hr style="margin:14px 0;">
-  
-      <h4>📊 各角色分布（生涯）</h4>
-      <canvas id="roleChart" width="380" height="260"></canvas>
-  
-    </div>
-  `;
+document.getElementById('userContent').innerHTML = `
+<div style="padding:12px;">
 
+  <!-- ✅ 頭 -->
+  <div style="margin-bottom:10px;">
+    <div style="font-size:20px;font-weight:800;">
+      ${p.name}
+    </div>
+    <div style="color:#6b7280;font-size:13px;">
+      聯盟等級：${renderLevel(p.league_level)}
+    </div>
+  </div>
+
+  <!-- ✅ KPI（2x2） -->
+  <div class="grid-4">
+
+    ${cardMini('經驗值', fmt(p.score_total))}
+    ${cardMini('參與度', total)}
+    ${cardMini('出勤品質', fmt(p.quality))}
+    ${cardMini('排位分數', fmt(p.final_score))}
+
+  </div>
+
+  <hr style="margin:14px 0;">
+
+  <!-- ✅ 出勤表 -->
+  <div>
+    <div style="font-weight:700;margin-bottom:6px;">
+      📊 出勤概況
+    </div>
+
+    <table class="table-compact">
+      <tr>
+        <th></th>
+        <th>完成</th>
+        <th>遲到</th>
+        <th>缺席</th>
+      </tr>
+      <tr>
+        <td>年度</td>
+        <td>${completed}</td>
+        <td>${late}</td>
+        <td>${no_show}</td>
+      </tr>
+      <tr>
+        <td>生涯</td>
+        <td>${career_completed}</td>
+        <td>${career_late}</td>
+        <td>${career_no_show}</td>
+      </tr>
+    </table>
+  </div>
+
+  <hr style="margin:14px 0;">
+
+  <!-- ✅ 圓餅圖 -->
+  <div>
+    <div style="font-weight:700;margin-bottom:6px;">
+      📊 角色分布
+    </div>
+    <canvas id="roleChart" width="320" height="240"></canvas>
+  </div>
+
+</div>
+`;
 
   drawRoleChart(roleMap);
 }
@@ -1221,6 +1229,15 @@ function card(label, value){
     <div class="stat-card">
       <div class="stat-title">${label}</div>
       <div class="stat-value">${value}</div>
+    </div>
+  `;
+}
+
+function cardMini(label, value){
+  return `
+    <div class="card-mini">
+      <div class="mini-title">${label}</div>
+      <div class="mini-value">${value}</div>
     </div>
   `;
 }
