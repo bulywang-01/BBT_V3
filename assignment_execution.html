@@ -1545,9 +1545,10 @@ function drawRoleChart(data){
     const color = colorMap[l] || '#999';
 
     ctx.fillStyle = color;
-    ctx.fillRect(170, y, 12, 12);
+    ctx.fillRect(200, y, 12, 12);
 
     ctx.fillStyle = "#333";
+    // 調整圖示文字位置
     ctx.fillText(
       `${l}  ${count} (${percent}%)`,
        260,
