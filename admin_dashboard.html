@@ -466,6 +466,18 @@
     color:#6b7280;
   }
 
+  
+  .card-group{
+    margin-bottom:14px;
+  }
+
+  .group-title{
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:800;
+    color:#6b7280;
+  }
+
   </style>
   
 </head>
@@ -526,39 +538,81 @@
 
     <!-- ✅ 功能框，固定存在 -->
       <div class="cards">
-
-        <div class="group-title">📅 排班管理</div>
-          <a href="judge_dashboard_admin.html">
-            <div class="card card-schedule"><span class="icon">⚾</span> 裁判員班表安排</div>
-          </a>
-          <a href="record_dashboard_admin.html">
-            <div class="card card-schedule"><span class="icon">📋</span> 紀錄員班表安排</div>
-          </a>
-        
-        <div class="group-title">✅ 出勤與執行</div>
-          <a href="assignment_execution.html">
-            <div class="card card-execution"><span class="icon">✅</span> 出勤確認</div>
-          </a>
-
-        <div class="group-title">⚙️ 系統管理</div>
-          <a href="admin_users.html">
-            <div class="card card-schedule"><span class="icon">👤</span> 帳號管理</div>
-          </a>
-          <a href="admin_games.html">
-            <div class="card card-schedule"><span class="icon">🏟️</span> 賽事管理</div>
-          </a>
-
-        <div class="group-title">📊 統計與報表</div>
-          <div class="card card-report" onclick="openAnnualModal('judge')">
-            <span class="icon">📈</span> 裁判員年度總表
+      
+        <!-- 排班管理 -->
+        <div class="card-group">
+          <div class="group-title">📅 排班管理</div>
+          <div class="group-grid">
+      
+            <a href="judge_dashboard_admin.html">
+              <div class="card card-schedule">
+                <span class="icon">⚾</span> 裁判員班表安排
+              </div>
+            </a>
+      
+            <a href="record_dashboard_admin.html">
+              <div class="card card-schedule">
+                <span class="icon">📋</span> 紀錄員班表安排
+              </div>
+            </a>
+      
           </div>
-          <div class="card card-report" onclick="openAnnualModal('record')">
-            <span class="icon">📝</span> 紀錄員年度總表
+        </div>
+      
+        <!-- 出勤 -->
+        <div class="card-group">
+          <div class="group-title">✅ 出勤與執行</div>
+          <div class="group-grid">
+      
+            <a href="assignment_execution.html">
+              <div class="card card-execution">
+                <span class="icon">✅</span> 出勤確認
+              </div>
+            </a>
+      
           </div>
-          <div class="card card-report" onclick="goReport()">
-            <span class="icon">📊</span> 出勤報表
+        </div>
+      
+        <!-- 系統 -->
+        <div class="card-group">
+          <div class="group-title">⚙️ 系統管理</div>
+          <div class="group-grid">
+      
+            <a href="admin_users.html">
+              <div class="card card-admin">
+                <span class="icon">👤</span> 帳號管理
+              </div>
+            </a>
+      
+            <a href="admin_games.html">
+              <div class="card card-admin">
+                <span class="icon">🏟️</span> 賽事管理
+              </div>
+            </a>
+      
           </div>
-        
+        </div>
+      
+        <!-- 報表 -->
+        <div class="card-group">
+          <div class="group-title">📊 統計與報表</div>
+          <div class="group-grid">
+      
+            <div class="card card-report" onclick="openAnnualModal('judge')">
+              <span class="icon">📈</span> 裁判員年度總表
+            </div>
+      
+            <div class="card card-report" onclick="openAnnualModal('record')">
+              <span class="icon">📝</span> 紀錄員年度總表
+            </div>
+      
+            <div class="card card-report" onclick="goReport()">
+              <span class="icon">📊</span> 出勤報表
+            </div>
+      
+          </div>
+        </div>
+      
       </div>
 
   <!-- ✅ Modal 永遠在最外層，而且預設 hidden -->
