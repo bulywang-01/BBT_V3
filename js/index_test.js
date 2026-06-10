@@ -1204,8 +1204,12 @@ function renderLevel(lv){
 
 // 關閉個人分析模組
 function closeUserModal(){
-  document.getElementById('userModal').classList.add('hidden');
+  const modal = document.getElementById('userModal');
+  if (!modal) return;
+
+  modal.style.display = 'none';   // ✅ 關鍵
 }
+
 
 // 英文代碼中文化
 function mapRole(role){
