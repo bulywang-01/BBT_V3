@@ -1297,8 +1297,14 @@ function drawTable(list){
 
   list.forEach(p=>{
 
-    const total = p.total ?? 0;
-    const career = p.career_total ?? total;
+    const total = p.attendance ?? 0;
+    const career = p.career_attendance ?? total;
+   
+    // 出勤率
+    const rate = total > 0
+      ? Math.round((p.completed / total) * 100)
+      : 0;
+
 
     html += '<tr>';
 
