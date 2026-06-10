@@ -267,6 +267,58 @@ body{
   padding:6px;
   border-bottom:1px solid #eee;
 }
+
+/* ✅ 卡片 */
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+@media(max-width:600px){
+  .stat-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+.stat-card{
+  background:#fff;
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.stat-title{
+  font-size:12px;
+  color:#666;
+  margin-bottom:4px;
+}
+
+.stat-value{
+  font-size:18px;
+  font-weight:700;
+}
+
+
+/* ✅ 小表格 */
+.mini-table{
+  width:100%;
+  border-collapse:collapse;
+  text-align:center;
+  font-size:14px;
+}
+
+.mini-table th,
+.mini-table td{
+  padding:6px;
+  border-bottom:1px solid #eee;
+}
+
+.mini-table th{
+  color:#666;
+  font-size:13px;
+}
 </style>
 </head>
 
@@ -1442,55 +1494,63 @@ function openUserDetail(userId){
   const stable =
     no_show === 0 && completed >= 10 ? '🔥 穩定' : '';
 
-  document.getElementById('userContent').innerHTML = `
-    <div style="padding:10px;">
-
-      <h3>${p.name} ${stable}</h3>
-
-      <div style="color:#666;margin-bottom:12px;">
+    document.getElementById('userContent').innerHTML = `
+    <div style="padding:12px;">
+  
+      <h3 style="margin-bottom:6px;">
+        ${p.name} ${stable}
+      </h3>
+  
+      <div style="color:#666;margin-bottom:14px;">
         聯盟等級：${renderLevel(p.league_level)}
       </div>
-
-      <!-- ✅ ✅ ✅ 1️⃣ 同一排 -->
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(4,1fr);
-        gap:10px;
-      ">
-
-        <div class="game-card">經驗值<br><b>${fmt(p.score_total)}</b></div>
-        <div class="game-card">參與度<br><b>${total}</b></div>
-        <div class="game-card">出勤品質<br><b>${fmt(p.quality)}</b></div>
-        <div class="game-card">排位分數<br><b>${fmt(p.final_score)}</b></div>
-
+  
+      <!-- ✅ ✅ ✅ 卡片（自適應） -->
+      <div class="stat-grid">
+  
+        ${card('經驗值', fmt(p.score_total))}
+        ${card('參與度', total)}
+        ${card('出勤品質', fmt(p.quality))}
+        ${card('排位分數', fmt(p.final_score))}
+  
       </div>
-
-      <hr>
-
-      <!-- ✅ ✅ ✅ 2️⃣ 年度 -->
-      <div style="margin-bottom:8px;">
-        <b>📅 年度</b><br>
-        完成：${completed} (${rate}%)　
-        遲到：${late}　
-        缺席：${no_show}
-      </div>
-
-      <!-- ✅ ✅ ✅ 2️⃣ 生涯 -->
-      <div style="margin-bottom:10px;">
-        <b>🏆 生涯</b><br>
-        完成：${career_completed}　
-        遲到：${career_late}　
-        缺席：${career_no_show}　
-        （共 ${career_total} 場）
-      </div>
-
-      <hr>
-
+  
+      <hr style="margin:14px 0;">
+  
+      <!-- ✅ ✅ ✅ 表格 -->
+      <table class="mini-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>完成</th>
+            <th>遲到</th>
+            <th>缺席</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>年度</td>
+            <td>${completed}</td>
+            <td>${late}</td>
+            <td>${no_show}</td>
+          </tr>
+          <tr>
+            <td>生涯</td>
+            <td>${career_completed}</td>
+            <td>${career_late}</td>
+            <td>${career_no_show}</td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <hr style="margin:14px 0;">
+  
       <h4>📊 各角色分布（生涯）</h4>
       <canvas id="roleChart" width="380" height="260"></canvas>
-
+  
     </div>
   `;
+
 
   drawRoleChart(roleMap);
 }
@@ -1605,6 +1665,16 @@ function mapRole(role){
   };
 
   return m[role] || role;
+}
+
+// 卡片美化用
+function card(label, value){
+  return `
+    <div class="stat-card">
+      <div class="stat-title">${label}</div>
+      <div class="stat-value">${value}</div>
+    </div>
+  `;
 }
 </script>
 
