@@ -1151,43 +1151,43 @@ function loadYearly(){
     year:year
   }, res=>{
 
-    console.log('年度API=', res);
-
     if (!res || res.result !== 'ok'){
       document.getElementById('yearContent').innerHTML =
         '<div class="empty">❌ 讀取失敗</div>';
       return;
     }
 
-    // ✅ ✅ ✅ ✅ ✅ ✅✅✅✅ 關鍵修正（這行）
     const judge = res.judge || [];
     const record = res.record || [];
-
     const all = [...judge, ...record];
 
-    // ✅ ✅ ✅ 保存
-    window._yearRaw = { judge, record };
+    window._yearRaw = {
+      judge,
+      record,
+      allAssignments: []
+    };
+
     window._yearData = all;
     window._yearType = 'all';
 
-    callApi({action:'getAssignments'}, res=>{
-      window._yearRaw.allAssignments = res.data || [];
+    // ✅ ✅ ✅ 關鍵：一定要先抓 assignment
+    callApi({action:'getAssignments'}, res2=>{
+
+      window._yearRaw.allAssignments = res2?.data || [];
+
+      console.log('✅ assignments loaded',
+        window._yearRaw.allAssignments.length
+      );
+
+      renderYearTable('all');
+
     });
 
-    // ✅ ✅ ✅ 防空
-    if (!all.length){
-      document.getElementById('yearContent').innerHTML =
-        '<div class="empty">目前沒有統計資料</div>';
-      return;
-    }
-
-    renderYearTable('all');
   });
 }
 
 
 // 切換（裁判 / 紀錄）
-
 function renderYearTable(type){
 
   window._yearType = type;
@@ -1205,16 +1205,13 @@ function renderYearTable(type){
   }
 
   if (!list.length){
-    document.getElementById('yearContent').innerHTML = `
-      <div>${renderYearTabs()}</div>
-      <div class="empty">此分類沒有資料</div>
-    `;
+    document.getElementById('yearContent').innerHTML =
+      '<div class="empty">此分類沒有資料</div>';
     return;
   }
 
   drawTable(list);
 }
-
 
 // 年度統計 Tab 抽出
 function renderYearTabs(){
@@ -1260,7 +1257,6 @@ function rankIcon(r){
 // 表格（最終UI）
 function drawTable(list){
 
-  // ✅ 排序
   list.sort((a,b)=>{
     if ((b.final_score ?? 0) !== (a.final_score ?? 0)){
       return (b.final_score ?? 0) - (a.final_score ?? 0);
@@ -1296,16 +1292,15 @@ function drawTable(list){
 
   html += '<th>排名</th>';
   html += '<th>姓名</th>';
-  html += '<th title="聯盟等級：依據生涯出勤、表現與穩定度綜合評估">等級</th>';
+  html += '<th>等級</th>';
   html += '<th>出勤</th>';
   html += '<th>完成</th>';
   html += '<th>遲到</th>';
   html += '<th>缺席</th>';
-
-  html += '<th title="依角色與比賽累積的經驗">經驗值</th>';
-  html += '<th title="實際出勤次數">參與度</th>';
-  html += '<th title="完成率 / 遲到 / 缺席綜合評分">出勤品質</th>';
-  html += '<th title="最終排名依據">排位分數</th>';
+  html += '<th>經驗值</th>';
+  html += '<th>參與度</th>';
+  html += '<th>出勤品質</th>';
+  html += '<th>排位分數</th>';
 
   html += '</tr></thead><tbody>';
 
@@ -1325,10 +1320,11 @@ function drawTable(list){
 
     html += '<td>'+rankIcon(p.rank)+'</td>';
 
-    html += '<td style="font-weight:700;"><span style="cursor:pointer;color:#2563eb;" onclick="openUserDetail('+ "'"+p.user_id+"'" +')">';
+    html += '<td style="font-weight:700;">';
+    html += '<span style="cursor:pointer;color:#2563eb;" onclick="openUserDetail(\''+p.user_id+'\')">';
     html += (p.name || '-') + ' ' + stable;
     html += '</span>';
-   
+
     html += '<div style="font-size:11px;color:#6b7280;">';
     html += '生涯 ' + career + ' 場';
     html += '</div>';
@@ -1339,17 +1335,16 @@ function drawTable(list){
     html += '<td>'+total+'</td>';
 
     html += '<td style="color:#16a34a">';
-    html += (p.completed ?? 0);
+    html += p.completed;
     html += '<div style="font-size:11px;color:#999;">'+rate+'%</div>';
     html += '</td>';
 
-    html += '<td style="color:#f59e0b">'+(p.late ?? 0)+'</td>';
-    html += '<td style="color:#dc2626">'+(p.no_show ?? 0)+'</td>';
+    html += '<td style="color:#f59e0b">'+p.late+'</td>';
+    html += '<td style="color:#dc2626">'+p.no_show+'</td>';
 
-    // ✅ ✅ ✅ 正確三欄
-    html += '<td>'+fmt(p.score_total)+'</td>';         // 經驗值
-    html += '<td>'+total+'</td>';                      // 參與度
-    html += '<td>'+fmt(p.quality)+'</td>';             // 出勤品質
+    html += '<td>'+fmt(p.score_total)+'</td>';
+    html += '<td>'+total+'</td>';
+    html += '<td>'+fmt(p.quality)+'</td>';
     html += '<td style="font-weight:800;">'+fmt(p.final_score)+'</td>';
 
     html += '</tr>';
@@ -1413,7 +1408,7 @@ function openUserDetail(userId){
 
   // ✅ ✅ ✅ 🔥 角色分布（直接從 raw 計算）
   const roleMap = {};
-  
+  console.log('assignments=', window._yearRaw.allAssignments);
   const games = window._yearRaw?.allAssignments || [];
   
   games.forEach(g=>{
@@ -1423,7 +1418,9 @@ function openUserDetail(userId){
     list.forEach(p=>{
   
       if (String(p.user_id) !== String(userId)) return;
-  
+     
+      console.log('比對', p.user_id, userId);
+     
       const role = mapRole(p.role) || '其他';
   
       if (!roleMap[role]){
@@ -1490,7 +1487,8 @@ function drawRoleChart(data){
   const total = values.reduce((a,b)=>a+b, 0);
 
   if (!total){
-    ctx.fillText('無資料', 80, 120);
+    ctx.font = "14px sans-serif";
+    ctx.fillText('無資料', 90, 130);
     return;
   }
 
@@ -1516,7 +1514,6 @@ function drawRoleChart(data){
     start += slice;
   });
 
-  // ✅ ✅ ✅ 圖例
   ctx.font = "12px sans-serif";
 
   labels.forEach((l,i)=>{
@@ -1534,7 +1531,7 @@ function closeUserModal(){
   document.getElementById('userModal').classList.add('hidden');
 }
 
-// 
+// 英文代碼中文化
 function mapRole(role){
 
   const m = {
@@ -1543,8 +1540,8 @@ function mapRole(role){
     U2:'二壘審',
     U3:'三壘審',
     REC_MAIN:'紀錄員',
-    REC_VIDEO:'影像',
-    REC_TRAINEE:'實習'
+    REC_VIDEO:'影像紀錄員',
+    REC_TRAINEE:'實習紀錄員'
   };
 
   return m[role] || role;
