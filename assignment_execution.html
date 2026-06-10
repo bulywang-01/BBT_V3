@@ -1387,66 +1387,76 @@ function switchYearType(type){
 // 個人分析模組
 function openUserDetail(userId){
 
+  if (!window._yearRaw?.allAssignments?.length){
+    alert('資料尚未載入完成');
+    return;
+  }
+
   const all = window._yearData || [];
   const p = all.find(x => String(x.user_id) === String(userId));
-
   if (!p) return;
 
   document.getElementById('userModal').classList.remove('hidden');
 
+  // =========================
+  // ✅ 年度資料
+  // =========================
   const total = p.attendance ?? 0;
   const completed = p.completed ?? 0;
   const late = p.late ?? 0;
   const no_show = p.no_show ?? 0;
 
-  const completedRate = total ? Math.round((completed/total)*100) : 0;
-  const lateRate = total ? Math.round((late/total)*100) : 0;
-  const noShowRate = total ? Math.round((no_show/total)*100) : 0;
+  const rate = total ? Math.round((completed/total)*100) : 0;
 
-  const stable =
-    no_show === 0 && completed >= 10 ? '🔥 穩定' : '-';
+  // =========================
+  // ✅ 生涯資料（從 assignment 算🔥）
+  // =========================
+  let career_completed = 0;
+  let career_late = 0;
+  let career_no_show = 0;
 
-
-  // ✅ ✅ ✅ 🔥 角色分布（直接從 raw 計算）
   const roleMap = {};
-  console.log('assignments=', window._yearRaw.allAssignments);
-  const games = window._yearRaw?.allAssignments || [];
-  
-  games.forEach(g=>{
-  
-    const list = g.list || [];
-  
-    list.forEach(p=>{
-  
-      if (String(p.user_id) !== String(userId)) return;
-     
-      console.log('比對', p.user_id, userId);
-     
-      const role = mapRole(p.role) || '其他';
-  
-      if (!roleMap[role]){
-        roleMap[role] = 0;
-      }
-  
-      roleMap[role]++;
-  
+
+  window._yearRaw.allAssignments.forEach(g=>{
+
+    (g.list || []).forEach(item=>{
+
+      if (String(item.user_id) !== String(userId)) return;
+
+      // ✅ 生涯出勤狀態
+      if (item.status === 'completed') career_completed++;
+      if (item.status === 'late') career_late++;
+      if (item.status === 'no_show') career_no_show++;
+
+      // ✅ 生涯角色分布
+      const role = mapRole(item.role);
+
+      roleMap[role] = (roleMap[role] || 0) + 1;
+
     });
-  
+
   });
 
-  document.getElementById('userContent').innerHTML = `
+  const career_total = career_completed + career_late + career_no_show;
 
+  const stable =
+    no_show === 0 && completed >= 10 ? '🔥 穩定' : '';
+
+  document.getElementById('userContent').innerHTML = `
     <div style="padding:10px;">
 
-      <h3>
-        ${p.name} ${stable}
-      </h3>
+      <h3>${p.name} ${stable}</h3>
 
       <div style="color:#666;margin-bottom:12px;">
-        聯盟等級：${p.league_level}
+        聯盟等級：${renderLevel(p.league_level)}
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <!-- ✅ ✅ ✅ 1️⃣ 同一排 -->
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:10px;
+      ">
 
         <div class="game-card">經驗值<br><b>${fmt(p.score_total)}</b></div>
         <div class="game-card">參與度<br><b>${total}</b></div>
@@ -1457,22 +1467,34 @@ function openUserDetail(userId){
 
       <hr>
 
+      <!-- ✅ ✅ ✅ 2️⃣ 年度 -->
+      <div style="margin-bottom:8px;">
+        <b>📅 年度</b><br>
+        完成：${completed} (${rate}%)　
+        遲到：${late}　
+        缺席：${no_show}
+      </div>
+
+      <!-- ✅ ✅ ✅ 2️⃣ 生涯 -->
       <div style="margin-bottom:10px;">
-        完成：${completed} (${completedRate}%)<br>
-        遲到：${late} (${lateRate}%)<br>
-        缺席：${no_show} (${noShowRate}%)
+        <b>🏆 生涯</b><br>
+        完成：${career_completed}　
+        遲到：${career_late}　
+        缺席：${career_no_show}　
+        （共 ${career_total} 場）
       </div>
 
       <hr>
 
-      <h4>📊 各角色分布</h4>
-      <canvas id="roleChart" width="400" height="260"></canvas>
+      <h4>📊 各角色分布（生涯）</h4>
+      <canvas id="roleChart" width="380" height="260"></canvas>
 
     </div>
   `;
 
   drawRoleChart(roleMap);
 }
+
 
 // 畫圓餅圖
 function drawRoleChart(data){
