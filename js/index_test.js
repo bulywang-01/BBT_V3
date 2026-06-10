@@ -1178,6 +1178,21 @@ function drawRoleChart(data){
   });
 }
 
+// 等級
+function renderLevel(lv){
+
+  const map = {
+    S:{c:'#9333ea',t:'S'},
+    A:{c:'#2563eb',t:'A'},
+    B:{c:'#16a34a',t:'B'},
+    C:{c:'#d97706',t:'C'},
+    N:{c:'#6b7280',t:'N'}
+  };
+
+  const m = map[lv] || map.N;
+
+  return `<span style="color:${m.c};font-weight:700">${m.t}</span>`;
+}
 
 // 關閉個人分析模組
 function closeUserModal(){
