@@ -1137,31 +1137,83 @@ function loadYearly(){
     year:year
   }, res=>{
 
+    console.log('年度API=', res);
+
     if (!res || res.result !== 'ok'){
-      document.getElementById('yearContent').innerHTML = '❌ 讀取失敗';
+      document.getElementById('yearContent').innerHTML = '<div class="empty">❌ 讀取失敗</div>';
       return;
     }
 
-    window._yearData = res.data || [];
+    const data = res.data || [];
+
+    // ✅ ✅ ✅ 防真正空資料
+    if (!data.length){
+      document.getElementById('yearContent').innerHTML =
+        '<div class="empty">目前沒有統計資料</div>';
+      return;
+    }
+
+    window._yearData = data;
+    window._yearType = 'all';
+
     renderYearTable('all');
   });
 }
 
+
 // 切換（裁判 / 紀錄）
 function renderYearTable(type){
 
+  window._yearType = type;
+
   let list = window._yearData || [];
 
+  // ✅ role分類（正確版）
   if (type === 'judge'){
-    list = list.filter(x => String(x.role).includes('judge'));
+    list = list.filter(x =>
+      ['PU','U1','U2','U3'].includes(x.role)
+    );
   }
   else if (type === 'record'){
-    list = list.filter(x => String(x.role).includes('record'));
+    list = list.filter(x =>
+      String(x.role).includes('REC')
+    );
   }
 
+  // ✅ ✅ ✅ 防 filter 後變空
+  if (!list.length){
+    document.getElementById('yearContent').innerHTML = `
+      <div style="margin-bottom:8px;">
+        ${renderYearTabs()}
+      </div>
+      <div class="empty">此分類沒有資料</div>
+    `;
+
+    return;
+  }
   drawTable(list);
 }
 
+// 年度統計 Tab 抽出
+function renderYearTabs(){
+  return `
+    <button onclick="switchYearType('all')"
+      style="${window._yearType==='all'?'background:#2563eb;color:#fff':''}">
+      全部
+    </button>
+
+    <button onclick="switchYearType('judge')"
+      style="${window._yearType==='judge'?'background:#2563eb;color:#fff':''}">
+      裁判
+    </button>
+
+    <button onclick="switchYearType('record')"
+      style="${window._yearType==='record'?'background:#2563eb;color:#fff':''}">
+      紀錄
+    </button>
+  `;
+}
+ 
 // 年度統計的表格
 // 表格（最終UI）
 function drawTable(list){
@@ -1175,28 +1227,14 @@ function drawTable(list){
   });
   
   list.forEach((u,i)=> u.rank = i+1);
-   
+  console.log('list=', list);
+ 
+
   document.getElementById('yearContent').innerHTML = `
     <div style="margin-bottom:8px;">
-     <button
-       onclick="switchYearType('all')"
-       style="${window._yearType==='all'?'background:#2563eb;color:#fff':''}">
-       全部
-     </button>
-     
-     <button 
-       onclick="switchYearType('judge')"
-       style="${window._yearType==='judge'?'background:#2563eb;color:#fff':''}">
-       裁判
-     </button>
-     
-     <button 
-       onclick="switchYearType('record')"
-       style="${window._yearType==='record'?'background:#2563eb;color:#fff':''}">
-       紀錄
-     </button>
+      ${renderYearTabs()}
     </div>
-
+  
     <table class="year-table">
       <thead>
         <tr>
