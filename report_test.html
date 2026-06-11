@@ -150,40 +150,65 @@
 
     /* 手機版的 */
     @media (max-width: 600px) {
-
+    
       body {
-        font-size: 15px;   /* ✅ 大幅提升可讀性 */
+        font-size: 16px;   /* ✅ 再放大 */
+        padding: 12px;
+      }
+    
+      /* ✅ 一列變上下 */
+      .user-row {
+        flex-direction: column;
+        padding: 10px 0;
+      }
+    
+      /* ✅ 左側改成整排 */
+      .left-panel {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 6px;
       }
     
       .user-name {
-        font-size: 16px;
+        font-size: 18px;
+        margin-bottom: 4px;
       }
     
+      /* ✅ KPI 放大 */
       .user-summary {
+        justify-content: flex-start;
         gap: 6px;
       }
     
+      /* ✅ 日期（超關鍵🔥） */
       .day {
-        width: 24px;
-        height: 24px;
-        line-height: 24px;
-        font-size: 12px;
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        font-size: 13px;
         margin: 2px;
-        
-        min-width: 24px;
-        min-height: 24px;
-
+    
+        min-width: 26px;
+        min-height: 26px;
       }
     
+      /* ✅ 月份 */
       .month-label {
-        width: 36px;
-        font-size: 12px;
+        width: 40px;
+        font-size: 13px;
       }
     
+      /* ✅ 區塊間距 */
       .right-panel {
         margin-top: 6px;
+        gap: 4px;
+      }
+    
+      .month-row {
+        margin-bottom: 4px;
       }
     }
+
 
     /* 桌機版的 */
     @media (min-width: 900px) {
