@@ -287,10 +287,28 @@ th, td{ white-space:nowrap; }
   }
 
   .annual-right{
-    order:-1;
+    order:2;
     position:static;
     width:100%;
   }
+
+}
+
+.annual-person{
+  margin-bottom:12px;
+}
+
+/* ✅ 手機排序 */
+@media (max-width:768px){
+
+  .annual-layout{
+    display:flex;
+    flex-direction:column;
+  }
+
+  .annual-person{ order:1; }
+  .annual-left{ order:2; }
+  .annual-right{ order:3; }
 
 }
 
@@ -556,16 +574,22 @@ function renderAnnualList(list){
 
   list.forEach((u,i)=>u.rank=i+1);
 
-  document.getElementById('annualList').innerHTML = `
-    <div class="annual-layout">
-      <div class="annual-left">
-        ${renderTable(list)}
+    document.getElementById('annualList').innerHTML = `
+      <div class="annual-layout">
+    
+        <div id="personDetail" class="annual-person"></div>
+    
+        <div class="annual-left">
+          ${renderTable(list)}
+        </div>
+    
+        <div class="annual-right">
+          ${renderScoreNote()}
+        </div>
+    
       </div>
-      <div class="annual-right" id="personDetail">
-        ${renderScoreNote()}
-      </div>
-    </div>
-  `;
+    `;
+
 }
 
 function renderTable(list){
