@@ -139,6 +139,84 @@ body {
   color: #777;
   margin-left: 4px;
 }
+
+.user-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* ✅ 名字區 */
+.user-header {
+  margin-bottom: 4px;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #777;
+  margin-left: 6px;
+}
+
+/* ✅ KPI */
+.user-kpi {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.user-kpi .label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* ✅ 月份排版 */
+.month-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.month-label {
+  width: 32px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* ✅ 日期 */
+.day {
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  font-size: 12px;
+  margin: 2px;
+  text-align: center;
+  border-radius: 4px;
+}
+
+/* ✅ 手機 */
+@media (max-width:600px){
+
+  body {
+    font-size: 16px;
+  }
+
+  .user-name {
+    font-size: 20px;
+  }
+
+  .day {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    font-size: 14px;
+  }
+}
+
   </style>
 </head>
 
@@ -166,6 +244,7 @@ body {
 
   <div class="toolbar">
     <div id="monthButtons" class="toolbar"></div>
+    <button onclick="selectMonth('ALL')" class="btn">今年度</button>
     <button onclick="setSort('score')" class="btn">出勤排序</button>
     <button onclick="setSort('quality')" class="btn">品質排序</button>
     <button onclick="setSort('name')" class="btn">姓名排序</button>
@@ -251,7 +330,7 @@ body {
     
       const months = Array.from(monthsSet);
     
-      let html = `<button onclick="selectMonth('ALL')" class="btn">今年度</button>`;
+      let html = ``;
     
       months.forEach(m=>{
         const mm = m.split('-')[1];
@@ -389,20 +468,28 @@ function render(data, gameDays){
 
     html += `
       <div class="user-row">
-
-        <div class="left-panel">
-          <div class="user-name">${u.name}<span class="user-role">${roles.join(' / ')}</span></div>
-          <div class="user-summary">
-            <span style="font-size:11px;color:#666;">生涯：</span>
-            <span class="day ok">${finished}</span>
-            <span class="day late">${u.summary.late}</span>
-            <span class="day no">${u.summary.no_show}</span>
-            <span class="day sub">${u.summary.playoff}</span>
+    
+        <!-- ✅ 名字 -->
+        <div class="user-header">
+          <div class="user-name">
+            ${u.name}
+            <span class="user-role">${(u.roles || '').replace(/,/g,' / ')}</span>
           </div>
         </div>
-
+    
+        <!-- ✅ KPI -->
+        <div class="user-kpi">
+          <span class="label">生涯：</span>
+          <span class="day ok">${finished}</span>
+          <span class="day late">${u.summary.late}</span>
+          <span class="day no">${u.summary.no_show}</span>
+          <span class="day sub">${u.summary.playoff}</span>
+        </div>
+    
+        <!-- ✅ 日期 -->
         <div class="right-panel">
     `;
+
 
     Object.keys(monthMap)
       .sort()
@@ -484,7 +571,7 @@ function showDayDetail(list, date){
   const content = document.getElementById('dayDetailContent');
 
   if(!list || !list.length){
-    content.innerHTML = `<div>📌 ${date}<br>無出勤</div>`;
+    content.innerHTML = `<div>📌 ${date}<br>無出勤紀錄</div>`;
   }else{
 
     const roleMap = {
