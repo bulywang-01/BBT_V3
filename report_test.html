@@ -600,7 +600,7 @@ function showDayDetail(list, date){
     const gameMap = {};
 
     uniqueList.forEach(x=>{
-      const gid = x.game_id || x.game_code || '未指定場次';
+      const gid = x.game_code || x.game_id || '未指定場次';
 
       if(!gameMap[gid]) gameMap[gid] = [];
       gameMap[gid].push(x);
