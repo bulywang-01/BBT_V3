@@ -943,21 +943,57 @@ function showPersonDetail(p){
 
 function renderRoleChart(p){
 
-  // ⚠️ 你之後可以改用真實資料
-  const labels = ['主審','一壘審'];
-  const data = [1,1]; // 先假資料
+  // ✅ 從 API 帶來（你後面要補）
+  const roleCount = p.role_count || {};
+
+  // ✅ 判斷類型（裁判 or 紀錄）
+  const isJudge = currentAnnualType === 'judge';
+
+  const roleMapJudge = {
+    PU: '主審',
+    U1: '一壘審',
+    U2: '二壘審',
+    U3: '三壘審'
+  };
+
+  const roleMapRecord = {
+    REC_MAIN: '紀錄員',
+    REC_VIDEO: '影像紀錄',
+    REC_TRAINEE: '見習紀錄'
+  };
+
+  const roleMap = isJudge ? roleMapJudge : roleMapRecord;
+
+  const labels = [];
+  const data = [];
+
+  Object.keys(roleMap).forEach(k=>{
+    const val = roleCount[k] || 0;
+    if(val > 0){
+      labels.push(roleMap[k]);
+      data.push(val);
+    }
+  });
+
+  if(labels.length === 0){
+    labels.push('無資料');
+    data.push(1);
+  }
 
   new Chart(document.getElementById('roleChart'),{
     type:'pie',
     data:{
-      labels:labels,
+      labels,
       datasets:[{
-        data:data,
-        backgroundColor:['#22c55e','#ef4444']
+        data,
+        backgroundColor:[
+          '#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6'
+        ]
       }]
     }
   });
 }
+
   </script>
 </body>
 </html>
