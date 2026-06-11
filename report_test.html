@@ -5,257 +5,148 @@
   <title>出勤報表</title>
 
   <style>
-
-    body {
-      font-family: Arial;
-      margin: 0;
-      padding: 16px;
-      background: #f5f5f5;
-      font-size: 13px;  /* 整體再縮 */
-    }
-
-    h2 {
-      margin-bottom: 10px;
-    }
-
-    .toolbar {
-      margin-bottom: 15px;
-    }
-
-    .report {
-      background: #fff;
-      padding: 10px;
-      border-radius: 6px;
-    }
-
-    .user-header {
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
-
-    .calendar {
-      display: flex;
-      flex-wrap: wrap;
-    }
-
-    .day {
-      width: 26px;
-      height: 26px;
-      line-height: 26px;
-      margin: 2px;
-      text-align: center;
-      font-size: 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .day.ok {
-      background: #4caf50;
-      color: #fff;
-    }
-
-    .day.late {
-      background: #ff9800;
-      color: #fff;
-    }
-
-    .day.no {
-      background: #f44336;
-      color: #fff;
-    }
-
-    .day.empty {
-      background: #eee;
-      color: #999;
-    }
-
-    .day.sub {
-      background: #2196f3;  /* 藍色 */
-      color: #fff;          /* 白字 */
-      border-radius: 4px;
-    }
-
-    .user-header .day {
-      display: inline-block;
-      width: 18px;
-      height: 18px;
-      margin-left: 4px;
-    }
-    
-    .user-summary .day {
-      min-width: 24px;
-      text-align: center;
-    }
-
-    .user-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 10px;
-      padding: 6px 0;          /* 原本約 10 → 縮小 */
-      /* margin-bottom: 4px;      行與行間距再縮 */
-      border-bottom: 1px solid #eee;  /* 淡一點更乾淨 */
-    }
-    
-    /* 左側 */
-    .left-panel {
-      width: 160px;
-    }
-    
-    /* 右側 */
-    .right-panel {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-    }
-    
-    /* 替補藍色 */
-    .day.sub {
-      background: #2196f3;
-      color: #fff;
-    }
-
-      /* ✅ 左側整體 */
-    .left-panel {
-      width: 140px;
-      text-align: center;   /* ✅ 姓名 + 數字一起置中 */
-    }
-    
-    /* ✅ 姓名 */
-    .user-name {
-      font-size: 16px;      /* 原本 18 → 縮小 */
-      font-weight: 700;
-      text-align: center;   /* 再保險一次 */
-      margin-bottom: 2px;      /* 原本 6 → 縮 */
-      line-height: 1.2;        /* 改緊一點 */
-    }
-    
-    /* ✅ 統計（綠黃紅藍） */
-    .user-summary {
-      display: flex;
-      justify-content: center; /* ✅ 置中 */
-      gap: 3px;                /* 間距縮小 */
-    }
-    
-    /* ✅ 所有 day（核心縮小） */
-    .day {
-      width: 20px;      /* 原本 26 → 縮 */
-      height: 20px;    /* 原本 26 → 縮 */
-      line-height: 20px;  /* 原本 26 → 縮 */
-      font-size: 10px;  /* 原本 12~14 → 縮 */
-      margin: 1px;
-      text-align: center;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    
-    /* ✅ 月份 */
-    .month-label {
-      font-size: 11px;    /* 縮小 */
-      margin: 0 3px;      /* 間距更緊 */
-      color: #666;
-    }
-    
-    /* ✅ 右側排版（壓緊整體） */
-    .right-panel {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-
-      /* ✅ 保持一列 */
-    .user-row {
-      display: flex;
-      align-items: flex-start;
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-    }
-    
-    /* ✅ 左邊固定 */
-    .left-panel {
-      width: 120px;
-      text-align: center;
-    }
-    
-    /* ✅ 名字 */
-    .user-name {
-      font-size: 14px;
-      font-weight: 700;
-    }
-    
-    /* ✅ 統計 */
-    .user-summary {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-      margin-top: 2px;
-    }
-    
-    /* ✅ 右邊 */
-    .right-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    
-    /* ✅ 每個月一行 */
-    .month-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    /* ✅ 月份 */
-    .month-label {
-      width: 30px;
-      font-size: 11px;
-      color: #666;
-      text-align: right;
-    }
-    
-    /* ✅ 日期 */
-    .day {
-      width: 18px;
-      height: 18px;
-      line-height: 18px;
-      font-size: 10px;
-      margin: 1px;
-      border-radius: 3px;
-    }
+      /* ✅ 基本 */
+      body {
+        font-family: Arial;
+        margin: 0;
+        padding: 16px;
+        background: #f5f5f5;
+        font-size: 13px;
+      }
       
-    .days {
-      display: flex;
-      flex-wrap: wrap;
-    }
+      h2 {
+        margin-bottom: 10px;
+      }
       
-    .month-row {
-      margin-bottom: 2px;
-    }
-
-    /* ✅ 手機優化（重點🔥） */
-    @media (max-width: 600px) {
-    
+      .toolbar {
+        margin-bottom: 15px;
+      }
+      
+      .report {
+        background: #fff;
+        padding: 10px;
+        border-radius: 6px;
+      }
+      
+      /* ✅ 一列一人 */
       .user-row {
-        flex-direction: column;
+        display: flex;
+        align-items: flex-start;
+        padding: 6px 0;
+        border-bottom: 1px solid #eee;
       }
-    
-      .left-panel {
-        width: 100%;
-        text-align: left;
-      }
-    
-      .right-panel {
-        margin-top: 4px;
-      }
-    
-      .month-label {
-        width: 26px;
-        text-align: left;
-      }
-    }
       
+      /* ✅ 左側（姓名 + 統計） */
+      .left-panel {
+        width: 120px;
+        text-align: center;
+      }
+      
+      .user-name {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      
+      .user-summary {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 2px;
+      }
+      
+      /* ✅ 右側 */
+      .right-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      
+      /* ✅ 月份一行 */
+      .month-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 2px;
+      }
+      
+      .month-label {
+        width: 30px;
+        font-size: 11px;
+        color: #666;
+        text-align: right;
+      }
+      
+      /* ✅ 日期容器 */
+      .days {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      
+      /* ✅ 日期統一（含 summary） */
+      .day {
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 10px;
+        margin: 1px;
+        text-align: center;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      
+      /* ✅ 狀態顏色 */
+      .day.ok {
+        background: #4caf50;
+        color: #fff;
+      }
+      
+      .day.late {
+        background: #ff9800;
+        color: #fff;
+      }
+      
+      .day.no {
+        background: #f44336;
+        color: #fff;
+      }
+      
+      .day.sub {
+        background: #2196f3;
+        color: #fff;
+      }
+      
+      .day.empty {
+        background: #eee;
+        color: #999;
+      }
+      
+      /* ✅ 手機優化 */
+      @media (max-width: 600px) {
+      
+        .user-row {
+          flex-direction: column;
+        }
+      
+        .left-panel {
+          width: 100%;
+          text-align: left;
+        }
+      
+        .user-summary {
+          justify-content: flex-start;
+        }
+      
+        .right-panel {
+          margin-top: 4px;
+        }
+      
+        .month-label {
+          width: 26px;
+          text-align: left;
+        }
+      }      
   </style>
 </head>
 
@@ -266,6 +157,9 @@
 
   <div class="toolbar">
     <div id="monthButtons" class="toolbar"></div>
+    <button onclick="setSort('score')">出勤</button>
+    <button onclick="setSort('quality')">品質</button>
+    <button onclick="setSort('name')">姓名</button>
     <button onclick="goBack()">⬅ 返回</button>
   </div>
 
@@ -422,6 +316,35 @@ function loadReport(){
   });
 }
 
+// 排序功能
+let currentSort = 'score';
+
+function sortUsers(list){
+
+  const arr = [...list];
+
+  if(currentSort === 'score'){
+    return arr.sort((a,b)=>
+      (b.summary.total || 0) - (a.summary.total || 0)
+    );
+  }
+
+  if(currentSort === 'quality'){
+    return arr.sort((a,b)=>
+      (a.summary.no_show || 0) - (b.summary.no_show || 0)
+    );
+  }
+
+  return arr.sort((a,b)=>
+    (a.name || '').localeCompare(b.name || '', 'zh-Hant')
+  );
+}
+
+function setSort(mode){
+  currentSort = mode;
+  loadReport();
+}
+
 
 /* ✅ render（用真實日期） */
 function render(data, gameDays){
@@ -432,7 +355,6 @@ function render(data, gameDays){
     return;
   }
 
-  // ✅ yyyy-MM → dd[]
   const monthMap = {};
 
   gameDays.forEach(fullDate=>{
@@ -447,108 +369,74 @@ function render(data, gameDays){
 
   let html = '';
 
-  Object.values(data)
-  .forEach(u=>{
+  const users = sortUsers(Object.values(data));
 
-    // ✅ 👉 前端過濾（不用 role 也不會壞）
+  users.forEach(u=>{
+
     if(u.name === '系統管理員') return;
 
     const finished = u.summary.total - u.summary.late - u.summary.no_show;
 
     html += `
       <div class="user-row">
-    
-        <!-- ✅ 左側 -->
+
         <div class="left-panel">
-          <div class="user-name">
-            ${u.name}
-          </div>
-    
+          <div class="user-name">${u.name}</div>
+
           <div class="user-summary">
-            <span class="day ok" title="完成">${finished}</span>
-            <span class="day late" title="遲到">${u.summary.late}</span>
-            <span class="day no" title="缺席">${u.summary.no_show}</span>
-            <span class="day sub" title="替補">${u.summary.playoff}</span>
+            <span class="day ok">${finished}</span>
+            <span class="day late">${u.summary.late}</span>
+            <span class="day no">${u.summary.no_show}</span>
+            <span class="day sub">${u.summary.playoff}</span>
           </div>
         </div>
-    
-        <!-- ✅ 右側 -->
+
         <div class="right-panel">
     `;
 
     Object.keys(monthMap)
       .sort()
       .forEach(m => {
-    
+
         html += `
           <div class="month-row">
             <div class="month-label">${Number(m)}月</div>
             <div class="days">
         `;
-    
+
         monthMap[m]
           .sort((a,b)=>Number(a)-Number(b))
           .forEach(d => {
-    
+
             const rec = u.days[d];
-    
+
             let cls = 'empty';
             let tooltip = '';
-    
+
             if(rec){
-    
               const hasNo = rec.some(x=>x.status==='no_show');
               const hasLate = rec.some(x=>x.status==='late');
-    
+
               if(hasNo) cls='no';
               else if(hasLate) cls='late';
               else cls='ok';
-    
-              const roleMap = {
-                PU:'主審',
-                U1:'一壘審',
-                U2:'二壘審',
-                U3:'三壘審',
-                REC_MAIN:'紀錄員',
-                REC_VIDEO:'管理紀錄員',
-                REC_TRAINEE:'影像紀錄員'
-              };
-    
-              const statusMap = {
-                completed:'完成',
-                late:'遲到',
-                no_show:'缺席'
-              };
-    
-              tooltip = rec.map(x=>{
-                return `${roleMap[x.role]||x.role}：${statusMap[x.status]}`;
-              }).join('\n');
-            }
-    
-            html += `
-              <span class="day ${cls}" title="${tooltip}">
-                ${Number(d)}
-              </span>
-            `;
-          });
-    
-        // ✅ ✅ ✅ 🔥 關閉（你原本漏掉的）
-        html += `
-            </div>
-          </div>
-        `;
-    });
 
-    // ✅ ✅ ✅ 🔥 這段你原本缺的（最關鍵）
-    html += `
-        </div>
-      </div>
-    `;
+              tooltip = rec.map(x=>x.role + '：' + x.status).join('\n');
+            }
+
+            html += `<span class="day ${cls}" title="${tooltip}">
+              ${Number(d)}
+            </span>`;
+          });
+
+        html += `</div></div>`;
+      });
+
+    html += `</div></div>`;
   });
 
   document.getElementById('reportArea').innerHTML = html;
 }
-
 
   </script>
 
