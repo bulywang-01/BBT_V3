@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>出勤報表</title>
+
+  <style>
+
+    body {
+      font-family: Arial;
+      margin: 0;
+      padding: 16px;
+      background: #f5f5f5;
+      font-size: 13px;  /* 整體再縮 */
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .toolbar {
+      margin-bottom: 15px;
+    }
+
+    .report {
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .user-header {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .calendar {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .day {
+      width: 26px;
+      height: 26px;
+      line-height: 26px;
+      margin: 2px;
+      text-align: center;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .day.ok {
+      background: #4caf50;
+      color: #fff;
+    }
+
+    .day.late {
+      background: #ff9800;
+      color: #fff;
+    }
+
+    .day.no {
+      background: #f44336;
+      color: #fff;
+    }
+
+    .day.empty {
+      background: #eee;
+      color: #999;
+    }
+
+    .day.sub {
+      background: #2196f3;  /* 藍色 */
+      color: #fff;          /* 白字 */
+      border-radius: 4px;
+    }
+
+    .user-header .day {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin-left: 4px;
+    }
+    
+    .user-summary .day {
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .user-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      padding: 6px 0;          /* 原本約 10 → 縮小 */
+      /* margin-bottom: 4px;      行與行間距再縮 */
+      border-bottom: 1px solid #eee;  /* 淡一點更乾淨 */
+    }
+    
+    /* 左側 */
+    .left-panel {
+      width: 160px;
+    }
+    
+    /* 右側 */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    
+    /* 替補藍色 */
+    .day.sub {
+      background: #2196f3;
+      color: #fff;
+    }
+
+      /* ✅ 左側整體 */
+    .left-panel {
+      width: 140px;
+      text-align: center;   /* ✅ 姓名 + 數字一起置中 */
+    }
+    
+    /* ✅ 姓名 */
+    .user-name {
+      font-size: 16px;      /* 原本 18 → 縮小 */
+      font-weight: 700;
+      text-align: center;   /* 再保險一次 */
+      margin-bottom: 2px;      /* 原本 6 → 縮 */
+      line-height: 1.2;        /* 改緊一點 */
+    }
+    
+    /* ✅ 統計（綠黃紅藍） */
+    .user-summary {
+      display: flex;
+      justify-content: center; /* ✅ 置中 */
+      gap: 3px;                /* 間距縮小 */
+    }
+    
+    /* ✅ 所有 day（核心縮小） */
+    .day {
+      width: 20px;      /* 原本 26 → 縮 */
+      height: 20px;    /* 原本 26 → 縮 */
+      line-height: 20px;  /* 原本 26 → 縮 */
+      font-size: 10px;  /* 原本 12~14 → 縮 */
+      margin: 1px;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    /* ✅ 月份 */
+    .month-label {
+      font-size: 11px;    /* 縮小 */
+      margin: 0 3px;      /* 間距更緊 */
+      color: #666;
+    }
+    
+    /* ✅ 右側排版（壓緊整體） */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+
+      /* ✅ 保持一列 */
+    .user-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    /* ✅ 左邊固定 */
+    .left-panel {
+      width: 120px;
+      text-align: center;
+    }
+    
+    /* ✅ 名字 */
+    .user-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    /* ✅ 統計 */
+    .user-summary {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    
+    /* ✅ 右邊 */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    /* ✅ 每個月一行 */
+    .month-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* ✅ 月份 */
+    .month-label {
+      width: 30px;
+      font-size: 11px;
+      color: #666;
+      text-align: right;
+    }
+    
+    /* ✅ 日期 */
+    .day {
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      font-size: 10px;
+      margin: 1px;
+      border-radius: 3px;
+    }
+    
+    /* ✅ 手機優化（重點🔥） */
+    @media (max-width: 600px) {
+    
+      .user-row {
+        flex-direction: column;
+      }
+    
+      .left-panel {
+        width: 100%;
+        text-align: left;
+      }
+    
+      .right-panel {
+        margin-top: 4px;
+      }
+    
+      .month-label {
+        width: 26px;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div id="header-container"></div>
+
+  <h2>📊 出勤報表</h2>
+
+  <div class="toolbar">
+    <div id="monthButtons" class="toolbar"></div>
+    <button onclick="goBack()">⬅ 返回</button>
+  </div>
+
+  <div id="reportArea"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/config.js"></script>
+  
+  <script>
+  // ✅ 初始化
+  document.addEventListener('DOMContentLoaded',()=>{
+    loadHeader();
+  });
+    
+  function loadHeader() {
+    fetch('header.html')
+      .then(r => r.text())
+      .then(html => {
+        const hc = document.getElementById('header-container');
+        if (!hc) return;
+  
+        hc.innerHTML = html;
+  
+        // ✅ 一律從 session 重新設定 role（唯一正解）
+        const session = (typeof getSession === 'function')
+          ? getSession()
+          : JSON.parse(localStorage.getItem('session_user') || '{}');
+  
+        document.body.classList.remove(
+          'role-admin',
+          'role-judge',
+          'role-record'
+        );
+  
+        if (session && session.role) {
+          const roles = session.role.split(',').map(r => r.trim());
+  
+          if (roles.includes('admin')) {
+            document.body.classList.add('role-admin');
+          }
+          if (roles.includes('judge') || roles.includes('chief_judge')) {
+            document.body.classList.add('role-judge');
+          }
+          if (roles.includes('record') || roles.includes('record_chief')) {
+            document.body.classList.add('role-record');
+          }
+        }
+  
+        // ✅ 顯示登入者姓名
+        if (session && session.name) {
+          const nameEl = document.getElementById('header-username');
+          if (nameEl) nameEl.textContent = session.name;
+        }
+      })
+      .catch(err => console.error('Header 載入失敗', err));
+  }
+  
+    // ✅ 回上一頁
+    function goBack(){
+      history.back();
+    }
+
+    // 生成按鈕
+    function renderMonthButtons(gameDays){
+    
+      // ✅ 從 gameDays 推月份（靠 Games）
+      const monthsSet = new Set();
+    
+      gameDays.forEach(d=>{
+        // 先假設用當前選擇月（因為現在後端是 dd）
+        // 👉 所以這裡直接用目前 monthPicker 的值
+        const current = document.getElementById('currentMonth')?.value;
+        if(current){
+          monthsSet.add(current);
+        }
+      });
+    
+      // 👉 因為你現在後端是用 month filter
+      // 👉 所以這裡簡化：直接列固定月份（從資料來會再升級）
+    
+      const months = Array.from(monthsSet);
+    
+      let html = `<button onclick="selectMonth('ALL')">全年</button>`;
+    
+      months.forEach(m=>{
+        const mm = m.split('-')[1];
+        html += `<button onclick="selectMonth('${m}')">${Number(mm)}月</button>`;
+      });
+    
+      document.getElementById('monthButtons').innerHTML = html;
+    }
+
+
+/* ✅ JSONP */
+function callApi(params, callback){
+
+  const cbName = 'cb_' + Date.now();
+  const script = document.createElement('script');
+
+  window[cbName] = function(res){
+    console.log('✅ API回來:', res);
+    callback(res);
+
+    delete window[cbName];
+    script.remove();
+  };
+
+  const url = API_BASE + '?' +
+    Object.keys(params)
+      .map(k => `${k}=${encodeURIComponent(params[k])}`)
+      .join('&')
+    + '&callback=' + cbName;
+
+  script.src = url;
+  document.body.appendChild(script);
+}
+
+/* ✅ 初始化 */
+document.addEventListener('DOMContentLoaded',()=>{
+  currentMonth = 'ALL'; // ✅ 預設全年
+  loadReport();
+});
+
+/* ✅ 載入 */
+let currentMonth = 'ALL';
+
+function selectMonth(m){
+  currentMonth = m;
+  loadReport();
+}
+
+function loadReport(){
+
+  const m = currentMonth;
+
+  console.log('month=', m);
+
+  callApi({
+    action:'getMonthlyReport',
+    month:m
+  }, res => {
+
+    console.log('✅ API res:', res);
+
+    if(!res || res.result !== 'ok'){
+      alert('讀取失敗');
+      return;
+    }
+
+    // ✅ render 按鈕（第一次）
+    renderMonthButtons(res.gameDays);
+
+    render(res.data, res.gameDays);
+  });
+}
+
+
+/* ✅ render（用真實日期） */
+function render(data, gameDays){
+
+  if(!gameDays || gameDays.length === 0){
+    document.getElementById('reportArea').innerHTML =
+      '⚠️ 沒有比賽資料';
+    return;
+  }
+
+  // ✅ yyyy-MM → dd[]
+  const monthMap = {};
+
+  gameDays.forEach(fullDate=>{
+    const [y, m, d] = fullDate.split('-');
+
+    if(!monthMap[m]){
+      monthMap[m] = [];
+    }
+
+    monthMap[m].push(d);
+  });
+
+  let html = '';
+
+  Object.values(data)
+  .forEach(u=>{
+
+    // ✅ 👉 前端過濾（不用 role 也不會壞）
+    if(u.name === '系統管理員') return;
+
+    const finished = u.summary.total - u.summary.late - u.summary.no_show;
+
+    html += `
+      <div class="user-row">
+    
+        <!-- ✅ 左側 -->
+        <div class="left-panel">
+          <div class="user-name">
+            ${u.name}
+          </div>
+    
+          <div class="user-summary">
+            <span class="day ok" title="完成">${finished}</span>
+            <span class="day late" title="遲到">${u.summary.late}</span>
+            <span class="day no" title="缺席">${u.summary.no_show}</span>
+            <span class="day sub" title="替補">${u.summary.playoff}</span>
+          </div>
+        </div>
+    
+        <!-- ✅ 右側 -->
+        <div class="right-panel">
+    `;
+
+    Object.keys(monthMap)
+      .sort()
+      .forEach(m=>{
+
+        html += `
+          <div class="month-row">
+            <div class="month-label">${Number(m)}月</div>
+        `;
+
+        monthMap[m]
+          .sort((a,b)=>Number(a)-Number(b))
+          .forEach(d=>{
+
+            const rec = u.days[d];
+
+            let cls = 'empty';
+            let tooltip = '';
+
+            if(rec){
+
+              const hasNo = rec.some(x=>x.status==='no_show');
+              const hasLate = rec.some(x=>x.status==='late');
+
+              if(hasNo) cls='no';
+              else if(hasLate) cls='late';
+              else cls='ok';
+
+              const roleMap = {
+                PU:'主審',
+                U1:'一壘審',
+                U2:'二壘審',
+                U3:'三壘審',
+                REC_MAIN:'紀錄員',
+                REC_VIDEO:'管理紀錄員',
+                REC_TRAINEE:'影像紀錄員'
+              };
+
+              const statusMap = {
+                completed:'完成',
+                late:'遲到',
+                no_show:'缺席'
+              };
+
+              tooltip = rec.map(x=>{
+                return `${roleMap[x.role]||x.role}：${statusMap[x.status]}`;
+              }).join('\n');
+            }
+
+            html += `
+              <span class="day ${cls}" title="${tooltip}">
+                ${Number(d)}
+              </span>
+            `;
+          });
+
+      });
+
+    html += `
+        </div>
+      </div>
+    </div>
+    `;
+  });
+
+  document.getElementById('reportArea').innerHTML = html;
+}
+
+
+  </script>
+
+</body>
+</html>
