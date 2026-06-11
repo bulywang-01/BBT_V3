@@ -473,7 +473,7 @@ function render(data, gameDays){
         <div class="user-header">
           <div class="user-name">
             ${u.name}
-            <span class="user-role">${(u.roles || '').replace(/,/g,' / ')}</span>
+            <span class="user-role">${u.roles ? u.roles.replace(/,/g,' / ') : '（無出勤）'}</span>
           </div>
         </div>
     
