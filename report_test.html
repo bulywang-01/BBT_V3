@@ -147,20 +147,47 @@
           text-align: left;
         }
       }      
+
+    @media (min-width: 900px) {
+
+      body {
+        font-size: 14px;
+      }
+    
+      .user-name {
+        font-size: 16px;
+      }
+    
+      .day {
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+        font-size: 11px;
+      }
+    
+      .month-label {
+        font-size: 12px;
+        width: 36px;
+      }
+    
+      .left-panel {
+        width: 140px;
+      }
+    }
   </style>
 </head>
 
 <body>
 <div id="header-container"></div>
 
-  <h2>📊 出勤報表</h2>
+  <h2>📊出勤報表</h2>
 
   <div class="toolbar">
     <div id="monthButtons" class="toolbar"></div>
-    <button onclick="setSort('score')">出勤</button>
-    <button onclick="setSort('quality')">品質</button>
-    <button onclick="setSort('name')">姓名</button>
-    <button onclick="goBack()">⬅ 返回</button>
+    <button onclick="setSort('score')">出勤排序</button>
+    <button onclick="setSort('quality')">品質排序</button>
+    <button onclick="setSort('name')">姓名排序</button>
+    <button onclick="goBack()">⬅ 返回上一頁</button>
   </div>
 
   <div id="reportArea"></div>
