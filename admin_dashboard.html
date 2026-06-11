@@ -11,479 +11,288 @@
   <script src="js/config.js"></script>
 
   <style>
-  /* =====================================================
-     基本頁面
-     ===================================================== */
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f5f6f8;
-    color: #2b2b2b;
-  }
-  
-  .main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  h2 {
-    margin: 0 0 6px;
-    font-size: 24px;
-  }
-  
-  .section-title {
-    margin: 28px 0 14px;
-    font-size: 20px;
-    font-weight: 900;
-  }
-  
-  
-  /* =====================================================
-     卡片 Grid（2~3 格）
-     ===================================================== */
-  .cards {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-  
-  
-  /* =====================================================
-     功能卡片（Header 同 FU）
-     ===================================================== */
-  .card {
-  
-    min-height: 56px;              /* ✅ 高度縮小 */
-    padding: 8px 12px;             /* ✅ 內距變小 */
-  
-    font-size: 15px;               /* ✅ 字變小 */
-    font-weight: 700;
-  
-    border-radius: 12px;           /* ✅ 不要太圓 */
-  
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  
-    border: 1px solid #e5e7eb;
-  
-    transition: background .15s ease, border-color .15s ease;
-  }
-  
-  .card:hover {
-    background: #eef2ff;
-    border-color: #cfd8ff;
-  }
-  
-  
-  /* =====================================================
-     三大類顏色（靠順序，不動 HTML）
-     1–2：年度總表
-     3–4：班表
-     5–6：其它
-     ===================================================== */
-  
-  /* 🟦 年度總表 */
-  .card:nth-child(1),
-  .card:nth-child(2) {
-    background: #eef2ff;
-  }
-  .card:nth-child(1):hover,
-  .card:nth-child(2):hover {
-    background: #e3e9ff;
-  }
-  
-  /* 🟩 班表 */
-  .card:nth-child(3),
-  .card:nth-child(4) {
-    background: #eefaf4;
-  }
-  .card:nth-child(3):hover,
-  .card:nth-child(4):hover {
-    background: #e3f6ed;
-  }
-  
-  /* 🟨 其它 */
-  .card:nth-child(5),
-  .card:nth-child(6) {
-    background: #fff9e6;
-  }
-  .card:nth-child(5):hover,
-  .card:nth-child(6):hover {
-    background: #fff2cc;
-  }
-  
-  .card-annual{ background:#eef2ff;}
-  .card-schedule{ background:#eefaf4;}
-  .card-admin{ background:#fff9e6;}
-  .card-execution{
-    background:#ecfdf5;
-    border:1px solid #bbf7d0;
-  }
+/* =====================================================
+   🌐 基本頁面
+   ===================================================== */
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:#f5f6f8;
+  font-size:16px;
+  line-height:1.6;
+  color:#1f2937;
+}
 
-  /* 出勤報表 */
-  .card-report {
-    background: #e8edff;   /* ✅ 淡藍 */
-    color: #1e3a8a;
-    border: 1px solid #c7d2fe;
-  }
+.main{
+  max-width:1100px;
+  margin:0 auto;
+  padding:20px;
+}
 
-  .card-report:hover {
-    background: #dbe4ff;
-  }
+h2{
+  margin:0 0 10px;
+  font-size:24px;
+  font-weight:800;
+}
 
+/* =====================================================
+   🧩 標題
+   ===================================================== */
+.section-title{
+  margin:28px 0 12px;
+  font-size:20px;
+  font-weight:700;
+}
 
-  /* =====================================================
-     Modal（乾淨版）
-     ===================================================== */
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.45);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
-  
-  .modal.hidden {
-    display: none;
-  }
-  
-  .modal-content {
-    background: #ffffff;
-    width: 90%;
-    max-width: 960px;
-    max-height: 90vh;
-    overflow-y: auto;
-    border-radius: 18px;
-  }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 16px;
-    border-bottom: 1px solid #e5e7eb;
-    position: sticky;
-    top: 0;
-    background: #ffffff;
-  }
-  
-  .modal-body {
-    padding: 16px;
-  }
-  
-  
-  /* =====================================================
-     年度表格（管理後台風格）
-     ===================================================== */
-  .admin-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  
-  .admin-table th,
-  .admin-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .admin-table th {
-    text-align: left;
-    font-weight: 700;
-  }
-  
-  .admin-table td.num {
-    text-align: right;
-    font-weight: 600;
-  }
-  
-  
-  /* =====================================================
-     手機微調（保持 header 感）
-     ===================================================== */
-  @media (max-width: 640px) {
-    .card {
-      min-height: 76px;
-      font-size: 20px;
-      padding: 10px;
-    }
-  
-    .section-title {
-      font-size: 18px;
-    }
-  }
+.group-title{
+  margin:18px 0 8px;
+  font-size:18px;
+  font-weight:800;
+  color:#4b5563;
+}
 
-  /* ===== 桌機表格 ===== */
-  @media (min-width: 768px) {
-    .desktop-only { display: block; }
-    .mobile-only  { display: none; }
-  }
-  
-  /* ===== 手機卡片 ===== */
-  @media (max-width: 767px) {
-    .desktop-only { display: none; }
-    .mobile-only  { display: block; }
-  }
-
-    .person-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,.06);
-  }
-  .person-card .name {
-    font-size: 18px;
-    font-weight: 800;
-  }
-  
-  /* 防止你圖中那種「全 員 裁 判」斷字 */
-  th, td {
-    white-space: nowrap;
-  }
-  
-  /* ✅ ✅ ✅ 特例：允許說明區換行 */
-  .annual-right,
-  .annual-right * {
-    white-space: normal !important;
-  }
-
-  /* ===== Modal 工具列 ===== */
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .modal-tools {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .btn-export {
-    padding: 6px 10px;
-  }
-  
-  .btn-close {
-    font-size: 20px;
-    padding: 6px 12px;
-  }
-  
-  /* ===== 人卡片（手機主體） ===== */
-  .person-row {
-    background: #fff;
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,.06);
-  }
-  
-  .person-name {
-    font-size: 18px;
-    font-weight: 800;
-    margin-bottom: 6px;
-  }
-  
-  .person-stats {
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-  
-  /* 角色分佈（固定欄位，直向） */
-  .role-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    font-size: 13px;
-  }
-  
-  .role-grid div {
-    background: #f3f4f6;
-    border-radius: 8px;
-    padding: 6px;
-    text-align: center;
-  }
-  
-  /* ===== 桌機優化 ===== */
-  /* 年度排名 */
-  .annual-table{
-    width:100%;
-    border-collapse:collapse;
-    font-size:14px;
-  }
-  
-  .annual-table th{
-    background:#f3f4f6;
-    padding:10px;
-    text-align:left;
-    font-weight:700;
-  }
-  
-  .annual-table td{
-    padding:10px;
-    border-bottom:1px solid #e5e7eb;
-  }
-  
-  .rank-badge{
-    font-size:18px;
-  }
-  
-  .score{
-    font-weight:700;
-    color:#2563eb;
-  }
-
-  .annual-layout{
-    display:flex;
-    gap:20px;
-    align-items:flex-start;   /* ✅ 防止被撐歪 */
-  }
-  
-  .annual-left{
-    flex:1;
-    min-width:0;
-  }
-  
-  .annual-right{
-    /* flex:1; */
-    background:#fafafa;
-    padding:14px;
-    border-radius:12px;
-    font-size:13px;
-    flex: 0 0 260px;   /* ✅ 固定右側 */
-    max-width:280px;     /* ✅ 限制寬度（關鍵） */
-    white-space:normal;  /* ✅ 可換行 */
-    line-height:1.5;
-    overflow-wrap: break-word;  /* 避免英文 / 長字串爆版 */
-    align-self: flex-start;
-    position: sticky;
-    top: 80px;
-    padding-top: 4px;
-  }
-  
-  /* ✅ 手機自動改上下 */
-  @media (max-width: 768px){
-    .annual-layout{
-      flex-direction:column;
-    }
-  }
-  
-  .annual-table td.num {
-    text-align:right;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* ===== 卡片容器（自適應，不分手機桌機）===== */
+/* =====================================================
+   🧱 卡片布局
+   ===================================================== */
 .cards{
   display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fit, minmax(240px,1fr));
+  gap:12px;
+}
+
+.group-grid{
+  display:grid;
   gap:10px;
 }
 
-  .annual-container{
-    flex-direction: column;   /* ✅ 改成直排 */
+/* =====================================================
+   🎯 卡片（✅ 已統一，移除衝突）
+   ===================================================== */
+.card{
+  height:64px;
+  padding:0 16px;
+
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+
+  font-size:18px;
+  font-weight:700;
+
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:#ffffff;
+
+  cursor:pointer;
+  user-select:none;
+  transition:all .15s ease;
+}
+
+.card:hover{
+  background:#f8fafc;
+  border-color:#c7d2fe;
+  transform:translateY(-1px);
+}
+
+.card .icon{
+  width:26px;
+  font-size:18px;
+  margin-right:10px;
+  text-align:center;
+}
+
+/* =====================================================
+   🎨 類別色（左側條）
+   ===================================================== */
+.card-schedule{ border-left:4px solid #22c55e; }
+.card-execution{ border-left:4px solid #16a34a; }
+.card-admin{ border-left:4px solid #a855f7; }
+.card-report{ 
+  border-left:4px solid #3b82f6;
+  margin-bottom:14px;
+}
+
+/* =====================================================
+   🪟 Modal
+   ===================================================== */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.modal.hidden{ display:none; }
+
+.modal-content{
+  background:#fff;
+  width:90%;
+  max-width:1000px;
+  max-height:90vh;
+  overflow-y:auto;
+  border-radius:18px;
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+
+  padding:14px 16px;
+  border-bottom:1px solid #e5e7eb;
+
+  position:sticky;
+  top:0;
+  background:#fff;
+}
+
+.modal-body{
+  padding:16px;
+}
+
+.modal-tools{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* =====================================================
+   📊 年度報表
+   ===================================================== */
+.annual-layout{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+}
+
+.annual-left{
+  flex:1;
+  min-width:0;
+}
+
+.annual-right{
+  flex:0 0 260px;
+  max-width:280px;
+
+  background:#fafafa;
+  padding:14px;
+  border-radius:12px;
+
+  font-size:14px;
+  line-height:1.6;
+
+  position:sticky;
+  top:80px;
+
+  white-space:normal;
+  overflow-wrap:break-word;
+}
+
+/* =====================================================
+   📋 表格
+   ===================================================== */
+.annual-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:15px;
+}
+
+.annual-table th{
+  background:#f3f4f6;
+  padding:12px;
+  text-align:left;
+  font-weight:700;
+}
+
+.annual-table td{
+  padding:12px;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.annual-table td.num{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+.score{
+  font-weight:700;
+  color:#2563eb;
+}
+
+/* 防止亂斷字 */
+th, td{ white-space:nowrap; }
+
+/* 右側說明允許換行 */
+.annual-right, .annual-right *{
+  white-space:normal !important;
+}
+
+/* =====================================================
+   👤 個人資料卡
+   ===================================================== */
+.person-row{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,.06);
+}
+
+.person-name{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.person-stats{
+  font-size:14px;
+  margin-bottom:8px;
+}
+
+.stat-box{
+  background:#f3f4f6;
+  padding:10px;
+  border-radius:10px;
+  text-align:center;
+  font-size:14px;
+}
+
+/* =====================================================
+   📱 響應式（手機）
+   ===================================================== */
+@media (max-width:768px){
+
+  body{ font-size:18px; }
+
+  h2{ font-size:22px; }
+
+  .group-title{ font-size:20px; }
+
+  .card{
+    height:70px;
+    font-size:20px;
+    padding:0 18px;
+  }
+
+  .card .icon{
+    font-size:20px;
+  }
+
+  .annual-layout{
+    flex-direction:column;
   }
 
   .annual-right{
-    order: -1;                /* ✅ 強制放最上面 */
-    position: static;         /* ✅ 取消 sticky（手機不適合） */
-    width: 100%;
+    order:-1;
+    position:static;
+    width:100%;
   }
 
-  .annual-left{
-    width: 100%;
-  }
 }
-``
-  /* ===== 卡片本體（專業版）===== */
-  .card{
-  
-    height:56px;                        /* ✅ 固定高度 */
-    padding:0 14px;
-  
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;         /* ✅ 左對齊 */
-  
-    font-size:14px;
-    font-weight:700;
-  
-    border-radius:10px;                 /* ✅ 收斂 */
-    border:1px solid #e5e7eb;
-  
-    background:#ffffff;
-  
-    cursor:pointer;
-    user-select:none;
-  
-    transition: all .15s ease;
-  }
-  
-  
-  /* ===== icon ===== */
-  .card .icon{
-    width:22px;
-    text-align:center;
-    margin-right:8px;
-    font-size:14px;
-  }
-  
-  
-  /* ===== hover（專業感重點🔥）===== */
-  .card:hover{
-    background:#f8fafc;
-    border-color:#c7d2fe;
-    transform: translateY(-1px);
-  }
-  
-  
-  /* ===== 類別色（不再整塊上色）===== */
-  
-  /* 排班 */
-  .card-schedule{
-    border-left:4px solid #22c55e;
-  }
-  
-  /* 出勤 */
-  .card-execution{
-    border-left:4px solid #16a34a;
-  }
-  
-  /* 系統 */
-  .card-admin{
-    border-left:4px solid #a855f7;
-  }
-  
-  /* 報表（主要） */
-  .card-report{
-    border-left:4px solid #3b82f6;
-    margin-bottom:14px;
-  }
-  
-  /* ===== Title ===== */
-  .group-title{
-    margin:16px 0 6px;
-    font-size:16px;
-    font-weight:800;
-    color:#6b7280;
-    margin-bottom:6px;
-  }
-
-
-  .stat-box{
-    background:#f3f4f6;
-    padding:10px;
-    border-radius:10px;
-    text-align:center;
-  }
 
   </style>
   
