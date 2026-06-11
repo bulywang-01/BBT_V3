@@ -263,6 +263,43 @@ body {
   padding:16px;
 }
 
+
+/* ✅ 第一排 */
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.legend {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+}
+
+/* ✅ 第二排主控制 */
+.toolbar-row.main-bar {
+  display: flex;
+  justify-content: space-between;  /* ✅ 左右分開 */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ✅ 右側按鈕群 */
+.btn-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
   </style>
 </head>
 
@@ -291,20 +328,33 @@ body {
   <div class="toolbar">
   
     <!-- ✅ 第一排 -->
-    <div class="toolbar-row">
-      <button class="btn primary" onclick="selectMonth('ALL')">今年度</button>
+    <div class="header-row">
+      <div class="title">📊 出勤報表</div>
+    
+      <div class="legend">
+        <span class="day ok">出</span> 出勤
+        <span class="day late">遲</span> 遲到
+        <span class="day no">缺</span> 缺席
+        <span class="day sub">補</span> 替補
+      </div>
     </div>
-  
-    <!-- ✅ 第二排 -->
-    <div class="toolbar-row">
-      <button class="btn" onclick="setSort('score')">出勤排序</button>
-      <button class="btn" onclick="setSort('quality')">品質排序</button>
-      <button class="btn" onclick="setSort('name')">姓名排序</button>
-    </div>
-  
-    <!-- ✅ 第三排 -->
-    <div class="toolbar-row">
-      <button class="btn back" onclick="goBack()">返回</button>
+    
+    <!-- ✅ 第二排（左右） -->
+    <div class="toolbar-row main-bar">
+    
+      <!-- 左 -->
+      <div>
+        <button class="btn primary" onclick="selectMonth('ALL')">今年度</button>
+      </div>
+    
+      <!-- 右 -->
+      <div class="btn-group">
+        <button class="btn" onclick="setSort('score')">出勤排序</button>
+        <button class="btn" onclick="setSort('quality')">品質排序</button>
+        <button class="btn" onclick="setSort('name')">姓名排序</button>
+        <button class="btn back" onclick="goBack()">返回</button>
+      </div>
+    
     </div>
   
   </div>
