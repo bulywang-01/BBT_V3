@@ -555,8 +555,8 @@ function showDayDetail(list, date){
       U2:'二壘審',
       U3:'三壘審',
       REC_MAIN:'紀錄員',
-      REC_VIDEO:'管理紀錄員',
-      REC_TRAINEE:'影像紀錄員'
+      REC_VIDEO:'影像紀錄員',
+      REC_TRAINEE:'見習紀錄員'
     };
 
     const statusMap = {
@@ -565,17 +565,50 @@ function showDayDetail(list, date){
       no_show:'❌ 缺席'
     };
 
-    let html = `<div style="font-weight:700;margin-bottom:8px;">
-      📌 ${date}
-    </div>`;
+    // ✅ 🔥 按 game_id 分組
+    const gameMap = {};
 
     list.forEach(x=>{
+      const gid = x.game_id || '未知場次';
+      if(!gameMap[gid]) gameMap[gid] = [];
+      gameMap[gid].push(x);
+    });
+
+    let html = `
+      <div style="font-weight:800;font-size:16px;margin-bottom:10px;">
+        📌 ${date}
+      </div>
+    `;
+
+    Object.keys(gameMap).forEach(gid => {
+
       html += `
-        <div style="margin-bottom:6px;">
-          ${roleMap[x.role] || x.role}：
-          ${statusMap[x.status] || x.status}
-        </div>
+        <div style="
+          margin-bottom:10px;
+          padding:6px;
+          border:1px solid #eee;
+          border-radius:8px;
+        ">
+
+          <div style="
+            font-weight:700;
+            margin-bottom:6px;
+            color:#1a237e;
+          ">
+            ⚾ ${gid}
+          </div>
       `;
+
+      gameMap[gid].forEach(x=>{
+        html += `
+          <div>
+            ${roleMap[x.role] || x.role}：
+            ${statusMap[x.status] || x.status}
+          </div>
+        `;
+      });
+
+      html += `</div>`;
     });
 
     content.innerHTML = html;
