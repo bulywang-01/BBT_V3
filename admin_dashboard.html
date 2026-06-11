@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>管理中心</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- ✅ 你原本就有的 JS（一定要） -->
   <script src="js/auth.js"></script>
@@ -459,6 +460,14 @@
     margin-bottom:6px;
   }
 
+
+  .stat-box{
+    background:#f3f4f6;
+    padding:10px;
+    border-radius:10px;
+    text-align:center;
+  }
+
   </style>
   
 </head>
@@ -882,34 +891,70 @@ function getQualityColor(q){
 }
 
 // 個人資訊
-function openPersonDetail(p){
+function showPersonDetail(p){
 
-  console.log('👉 點擊:', p);
+  const html = `
+  <div style="font-size:16px;font-weight:800;margin-bottom:10px;">
+    📊 個人數據分析
+  </div>
 
-  let html = `
-    <div style="padding:16px;">
-      <div style="font-size:18px;font-weight:800;margin-bottom:10px;">
-        ${p.name}
-      </div>
+  <div style="font-size:18px;font-weight:700;margin-bottom:10px;">
+    ${p.name}
+  </div>
 
-      <div>聯盟等級：${p.league_level}</div>
-      <div>出勤：${p.attendance}</div>
-      <div>完成：${p.completed}</div>
-      <div>遲到：${p.late}</div>
-      <div>缺席：${p.no_show}</div>
+  <div style="margin-bottom:10px;">
+    聯盟等級：<b>${p.league_level}</b>
+  </div>
 
-      <hr style="margin:10px 0;"/>
+  <!-- KPI -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div class="stat-box">經驗值<br><b>${p.attendance}</b></div>
+    <div class="stat-box">參與度<br><b>${p.completed}</b></div>
+    <div class="stat-box">出勤品質<br><b>${p.quality.toFixed(1)}</b></div>
+    <div class="stat-box">排名分數<br><b>${p.final_score.toFixed(0)}</b></div>
+  </div>
 
-      <div>出勤分：${p.score_total}</div>
-      <div>品質：${p.quality}</div>
-      <div>總分：${p.final_score}</div>
-    </div>
+  <hr/>
+
+  <!-- 出勤狀況 -->
+  <div style="margin-top:10px;">
+    <b>📊 出勤概況</b>
+    <div>完成：${p.completed}</div>
+    <div>遲到：${p.late}</div>
+    <div>缺席：${p.no_show}</div>
+  </div>
+
+  <hr/>
+
+  <!-- 圓餅圖容器 -->
+  <div style="margin-top:10px;">
+    <b>📊 角色分布</b>
+    <canvas id="roleChart" height="200"></canvas>
+  </div>
   `;
 
-  alert(html); // ✅ 先用這個測
+  document.getElementById('personDetail').innerHTML = html;
 
+  renderRoleChart(p);
 }
 
+function renderRoleChart(p){
+
+  // ⚠️ 你之後可以改用真實資料
+  const labels = ['主審','一壘審'];
+  const data = [1,1]; // 先假資料
+
+  new Chart(document.getElementById('roleChart'),{
+    type:'pie',
+    data:{
+      labels:labels,
+      datasets:[{
+        data:data,
+        backgroundColor:['#22c55e','#ef4444']
+      }]
+    }
+  });
+}
   </script>
 </body>
 </html>
