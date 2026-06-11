@@ -212,10 +212,36 @@
         width: 140px;
       }
     }
+
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index: 9999;
+    }
+    
+    .overlay-box{
+      background:#fff;
+      width:85%;
+      max-width:320px;
+      border-radius:12px;
+      padding:16px;
+    }
   </style>
 </head>
 
 <body>
+
+<div id="dayDetailModal" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <div id="dayDetailContent"></div>
+    <button onclick="closeDayDetail()">關閉</button>
+  </div>
+</div>
+
 <div id="header-container"></div>
 
   <h2>📊出勤報表</h2>
@@ -489,9 +515,12 @@ function render(data, gameDays){
               tooltip = rec.map(x=>x.role + '：' + x.status).join('\n');
             }
 
-            html += `<span class="day ${cls}" title="${tooltip}">
+            <span class="day ${cls}" 
+              onclick='showDayDetail(${JSON.stringify(rec || [])}, "${m}/${d}")'
+              title="${tooltip}">
               ${Number(d)}
-            </span>`;
+            </span>
+
           });
 
         html += `</div></div>`;
@@ -502,6 +531,67 @@ function render(data, gameDays){
 
   document.getElementById('reportArea').innerHTML = html;
 }
+
+/*
+✅ 手機點 → 展開
+✅ 可看當天細節
+✅ 不影響桌機
+✅ 不改資料結構
+*/
+function showDayDetail(list, date){
+
+  const modal = document.getElementById('dayDetailModal');
+  const content = document.getElementById('dayDetailContent');
+
+  if(!list || !list.length){
+    content.innerHTML = `<div>📌 ${date}<br>無出勤</div>`;
+  }else{
+
+    const roleMap = {
+      PU:'主審',
+      U1:'一壘審',
+      U2:'二壘審',
+      U3:'三壘審',
+      REC_MAIN:'紀錄員',
+      REC_VIDEO:'管理紀錄員',
+      REC_TRAINEE:'影像紀錄員'
+    };
+
+    const statusMap = {
+      completed:'✅ 完成',
+      late:'⏰ 遲到',
+      no_show:'❌ 缺席'
+    };
+
+    let html = `<div style="font-weight:700;margin-bottom:8px;">
+      📌 ${date}
+    </div>`;
+
+    list.forEach(x=>{
+      html += `
+        <div style="margin-bottom:6px;">
+          ${roleMap[x.role] || x.role}：
+          ${statusMap[x.status] || x.status}
+        </div>
+      `;
+    });
+
+    content.innerHTML = html;
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeDayDetail(){
+  document.getElementById('dayDetailModal').style.display = 'none';
+}
+
+// 點空白關閉
+document.getElementById('dayDetailModal').addEventListener('click', e=>{
+  if(e.target.id === 'dayDetailModal'){
+    closeDayDetail();
+  }
+});
 
   </script>
 
