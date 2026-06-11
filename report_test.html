@@ -2,259 +2,116 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>出勤報表</title>
 
   <style>
-      /* ✅ 基本 */
-      body {
-        font-family: Arial;
-        margin: 0;
-        padding: 16px;
-        background: #f5f5f5;
-        font-size: 13px;
-      }
-      
-      h2 {
-        margin-bottom: 10px;
-      }
-      
-      .toolbar {
-        margin-bottom: 15px;
-      }
-      
-      .report {
-        background: #fff;
-        padding: 10px;
-        border-radius: 6px;
-      }
-      
-      /* ✅ 一列一人 */
-      .user-row {
-        display: flex;
-        align-items: flex-start;
-        padding: 6px 0;
-        border-bottom: 1px solid #eee;
-      }
-      
-      /* ✅ 左側（姓名 + 統計） */
-      .left-panel {
-        width: 120px;
-        text-align: center;
-      }
-      
-      .user-name {
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.2;
-      }
-      
-      .user-summary {
-        display: flex;
-        justify-content: center;
-        gap: 4px;
-        margin-top: 2px;
-      }
-      
-      /* ✅ 右側 */
-      .right-panel {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      
-      /* ✅ 月份一行 */
-      .month-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 2px;
-      }
-      
-      .month-label {
-        width: 30px;
-        font-size: 11px;
-        color: #666;
-        text-align: right;
-      }
-      
-      /* ✅ 日期容器 */
-      .days {
-        display: flex;
-        flex-wrap: wrap;
-      }
-      
-      /* ✅ 日期統一（含 summary） */
-      .day {
-        width: 18px;
-        height: 18px;
-        line-height: 18px;
-        font-size: 10px;
-        margin: 1px;
-        text-align: center;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-      
-      /* ✅ 狀態顏色 */
-      .day.ok {
-        background: #4caf50;
-        color: #fff;
-      }
-      
-      .day.late {
-        background: #ff9800;
-        color: #fff;
-      }
-      
-      .day.no {
-        background: #f44336;
-        color: #fff;
-      }
-      
-      .day.sub {
-        background: #2196f3;
-        color: #fff;
-      }
-      
-      .day.empty {
-        background: #eee;
-        color: #999;
-      }
-      
-      /* ✅ 手機優化 */
-      @media (max-width: 600px) {
-      
-        .user-row {
-          flex-direction: column;
-        }
-      
-        .left-panel {
-          width: 100%;
-          text-align: left;
-        }
-      
-        .user-summary {
-          justify-content: flex-start;
-        }
-      
-        .right-panel {
-          margin-top: 4px;
-        }
-      
-        .month-label {
-          width: 26px;
-          text-align: left;
-        }
-      }      
+/* ✅ 基本 */
+body {
+  font-family: Arial;
+  margin: 0;
+  padding: 12px;
+  background: #f5f5f5;
+  font-size: 16px;
+}
 
-    /* 手機版的 */
-    @media (max-width: 600px) {
-    
-      body {
-        font-size: 16px;   /* ✅ 再放大 */
-        padding: 12px;
-      }
-    
-      /* ✅ 一列變上下 */
-      .user-row {
-        flex-direction: column;
-        padding: 10px 0;
-      }
-    
-      /* ✅ 左側改成整排 */
-      .left-panel {
-        width: 100%;
-        text-align: left;
-        margin-bottom: 6px;
-      }
-    
-      .user-name {
-        font-size: 18px;
-        margin-bottom: 4px;
-      }
-    
-      /* ✅ KPI 放大 */
-      .user-summary {
-        justify-content: flex-start;
-        gap: 6px;
-      }
-    
-      /* ✅ 日期（超關鍵🔥） */
-      .day {
-        width: 26px;
-        height: 26px;
-        line-height: 26px;
-        font-size: 13px;
-        margin: 2px;
-    
-        min-width: 26px;
-        min-height: 26px;
-      }
-    
-      /* ✅ 月份 */
-      .month-label {
-        width: 40px;
-        font-size: 13px;
-      }
-    
-      /* ✅ 區塊間距 */
-      .right-panel {
-        margin-top: 6px;
-        gap: 4px;
-      }
-    
-      .month-row {
-        margin-bottom: 4px;
-      }
-    }
+/* ✅ 一人一列 */
+.user-row {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
 
+/* ✅ 左側 */
+.left-panel {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 6px;
+}
 
-    /* 桌機版的 */
-    @media (min-width: 900px) {
+.user-name {
+  font-size: 18px;
+  font-weight: 700;
+}
 
-      body {
-        font-size: 14px;
-      }
-    
-      .user-name {
-        font-size: 16px;
-      }
-    
-      .day {
-        width: 22px;
-        height: 22px;
-        line-height: 22px;
-        font-size: 11px;
-      }
-    
-      .month-label {
-        font-size: 12px;
-        width: 36px;
-      }
-    
-      .left-panel {
-        width: 140px;
-      }
-    }
+.user-summary {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
 
-    .overlay{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index: 9999;
-    }
-    
-    .overlay-box{
-      background:#fff;
-      width:85%;
-      max-width:320px;
-      border-radius:12px;
-      padding:16px;
-    }
+/* ✅ 右側 */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ✅ 月份 */
+.month-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.month-label {
+  width: 40px;
+  font-size: 13px;
+}
+
+/* ✅ 日期 */
+.days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day {
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  font-size: 14px;
+  margin: 2px;
+  text-align: center;
+  border-radius: 4px;
+}
+
+/* ✅ 顏色 */
+.day.ok { background:#4caf50; color:#fff; }
+.day.late { background:#ff9800; color:#fff; }
+.day.no { background:#f44336; color:#fff; }
+.day.sub { background:#2196f3; color:#fff; }
+.day.empty { background:#eee; color:#999; }
+
+/* ✅ 桌機再優化 */
+@media (min-width: 900px){
+
+  body {
+    font-size: 14px;
+  }
+
+  .user-row {
+    flex-direction: row;
+  }
+
+  .left-panel {
+    width: 140px;
+    text-align: center;
+  }
+
+  .user-summary {
+    justify-content: center;
+  }
+
+  .day {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: 11px;
+  }
+}
+
   </style>
 </head>
 
