@@ -539,6 +539,13 @@ function render(data, gameDays){
         `;
     });
 
+    // ✅ ✅ ✅ 🔥 這段你原本缺的（最關鍵）
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
   document.getElementById('reportArea').innerHTML = html;
 }
 
