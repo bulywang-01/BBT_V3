@@ -224,7 +224,16 @@
       margin: 1px;
       border-radius: 3px;
     }
-    
+      
+    .days {
+      display: flex;
+      flex-wrap: wrap;
+    }
+      
+    .month-row {
+      margin-bottom: 2px;
+    }
+
     /* ✅ 手機優化（重點🔥） */
     @media (max-width: 600px) {
     
@@ -246,6 +255,7 @@
         text-align: left;
       }
     }
+      
   </style>
 </head>
 
@@ -468,31 +478,32 @@ function render(data, gameDays){
 
     Object.keys(monthMap)
       .sort()
-      .forEach(m=>{
-
+      .forEach(m => {
+    
         html += `
           <div class="month-row">
             <div class="month-label">${Number(m)}月</div>
+            <div class="days">
         `;
-
+    
         monthMap[m]
           .sort((a,b)=>Number(a)-Number(b))
-          .forEach(d=>{
-
+          .forEach(d => {
+    
             const rec = u.days[d];
-
+    
             let cls = 'empty';
             let tooltip = '';
-
+    
             if(rec){
-
+    
               const hasNo = rec.some(x=>x.status==='no_show');
               const hasLate = rec.some(x=>x.status==='late');
-
+    
               if(hasNo) cls='no';
               else if(hasLate) cls='late';
               else cls='ok';
-
+    
               const roleMap = {
                 PU:'主審',
                 U1:'一壘審',
@@ -502,33 +513,31 @@ function render(data, gameDays){
                 REC_VIDEO:'管理紀錄員',
                 REC_TRAINEE:'影像紀錄員'
               };
-
+    
               const statusMap = {
                 completed:'完成',
                 late:'遲到',
                 no_show:'缺席'
               };
-
+    
               tooltip = rec.map(x=>{
                 return `${roleMap[x.role]||x.role}：${statusMap[x.status]}`;
               }).join('\n');
             }
-
+    
             html += `
               <span class="day ${cls}" title="${tooltip}">
                 ${Number(d)}
               </span>
             `;
           });
-
-      });
-
-    html += `
-        </div>
-      </div>
-    </div>
-    `;
-  });
+    
+        // ✅ ✅ ✅ 🔥 關閉（你原本漏掉的）
+        html += `
+            </div>
+          </div>
+        `;
+    });
 
   document.getElementById('reportArea').innerHTML = html;
 }
