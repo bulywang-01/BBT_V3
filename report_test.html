@@ -24,21 +24,9 @@ body {
 }
 
 /* ✅ 左側 */
-.left-panel {
-  width: 100%;
-  text-align: left;
-  margin-bottom: 6px;
-}
-
 .user-name {
   font-size: 18px;
   font-weight: 700;
-}
-
-.user-summary {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
 }
 
 /* ✅ 右側 */
@@ -56,25 +44,10 @@ body {
   margin-bottom: 4px;
 }
 
-.month-label {
-  width: 40px;
-  font-size: 13px;
-}
-
 /* ✅ 日期 */
 .days {
   display: flex;
   flex-wrap: wrap;
-}
-
-.day {
-  width: 28px;
-  height: 28px;
-  line-height: 28px;
-  font-size: 14px;
-  margin: 2px;
-  text-align: center;
-  border-radius: 4px;
 }
 
 /* ✅ 顏色 */
@@ -314,19 +287,6 @@ body {
 
 <div id="header-container"></div>
 
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <h2 style="margin:0;">📊出勤報表</h2>
-  
-    <div style="font-size:13px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-      <span class="day ok">出</span> 出勤
-      <span class="day late">遲</span> 遲到
-      <span class="day no">缺</span> 缺席
-      <span class="day sub">補</span> 替補
-    </div>
-  </div>
-
-  <div class="toolbar">
-  
     <!-- ✅ 第一排 -->
     <div class="header-row">
       <div class="title">📊 出勤報表</div>
@@ -357,8 +317,6 @@ body {
     
     </div>
   
-  </div>
-
   <div id="reportArea"></div>
 
   <script src="js/auth.js"></script>
@@ -420,7 +378,8 @@ body {
 
     // 生成按鈕
     function renderMonthButtons(gameDays){
-    
+      return;
+      /*
       // ✅ 從 gameDays 推月份（靠 Games）
       const monthsSet = new Set();
     
@@ -446,6 +405,7 @@ body {
       });
     
       document.getElementById('monthButtons').innerHTML = html;
+      */
     }
 
 
