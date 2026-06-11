@@ -772,7 +772,7 @@ function renderTable(list){
     else if(p.rank<=10) badge='⭐';
 
     return `
-    <tr>
+    <tr onclick='openPersonDetail(${JSON.stringify(p)})' style="cursor:pointer;">
       <td>${badge} ${p.rank}</td>
       <td style="font-weight:700;">${note}${p.name}</td>
       <td class="num" style="color:#16a34a;font-weight:600;">${renderLevel(p.league_level)}</td>
@@ -881,6 +881,34 @@ function getQualityColor(q){
   return '#dc2626';              // 紅
 }
 
+// 個人資訊
+function openPersonDetail(p){
+
+  console.log('👉 點擊:', p);
+
+  let html = `
+    <div style="padding:16px;">
+      <div style="font-size:18px;font-weight:800;margin-bottom:10px;">
+        ${p.name}
+      </div>
+
+      <div>聯盟等級：${p.league_level}</div>
+      <div>出勤：${p.attendance}</div>
+      <div>完成：${p.completed}</div>
+      <div>遲到：${p.late}</div>
+      <div>缺席：${p.no_show}</div>
+
+      <hr style="margin:10px 0;"/>
+
+      <div>出勤分：${p.score_total}</div>
+      <div>品質：${p.quality}</div>
+      <div>總分：${p.final_score}</div>
+    </div>
+  `;
+
+  alert(html); // ✅ 先用這個測
+
+}
 
   </script>
 </body>
