@@ -515,11 +515,13 @@ function render(data, gameDays){
               tooltip = rec.map(x=>x.role + '：' + x.status).join('\n');
             }
 
-            <span class="day ${cls}" 
-              onclick='showDayDetail(${JSON.stringify(rec || [])}, "${m}/${d}")'
-              title="${tooltip}">
-              ${Number(d)}
-            </span>
+            html += `
+              <span class="day ${cls}" 
+                onclick='showDayDetail(${JSON.stringify(rec || [])}, "${m}/${d}")'
+                title="${tooltip}">
+                ${Number(d)}
+              </span>
+            `;
 
           });
 
@@ -587,11 +589,17 @@ function closeDayDetail(){
 }
 
 // 點空白關閉
-document.getElementById('dayDetailModal').addEventListener('click', e=>{
-  if(e.target.id === 'dayDetailModal'){
-    closeDayDetail();
-  }
+document.addEventListener('DOMContentLoaded', ()=>{
+  const modal = document.getElementById('dayDetailModal');
+  if(!modal) return;
+
+  modal.addEventListener('click', e=>{
+    if(e.target.id === 'dayDetailModal'){
+      closeDayDetail();
+    }
+  });
 });
+
 
   </script>
 
