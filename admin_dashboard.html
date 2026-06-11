@@ -388,7 +388,21 @@
   gap:10px;
 }
 
+  .annual-container{
+    flex-direction: column;   /* ✅ 改成直排 */
+  }
 
+  .annual-right{
+    order: -1;                /* ✅ 強制放最上面 */
+    position: static;         /* ✅ 取消 sticky（手機不適合） */
+    width: 100%;
+  }
+
+  .annual-left{
+    width: 100%;
+  }
+}
+``
   /* ===== 卡片本體（專業版）===== */
   .card{
   
