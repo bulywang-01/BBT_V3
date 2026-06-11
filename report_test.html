@@ -112,6 +112,33 @@ body {
   }
 }
 
+.btn {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #1976d2;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #1565c0;
+}
+
+.btn.back {
+  background: #757575;
+}
+
+.btn.back:hover {
+  background: #616161;
+}
+
+.user-role{
+  font-size: 11px;
+  color: #777;
+  margin-left: 4px;
+}
   </style>
 </head>
 
@@ -126,14 +153,23 @@ body {
 
 <div id="header-container"></div>
 
-  <h2>📊出勤報表</h2>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <h2 style="margin:0;">📊出勤報表</h2>
+  
+    <div style="font-size:13px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <span class="day ok">出</span> 出勤
+      <span class="day late">遲</span> 遲到
+      <span class="day no">缺</span> 缺席
+      <span class="day sub">補</span> 替補
+    </div>
+  </div>
 
   <div class="toolbar">
     <div id="monthButtons" class="toolbar"></div>
-    <button onclick="setSort('score')">出勤排序</button>
-    <button onclick="setSort('quality')">品質排序</button>
-    <button onclick="setSort('name')">姓名排序</button>
-    <button onclick="goBack()">⬅ 返回上一頁</button>
+    <button onclick="setSort('score')" class="btn">出勤排序</button>
+    <button onclick="setSort('quality')" class="btn">品質排序</button>
+    <button onclick="setSort('name')" class="btn">姓名排序</button>
+    <button onclick="goBack()" class="btn back">返回</button>
   </div>
 
   <div id="reportArea"></div>
@@ -215,7 +251,7 @@ body {
     
       const months = Array.from(monthsSet);
     
-      let html = `<button onclick="selectMonth('ALL')">全年</button>`;
+      let html = `<button onclick="selectMonth('ALL')" class="btn">今年度</button>`;
     
       months.forEach(m=>{
         const mm = m.split('-')[1];
@@ -349,14 +385,15 @@ function render(data, gameDays){
     if(u.name === '系統管理員') return;
 
     const finished = u.summary.total - u.summary.late - u.summary.no_show;
+    const roles = (u.roles || '').split(',').map(r=>r.trim()).filter(Boolean);
 
     html += `
       <div class="user-row">
 
         <div class="left-panel">
-          <div class="user-name">${u.name}</div>
-
+          <div class="user-name">${u.name}<span class="user-role">${roles.join(' / ')}</span></div>
           <div class="user-summary">
+            <span style="font-size:11px;color:#666;">生涯：</span>
             <span class="day ok">${finished}</span>
             <span class="day late">${u.summary.late}</span>
             <span class="day no">${u.summary.no_show}</span>
