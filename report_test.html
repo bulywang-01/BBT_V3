@@ -148,6 +148,44 @@
         }
       }      
 
+    /* 手機版的 */
+    @media (max-width: 600px) {
+
+      body {
+        font-size: 15px;   /* ✅ 大幅提升可讀性 */
+      }
+    
+      .user-name {
+        font-size: 16px;
+      }
+    
+      .user-summary {
+        gap: 6px;
+      }
+    
+      .day {
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        font-size: 12px;
+        margin: 2px;
+        
+        min-width: 24px;
+        min-height: 24px;
+
+      }
+    
+      .month-label {
+        width: 36px;
+        font-size: 12px;
+      }
+    
+      .right-panel {
+        margin-top: 6px;
+      }
+    }
+
+    /* 桌機版的 */
     @media (min-width: 900px) {
 
       body {
