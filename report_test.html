@@ -65,12 +65,7 @@ body {
   }
 
   .user-row {
-    flex-direction: row;
-  }
-
-  .left-panel {
-    width: 140px;
-    text-align: center;
+    flex-direction: column;   /* ✅ 固定垂直 */
   }
 
   .user-summary {
@@ -292,10 +287,10 @@ body {
       <div class="title">📊 出勤報表</div>
     
       <div class="legend">
-        <span class="day ok">出</span> 出勤
-        <span class="day late">遲</span> 遲到
-        <span class="day no">缺</span> 缺席
-        <span class="day sub">補</span> 替補
+        <span class="day ok">出</span>
+        <span class="day late">遲</span>
+        <span class="day no">缺</span>
+        <span class="day sub">補</span>
       </div>
     </div>
     
@@ -578,11 +573,14 @@ function render(data, gameDays){
             let tooltip = '';
 
             if(rec){
+            
               const hasNo = rec.some(x=>x.status==='no_show');
               const hasLate = rec.some(x=>x.status==='late');
-
+              const hasSub = rec.some(x=>x.is_replacement);
+              
               if(hasNo) cls='no';
               else if(hasLate) cls='late';
+              else if(hasSub) cls='sub';   // ✅ 正確來源
               else cls='ok';
 
               const roleMap = {
@@ -599,6 +597,8 @@ function render(data, gameDays){
                 completed:'完成',
                 late:'遲到',
                 no_show:'缺席'
+                sub:'替補',
+                substitute:'替補
               };
               
               tooltip = rec.map(x=>{
@@ -655,6 +655,8 @@ function showDayDetail(list, date){
       completed:'✅ 完成',
       late:'⏰ 遲到',
       no_show:'❌ 缺席'
+      sub:'🔵 替補',
+      substitute:'🔵 替補
     };
 
     // ✅ ✅ ✅ 先做去重（防止 PU / PU 重複）
@@ -705,14 +707,20 @@ function showDayDetail(list, date){
           </div>
       `;
 
-      gameMap[gid].forEach(x=>{
-        html += `
-          <div style="margin-bottom:4px;">
-            ${roleMap[x.role] || x.role}：
-            ${statusMap[x.status] || x.status}
-          </div>
-        `;
-      });
+
+        gameMap[gid].forEach(x=>{
+          const statusText = x.is_replacement
+            ? '🔵 替補'
+            : (statusMap[x.status] || x.status);
+        
+          html += `
+            <div style="margin-bottom:4px;">
+              ${roleMap[x.role] || x.role}：
+              ${statusText}
+            </div>
+          `;
+        });
+
 
       html += `</div>`;
     });
