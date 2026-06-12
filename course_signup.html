@@ -64,8 +64,13 @@ h2{
 </head>
 
 <body>
-
 <script>
+  function toast(msg, type){
+    console.log(type || 'info', msg);
+    alert(msg);
+  }
+  
+
   /* ========================
      Header
   ======================== */ 
@@ -128,7 +133,12 @@ h2{
 
 <script>
 // ✅ 共用登入
-const user_id = localStorage.getItem('user_id');
+
+function getUserId(){
+  const session = getSession();
+  return session?.user_id || '';
+}
+
 
 // ----------------------
 function loadCourses(){
@@ -202,7 +212,7 @@ function render(data){
 function joinCourse(course_id){
 
   const session = getSession();
-  const user_id = session?.user_id;
+  const user_id = getUserId();
 
   if (!user_id){
     toast('請先登入','error');
@@ -229,7 +239,9 @@ function joinCourse(course_id){
 }
 
 // ----------------------
-loadCourses();
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadCourses();
+});
 
 </script>
 
