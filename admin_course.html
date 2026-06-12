@@ -1,0 +1,45 @@
+<div id="adminList"></div>
+
+<script>
+function loadAdmin(){
+
+  callApi({action:'getTrainingLog'}, res=>{
+
+    const html = res.data.map(r=>`
+      <div class="person-row">
+
+        ${r.course_name}｜${r.name}
+
+        <select onchange="update('${r.log_id}',this.value)">
+          <option value="applied">報名</option>
+          <option value="attended">出席</option>
+          <option value="absent">缺席</option>
+        </select>
+
+        <button onclick="pay('${r.log_id}')">💰 已繳</button>
+
+      </div>
+    `).join('');
+
+    document.getElementById('adminList').innerHTML = html;
+  });
+}
+
+function update(id, status){
+  callApi({
+    action:'updateTrainingStatus',
+    log_id:id,
+    status:status
+  });
+}
+
+function pay(id){
+  callApi({
+    action:'updateTrainingStatus',
+    log_id:id,
+    payment_status:'paid'
+  });
+}
+
+loadAdmin();
+</script>
