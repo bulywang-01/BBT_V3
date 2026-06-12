@@ -312,6 +312,12 @@ th, td{ white-space:nowrap; }
 
 }
 
+/* 圖餅圖大小 */
+.chart-box{
+  max-width: 220px;   /* ✅ 控制大小（可調 220~300） */
+  margin: 10px auto;  /* ✅ 置中 */
+}
+
   </style>
   
 </head>
@@ -823,8 +829,11 @@ function showPersonDetail(p){
     <b>📊 角色分布</b>
     
     ${renderRoleStats(p)}
+    
+    <div class="chart-box">
+      <canvas id="roleChart"></canvas>
+    </div>
 
-    <canvas id="roleChart" height="160"></canvas>
   </div>
   `;
 
@@ -898,8 +907,8 @@ function closePersonModal(){
 // 個人資料 - 年度及生涯資料
 function renderRoleStats(p){
 
-  const roleCount = p.role_count || {};          // ✅ 年度
-  const roleCareer = p.role_career_count || {};  // ✅ 生涯（你之後API補）
+  const roleCount = p.role_count || {};
+  const roleCareer = p.role_career_count || {};
 
   const isJudge = currentAnnualType === 'judge';
 
@@ -918,25 +927,38 @@ function renderRoleStats(p){
 
   const roleMap = isJudge ? roleMapJudge : roleMapRecord;
 
+  const hasCareer = Object.keys(roleCareer).length > 0;
+
+  const rows = Object.keys(roleMap)
+    .filter(k => (roleCount[k] || 0) > 0)   // ✅ ✅ ✅ 過濾 0（關鍵）
+    .map(k => {
+      return `
+      <tr>
+        <td style="padding:6px;">${roleMap[k]}</td>
+        <td style="padding:6px; text-align:right;">${roleCount[k] || 0}</td>
+        ${hasCareer ? `
+        <td style="padding:6px; text-align:right;">
+          ${roleCareer[k] || 0}
+        </td>` : ''}
+      </tr>
+      `;
+    }).join('');
+
+  if (!rows){
+    return `<div style="font-size:13px;color:#6b7280;">無角色資料</div>`;
+  }
+
   return `
   <table style="width:100%; font-size:13px; margin-top:6px; border-collapse:collapse;">
     <thead>
       <tr style="background:#f3f4f6;">
         <th style="padding:6px; text-align:left;">角色</th>
         <th style="padding:6px; text-align:right;">年度</th>
-        <th style="padding:6px; text-align:right;">生涯</th>
+        ${hasCareer ? `<th style="padding:6px; text-align:right;">生涯</th>` : ''}
       </tr>
     </thead>
     <tbody>
-      ${Object.keys(roleMap).map(k=>{
-        return `
-        <tr>
-          <td style="padding:6px;">${roleMap[k]}</td>
-          <td style="padding:6px; text-align:right;">${roleCount[k] || 0}</td>
-          <td style="padding:6px; text-align:right;">${roleCareer[k] || 0}</td>
-        </tr>
-        `;
-      }).join('')}
+      ${rows}
     </tbody>
   </table>
   `;
