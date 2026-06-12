@@ -466,6 +466,28 @@ th, td{ white-space:nowrap; }
         </div>
       </div>
 
+      <!-- ✅ 個人資料 Modal -->
+      <div id="personModal" class="modal hidden">
+        <div class="modal-content" style="max-width:500px;">
+      
+          <div class="modal-header">
+            <h3>📊 個人數據分析</h3>
+            <button class="btn-close" onclick="closePersonModal()">✕</button>
+          </div>
+      
+          <div class="modal-body" id="personModalBody">
+          </div>
+      
+          <div style="padding:12px 16px; border-top:1px solid #e5e7eb; text-align:right;">
+            <button onclick="closePersonModal()" 
+              style="padding:8px 16px; border-radius:8px; border:none; background:#2563eb; color:white; font-weight:600;">
+              關閉
+            </button>
+          </div>
+      
+        </div>
+      </div>
+
         <!-- 內容 -->
         <div class="modal-body">
           <div id="annualList"></div>
@@ -783,9 +805,13 @@ function showPersonDetail(p){
   </div>
   `;
 
-  document.getElementById('personDetail').innerHTML = html;
+  // document.getElementById('personDetail').innerHTML = html;
+
+  document.getElementById('personModalBody').innerHTML = html;
+  document.getElementById('personModal').classList.remove('hidden');
 
   renderRoleChart(p);
+
 }
 
 function renderRoleChart(p){
@@ -839,6 +865,11 @@ function renderRoleChart(p){
       }]
     }
   });
+}
+
+// 關閉個人資料視窗
+function closePersonModal(){
+  document.getElementById('personModal').classList.add('hidden');
 }
 
   </script>
