@@ -82,7 +82,7 @@ body{
 .person.no_show{ background:#fef2f2; }
 .person.late{ background:#fffbeb; }
 
-/* 替補左側線 */
+/* 支援左側線 */
 .person.replacement{
   border-left:4px solid #6366f1;
 }
@@ -582,7 +582,7 @@ function load(){
   });
 }
 
-// 每場 render，替補＋鎖定＋更正＋顏色
+// 每場 render，支援＋鎖定＋更正＋顏色
 function renderGame(g){
 
   return `
@@ -611,7 +611,7 @@ function renderGame(g){
 }
 
 
-// 替補一定在原人下面
+// 支援一定在原人下面
 function renderGroup(g){
 
   const list = g.list || [];
@@ -630,7 +630,7 @@ function renderGroup(g){
 
     const rows = roleMap[role];
 
-    // ✅ 原人 / 替補
+    // ✅ 原人 / 支援
     const main = rows.filter(x => x.is_replacement != 1);
     const repl = rows.filter(x => x.is_replacement == 1);
 
@@ -638,7 +638,7 @@ function renderGroup(g){
 
       html += renderRow(p, g);
 
-      // ✅ ✅ ✅ 🔥 替補強制接在下面
+      // ✅ ✅ ✅ 🔥 支援強制接在下面
       repl.forEach(r=>{
         html += renderRow(r, g, true);
       });
@@ -728,7 +728,7 @@ function renderRow(p, g, isReplacement=false){
             <button class="btn btn-replace"
               ${hasReplacement ? 'disabled style="opacity:.4;cursor:not-allowed;"' : ''}
               onclick="quickReplace('${g.game_id}','${p.role}', this)">
-              替補
+              支援
             </button>
           `:''}
 
@@ -873,7 +873,7 @@ function renderRow(p, g, isReplacement=false){
   });
 }
 
-// 替補時「原人自動 no_show」
+// 支援時「原人自動 no_show」
  function autoNoShow(gameId, role){
 
   callApi({
@@ -967,7 +967,7 @@ function quickAssign(id, btn){
 }
 
 /* ========================
-   快速替補（最終穩定版）
+   快速支援（最終穩定版）
 ======================== */
 function quickReplace(gameId, role, btn){
 
@@ -976,11 +976,11 @@ function quickReplace(gameId, role, btn){
   const uid = select?.value;
 
   if (!uid){
-    toast('請先選替補人員','warn');
+    toast('請先選支援人員','warn');
     return;
   }
 
-  toast('新增替補中...','loading');
+  toast('新增支援中...','loading');
 
   callApi({
     action:'addReplacement',
@@ -1001,7 +1001,7 @@ function quickReplace(gameId, role, btn){
 
     autoNoShow(gameId, role);
 
-    toast('✅ 替補成功');
+    toast('✅ 支援成功');
     load();
   });
 }
