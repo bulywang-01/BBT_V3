@@ -74,7 +74,7 @@ h2{
   // ✅ 初始化
   document.addEventListener('DOMContentLoaded',()=>{
     loadHeader();
-    loadUsers();
+    loadCourses();
   });
  
     function loadHeader() {
@@ -119,29 +119,7 @@ h2{
       })
       .catch(err => console.error('Header 載入失敗', err));
   }
-
- 
-  /* ========================
-     Users
-  ======================== */
-function loadUsers(){
-  callApi({action:'getUsers'}, res=>{
-
-    if(!res){
-      toast('API 無回應','error');
-      return;
-    }
-
-    if(res.result !== 'ok'){
-      toast('讀取使用者失敗','error');
-      return;
-    }
-
-    userList = res.users || [];
-    load();
-    console.log(userList);
-  });
-}
+  
 </script>
   
 <h2>課程報名</h2>
@@ -149,23 +127,30 @@ function loadUsers(){
 <div id="list"></div>
 
 <script>
-
-// ✅ ✅ ✅ 用你既有 config
-const API = CONFIG.API_BASE;
-
 // ✅ 共用登入
 const user_id = localStorage.getItem('user_id');
 
 // ----------------------
 function loadCourses(){
 
-  fetch(`${API}?action=getCourses`)
-    .then(res=>res.json())
-    .then(res=>{
-      render(res.data || []);
-    });
+  callApi({action:'getCourses'}, res=>{
+
+    if(!res){
+      toast('API 無回應','error');
+      return;
+    }
+
+    if(res.result !== 'ok'){
+      toast('讀取課程失敗','error');
+      return;
+    }
+
+    render(res.data || []);
+
+  });
 
 }
+
 
 // ----------------------
 function render(data){
@@ -216,25 +201,30 @@ function render(data){
 // ----------------------
 function joinCourse(course_id){
 
+  const session = getSession();
+  const user_id = session?.user_id;
+
   if (!user_id){
-    alert('請先登入');
+    toast('請先登入','error');
     return;
   }
 
   if (!confirm('確定報名？')) return;
 
-  fetch(`${API}?action=enrollCourse&user_id=${user_id}&course_id=${course_id}`)
-    .then(res=>res.json())
-    .then(res=>{
+  callApi({
+    action:'enrollCourse',
+    user_id,
+    course_id
+  }, res=>{
 
-      if (res.result === 'ok'){
-        alert('✅ 報名成功');
-        loadCourses();
-      }else{
-        alert(res.message || '報名失敗');
-      }
+    if(res.result === 'ok'){
+      toast('✅ 報名成功');
+      loadCourses();
+    }else{
+      toast(res.message || '報名失敗','error');
+    }
 
-    });
+  });
 
 }
 
