@@ -802,13 +802,16 @@ function showPersonDetail(p){
     <table style="width:100%; margin-top:6px; border-collapse:collapse; font-size:14px;">
       <tr style="background:#f3f4f6;">
         <th style="padding:8px;">完成</th>
+        <th style="padding:8px;">(含)替補</th>
         <th style="padding:8px;">遲到</th>
         <th style="padding:8px;">缺席</th>
-        <th style="padding:8px;">替補</th>
       </tr>
       <tr>
         <td style="padding:8px; text-align:center; color:#16a34a; font-weight:700;">
           ${p.completed}
+        </td>
+        <td style="padding:8px; text-align:center; color:#2563eb; font-weight:700;">
+          ${p.substitute || 0}
         </td>
         <td style="padding:8px; text-align:center; color:#d97706; font-weight:700;">
           ${p.late}
@@ -816,9 +819,7 @@ function showPersonDetail(p){
         <td style="padding:8px; text-align:center; color:#dc2626; font-weight:700;">
           ${p.no_show}
         </td>
-        <td style="padding:8px; text-align:center; color:#2563eb; font-weight:700;">
-          ${p.substitute || 0}
-        </td>
+
       </tr>
     </table>
   </div>
