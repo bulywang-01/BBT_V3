@@ -791,9 +791,29 @@ function showPersonDetail(p){
   <!-- 出勤狀況 -->
   <div style="margin-top:10px;">
     <b>📊 出勤概況</b>
-    <div>完成：${p.completed}</div>
-    <div>遲到：${p.late}</div>
-    <div>缺席：${p.no_show}</div>
+  
+    <table style="width:100%; margin-top:6px; border-collapse:collapse; font-size:14px;">
+      <tr style="background:#f3f4f6;">
+        <th style="padding:8px;">完成</th>
+        <th style="padding:8px;">遲到</th>
+        <th style="padding:8px;">缺席</th>
+        <th style="padding:8px;">替補</th>
+      </tr>
+      <tr>
+        <td style="padding:8px; text-align:center; color:#16a34a; font-weight:700;">
+          ${p.completed}
+        </td>
+        <td style="padding:8px; text-align:center; color:#d97706; font-weight:700;">
+          ${p.late}
+        </td>
+        <td style="padding:8px; text-align:center; color:#dc2626; font-weight:700;">
+          ${p.no_show}
+        </td>
+        <td style="padding:8px; text-align:center; color:#2563eb; font-weight:700;">
+          ${p.substitute || 0}
+        </td>
+      </tr>
+    </table>
   </div>
 
   <hr/>
@@ -801,7 +821,10 @@ function showPersonDetail(p){
   <!-- 圓餅圖容器 -->
   <div style="margin-top:10px;">
     <b>📊 角色分布</b>
-    <canvas id="roleChart" height="200"></canvas>
+    
+    ${renderRoleStats(p)}
+
+    <canvas id="roleChart" height="160"></canvas>
   </div>
   `;
 
@@ -872,6 +895,52 @@ function closePersonModal(){
   document.getElementById('personModal').classList.add('hidden');
 }
 
+// 個人資料 - 年度及生涯資料
+function renderRoleStats(p){
+
+  const roleCount = p.role_count || {};          // ✅ 年度
+  const roleCareer = p.role_career_count || {};  // ✅ 生涯（你之後API補）
+
+  const isJudge = currentAnnualType === 'judge';
+
+  const roleMapJudge = {
+    PU:'主審',
+    U1:'一壘審',
+    U2:'二壘審',
+    U3:'三壘審'
+  };
+
+  const roleMapRecord = {
+    REC_MAIN:'紀錄員',
+    REC_VIDEO:'影像紀錄',
+    REC_TRAINEE:'見習紀錄'
+  };
+
+  const roleMap = isJudge ? roleMapJudge : roleMapRecord;
+
+  return `
+  <table style="width:100%; font-size:13px; margin-top:6px; border-collapse:collapse;">
+    <thead>
+      <tr style="background:#f3f4f6;">
+        <th style="padding:6px; text-align:left;">角色</th>
+        <th style="padding:6px; text-align:right;">年度</th>
+        <th style="padding:6px; text-align:right;">生涯</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${Object.keys(roleMap).map(k=>{
+        return `
+        <tr>
+          <td style="padding:6px;">${roleMap[k]}</td>
+          <td style="padding:6px; text-align:right;">${roleCount[k] || 0}</td>
+          <td style="padding:6px; text-align:right;">${roleCareer[k] || 0}</td>
+        </tr>
+        `;
+      }).join('')}
+    </tbody>
+  </table>
+  `;
+}
   </script>
 </body>
 </html>
