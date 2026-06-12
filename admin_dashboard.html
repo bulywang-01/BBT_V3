@@ -316,8 +316,9 @@ th, td{ white-space:nowrap; }
 .chart-box{
   max-width: 220px;   /* ✅ 控制大小（可調 220~300） */
   margin: 10px auto;  /* ✅ 置中 */
+  display:flex;
+  justify-content:center;
 }
-
   </style>
   
 </head>
@@ -895,6 +896,22 @@ function renderRoleChart(p){
           '#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6'
         ]
       }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:true,
+  
+      plugins:{
+        legend:{
+          position:'right',   // ✅ ✅ ✅ 關鍵在這
+          labels:{
+            boxWidth:12,      // ✅ 小一點比較精緻
+            font:{
+              size:12         // ✅ 字體調整
+            }
+          }
+        }
+      }
     }
   });
 }
