@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>課程報名</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#f5f6f8;
+  padding:20px;
+}
+
+h2{
+  margin-bottom:10px;
+}
+
+.course{
+  background:#fff;
+  border-radius:8px;
+  padding:12px;
+  margin-bottom:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:4px;
+  font-size:14px;
+}
+
+.btn{
+  padding:6px 10px;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+}
+
+.btn-join{
+  background:#1976d2;
+  color:#fff;
+}
+
+.btn-full{
+  background:#ccc;
+  color:#666;
+}
+
+.badge{
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:4px;
+}
+
+.open{background:#2e7d32;color:#fff;}
+.closed{background:#999;color:#fff;}
+
+</style>
+</head>
+
+<body>
+
+<h2>課程報名</h2>
+
+<div id="list"></div>
+
+<script>
+
+const API = '你的GAS網址'; // ✅ 換這個
+const user_id = localStorage.getItem('user_id'); // ✅ 你原本系統用的
+
+// ✅ 載入
+function loadCourses(){
+
+  fetch(`${API}?action=getCourses`)
+    .then(res=>res.json())
+    .then(res=>{
+      render(res.data);
+    });
+
+}
+
+// ✅ render
+function render(data){
+
+  const el = document.getElementById('list');
+
+  el.innerHTML = data.map(c=>{
+
+    const full = c.count >= c.capacity;
+    const canJoin = c.course_status === 'open' && !full;
+
+    return `
+      <div class="course">
+
+        <div class="row">
+          <b>${c.course_name}</b>
+          <span class="badge ${c.course_status==='open'?'open':'closed'}">
+            ${c.course_status}
+          </span>
+        </div>
+
+        <div class="row">
+          日期：${c.date}
+        </div>
+
+        <div class="row">
+          地點：${c.location}
+        </div>
+
+        <div class="row">
+          講師：${c.instructor}
+        </div>
+
+        <div class="row">
+          費用：${c.fee} 元
+        </div>
+
+        <div class="row">
+          名額：${c.count} / ${c.capacity}
+        </div>
+
+        <div class="row">
+          ${
+            canJoin
+            ? `<button class="btn btn-join"
+                 onclick="join('${c.course_id}', '${c.course_name}', '${c.course_type}', '${c.category}', '${c.date}', '${c.location}', '${c.instructor}', '${c.fee}')">
+                 報名
+               </button>`
+            : `<button class="btn btn-full" disabled>已滿 / 關閉</button>`
+          }
+        </div>
+
+      </div>
+    `;
+
+  }).join('');
+}
+
+// ✅ 報名
+function join(id, name, type, category, date, location, instructor, fee){
+
+  if (!confirm('確定要報名這堂課？')) return;
+
+  const url =
+    `${API}?action=enrollCourse`
+    + `&user_id=${user_id}`
+    + `&course_id=${id}`
+    + `&course_name=${encodeURIComponent(name)}`
+    + `&course_type=${type}`
+    + `&category=${category}`
+    + `&date=${date}`
+    + `&location=${location}`
+    + `&instructor=${instructor}`
+    + `&fee=${fee}`;
+
+  fetch(url)
+    .then(res=>res.json())
+    .then(res=>{
+
+      if (res.result === 'ok'){
+        alert('✅ 報名成功');
+        loadCourses();
+      }else{
+        alert(res.message || '失敗');
+      }
+
+    });
+}
+
+// ✅ 啟動
+loadCourses();
+
+</script>
+
+</body>
+</html>
