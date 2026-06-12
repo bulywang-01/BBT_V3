@@ -678,7 +678,7 @@ function renderRow(p, g, isReplacement=false){
   const usedUserIds = list.map(x => String(x.user_id || ''));
 
   const replaceTag = p.is_replacement == 1
-    ? '<span class="tag tag-replace">補</span>'
+    ? '<span class="tag tag-replace">支</span>'
     : '';
 
   const statusTag = {
@@ -784,7 +784,7 @@ function renderRow(p, g, isReplacement=false){
      
        updateRowUI(id, status);
      
-       // ✅ ✅ ✅ 🔥 如果是 no_show，要刷新（讓補出現）
+       // ✅ ✅ ✅ 🔥 如果是 no_show，要刷新（讓 "支" 出現）
        if (status === 'no_show'){
          setTimeout(load, 0);
        }
