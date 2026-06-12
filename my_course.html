@@ -1,4 +1,4 @@
-<div id="myList"></div>
+<div id="my"></div>
 
 <script>
 function loadMy(){
@@ -11,20 +11,22 @@ function loadMy(){
 
     const html = list.map(r=>`
       <div class="card">
-        ${r.course_name}<br>
-        狀態：${mapStatus(r.status)}<br>
+        <b>${r.course_name}</b>
+        <div>狀態：${mapStatus(r.status)}</div>
       </div>
     `).join('');
 
-    document.getElementById('myList').innerHTML = html;
+    document.getElementById('my').innerHTML = html;
   });
 }
 
 function mapStatus(s){
   return {
     applied:'已報名',
-    attended:'已上課',
-    absent:'未到'
+    confirmed:'已確認',
+    attended:'已出席',
+    absent:'未到',
+    cancelled:'取消'
   }[s];
 }
 
