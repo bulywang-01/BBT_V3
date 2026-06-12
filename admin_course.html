@@ -1,4 +1,4 @@
-<div id="adminList"></div>
+<div id="list"></div>
 
 <script>
 function loadAdmin(){
@@ -8,29 +8,28 @@ function loadAdmin(){
     const html = res.data.map(r=>`
       <div class="person-row">
 
-        ${r.course_name}｜${r.name}
+        <b>${r.course_name}</b>｜${r.name}
 
-        <select onchange="update('${r.log_id}',this.value)">
+        <select onchange="setStatus('${r.log_id}',this.value)">
           <option value="applied">報名</option>
+          <option value="confirmed">確認</option>
           <option value="attended">出席</option>
           <option value="absent">缺席</option>
         </select>
 
-        <button onclick="pay('${r.log_id}')">💰 已繳</button>
+        <button onclick="pay('${r.log_id}')">
+          ${r.payment_status==='paid'?'已繳':'繳費'}
+        </button>
 
       </div>
     `).join('');
 
-    document.getElementById('adminList').innerHTML = html;
+    document.getElementById('list').innerHTML = html;
   });
 }
 
-function update(id, status){
-  callApi({
-    action:'updateTrainingStatus',
-    log_id:id,
-    status:status
-  });
+function setStatus(id,status){
+  callApi({action:'updateTrainingStatus',log_id:id,status});
 }
 
 function pay(id){
@@ -38,7 +37,7 @@ function pay(id){
     action:'updateTrainingStatus',
     log_id:id,
     payment_status:'paid'
-  });
+  },loadAdmin);
 }
 
 loadAdmin();
