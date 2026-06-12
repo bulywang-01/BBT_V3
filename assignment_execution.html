@@ -381,7 +381,12 @@ body{
      按是否鎖定只顯示更正鍵
   ======================== */
 function isGameLocked(g){
-  return g.list.every(p => p.status !== 'scheduled');
+  // return g.list.every(p => p.status !== 'scheduled');
+ 
+  return g.list.every(p => 
+    p.status === 'completed' || p.status === 'late'
+  );
+
 }
 
   /* ========================
@@ -670,7 +675,7 @@ function renderRow(p, g, isReplacement=false){
   );
 
   const locked = isGameLocked(g);
-  const done = p.status !== 'scheduled';
+  const done = (p.status === 'completed' || p.status === 'late');
 
   const replaceTag = p.is_replacement == 1
     ? '<span class="tag tag-replace">支</span>'
