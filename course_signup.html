@@ -4,30 +4,34 @@
 <meta charset="UTF-8">
 <title>課程報名</title>
 
+  <!-- ✅ 你原本就有的 JS（一定要） -->
+  <script src="js/auth.js"></script>
+  <script src="js/config.js"></script>
+  
 <style>
 body{
-  font-family:Arial;
+  font-family: Arial;
   background:#f5f6f8;
-  padding:20px;
+  padding:15px;
 }
 
 h2{
   margin-bottom:10px;
 }
 
-.course{
+.card{
   background:#fff;
   border-radius:8px;
   padding:12px;
   margin-bottom:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  box-shadow:0 1px 4px rgba(0,0,0,0.1);
 }
 
 .row{
   display:flex;
   justify-content:space-between;
-  margin-bottom:4px;
   font-size:14px;
+  margin-bottom:4px;
 }
 
 .btn{
@@ -42,7 +46,7 @@ h2{
   color:#fff;
 }
 
-.btn-full{
+.btn-disabled{
   background:#ccc;
   color:#666;
 }
@@ -61,101 +65,161 @@ h2{
 
 <body>
 
+<script>
+  /* ========================
+     Header
+  ======================== */ 
+  let userList = [];
+  
+  // ✅ 初始化
+  document.addEventListener('DOMContentLoaded',()=>{
+    loadHeader();
+    loadUsers();
+  });
+ 
+    function loadHeader() {
+    fetch('header.html')
+      .then(r => r.text())
+      .then(html => {
+        const hc = document.getElementById('header-container');
+        if (!hc) return;
+  
+        hc.innerHTML = html;
+  
+        // ✅ 一律從 session 重新設定 role（唯一正解）
+        const session = (typeof getSession === 'function')
+          ? getSession()
+          : JSON.parse(localStorage.getItem('session_user') || '{}');
+  
+        document.body.classList.remove(
+          'role-admin',
+          'role-judge',
+          'role-record'
+        );
+  
+        if (session && session.role) {
+          const roles = session.role.split(',').map(r => r.trim());
+  
+          if (roles.includes('admin')) {
+            document.body.classList.add('role-admin');
+          }
+          if (roles.includes('judge') || roles.includes('chief_judge')) {
+            document.body.classList.add('role-judge');
+          }
+          if (roles.includes('record') || roles.includes('record_chief')) {
+            document.body.classList.add('role-record');
+          }
+        }
+  
+        // ✅ 顯示登入者姓名
+        if (session && session.name) {
+          const nameEl = document.getElementById('header-username');
+          if (nameEl) nameEl.textContent = session.name;
+        }
+      })
+      .catch(err => console.error('Header 載入失敗', err));
+  }
+
+ 
+  /* ========================
+     Users
+  ======================== */
+function loadUsers(){
+  callApi({action:'getUsers'}, res=>{
+
+    if(!res){
+      toast('API 無回應','error');
+      return;
+    }
+
+    if(res.result !== 'ok'){
+      toast('讀取使用者失敗','error');
+      return;
+    }
+
+    userList = res.users || [];
+    load();
+    console.log(userList);
+  });
+}
+</script>
+  
 <h2>課程報名</h2>
 
 <div id="list"></div>
 
 <script>
+// ✅ 共用登入
+const user_id = localStorage.getItem('user_id');
 
-const API = '你的GAS網址'; // ✅ 換這個
-const user_id = localStorage.getItem('user_id'); // ✅ 你原本系統用的
-
-// ✅ 載入
+// ----------------------
 function loadCourses(){
 
   fetch(`${API}?action=getCourses`)
     .then(res=>res.json())
     .then(res=>{
-      render(res.data);
+      render(res.data || []);
     });
 
 }
 
-// ✅ render
+// ----------------------
 function render(data){
 
   const el = document.getElementById('list');
 
   el.innerHTML = data.map(c=>{
 
-    const full = c.count >= c.capacity;
-    const canJoin = c.course_status === 'open' && !full;
+    const isFull = Number(c.count) >= Number(c.capacity);
+    const isOpen = c.course_status === 'open';
+
+    const canJoin = isOpen && !isFull;
 
     return `
-      <div class="course">
-
+      <div class="card">
+        
         <div class="row">
           <b>${c.course_name}</b>
-          <span class="badge ${c.course_status==='open'?'open':'closed'}">
+          <span class="badge ${isOpen ? 'open' : 'closed'}">
             ${c.course_status}
           </span>
         </div>
 
-        <div class="row">
-          日期：${c.date}
-        </div>
-
-        <div class="row">
-          地點：${c.location}
-        </div>
-
-        <div class="row">
-          講師：${c.instructor}
-        </div>
-
-        <div class="row">
-          費用：${c.fee} 元
-        </div>
-
-        <div class="row">
-          名額：${c.count} / ${c.capacity}
-        </div>
+        <div class="row">日期：${c.date}</div>
+        <div class="row">地點：${c.location}</div>
+        <div class="row">講師：${c.instructor}</div>
+        <div class="row">費用：${c.fee} 元</div>
+        <div class="row">名額：${c.count} / ${c.capacity}</div>
 
         <div class="row">
           ${
             canJoin
             ? `<button class="btn btn-join"
-                 onclick="join('${c.course_id}', '${c.course_name}', '${c.course_type}', '${c.category}', '${c.date}', '${c.location}', '${c.instructor}', '${c.fee}')">
+                 onclick="joinCourse('${c.course_id}')">
                  報名
                </button>`
-            : `<button class="btn btn-full" disabled>已滿 / 關閉</button>`
+            : `<button class="btn btn-disabled" disabled>
+                 ${isFull ? '名額已滿' : '已關閉'}
+               </button>`
           }
         </div>
 
       </div>
     `;
-
   }).join('');
 }
 
-// ✅ 報名
-function join(id, name, type, category, date, location, instructor, fee){
+// ----------------------
+function joinCourse(course_id){
 
-  if (!confirm('確定要報名這堂課？')) return;
+  if (!user_id){
+    alert('請先登入');
+    return;
+  }
 
-  const url =
-    `${API}?action=enrollCourse`
-    + `&user_id=${user_id}`
-    + `&course_id=${id}`
-    + `&course_name=${encodeURIComponent(name)}`
-    + `&course_type=${type}`
-    + `&category=${category}`
-    + `&date=${date}`
-    + `&location=${location}`
-    + `&instructor=${instructor}`
-    + `&fee=${fee}`;
+  if (!confirm('確定報名？')) return;
 
-  fetch(url)
+  fetch(`${API}?action=enrollCourse&user_id=${user_id}&course_id=${course_id}`)
     .then(res=>res.json())
     .then(res=>{
 
@@ -163,13 +227,14 @@ function join(id, name, type, category, date, location, instructor, fee){
         alert('✅ 報名成功');
         loadCourses();
       }else{
-        alert(res.message || '失敗');
+        alert(res.message || '報名失敗');
       }
 
     });
+
 }
 
-// ✅ 啟動
+// ----------------------
 loadCourses();
 
 </script>
