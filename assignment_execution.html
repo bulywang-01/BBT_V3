@@ -654,28 +654,23 @@ function renderGroup(g){
 // ✅ 共用 render row（避免重複）
 function renderRow(p, g, isReplacement=false){
 
- console.log('ROW', p.role, p.assignment_id);  // ✅ 加這行
-
   const list = g.list || [];
 
-  const hasNoShow = list.some(x =>
-    x.role === p.role && x.status === 'no_show'
-  );
+  const isNoShow = p.status === 'no_show';
+  const isCompleted = p.status === 'completed';
+  const isLate = p.status === 'late';
+  const isScheduled = p.status === 'scheduled';
 
-  const hasReplacement = list.some(x =>
+  const hasUser = !!p.name;
+  const usedUserIds = list.map(x => String(x.user_id || ''));
+
+  // ✅ 判斷該角色是否已有支援
+  const hasSupport = list.some(x =>
     x.role === p.role && Number(x.is_replacement) === 1
   );
 
-  const canAssign = !hasNoShow;
-
-  // const rowDone = p.status === 'completed';
-  
   const locked = isGameLocked(g);
-  const rowDone = p.status !== 'scheduled';
-
-  const hasUser = !!p.name;
-
-  const usedUserIds = list.map(x => String(x.user_id || ''));
+  const done = p.status !== 'scheduled';
 
   const replaceTag = p.is_replacement == 1
     ? '<span class="tag tag-replace">支</span>'
@@ -687,6 +682,94 @@ function renderRow(p, g, isReplacement=false){
     no_show:'<span class="tag tag-no">缺</span>',
     scheduled:''
   };
+
+  /* ========================
+     🎯 狀態機核心
+  ======================== */
+
+  let actionHTML = '';
+
+  // ✅ 已鎖定 / 已完成
+  if (locked || done){
+
+    actionHTML = `
+      <button onclick="unlock('${p.assignment_id}')">
+        ✏️ 更正
+      </button>
+    `;
+  }
+
+  // ✅ 可操作狀態
+  else{
+
+    // ✅ 正常按鈕
+    actionHTML += `
+      <button class="btn btn-ok"
+        onclick="updateStatus('${p.assignment_id}','completed',this)">
+        完成
+      </button>
+
+      <button class="btn btn-late"
+        onclick="updateStatus('${p.assignment_id}','late',this)">
+        遲到
+      </button>
+
+      <button class="btn btn-no"
+        onclick="updateStatus('${p.assignment_id}','no_show',this)">
+        缺席
+      </button>
+    `;
+
+    // ✅ 改派（沒缺席才能）
+    if (!isNoShow){
+      actionHTML += `
+        <button class="btn btn-assign"
+          onclick="quickAssign('${p.assignment_id}', this)">
+          改派
+        </button>
+      `;
+    }
+
+    // ✅ ⭐⭐⭐ 核心：缺席 → 顯示支援
+    if (isNoShow){
+
+      if (!hasSupport){
+
+        // ✅ 顯示支援按鈕
+        actionHTML += `
+          <button class="btn btn-replace"
+            onclick="quickReplace('${g.game_id}','${p.role}', this)">
+            + 支援
+          </button>
+        `;
+      }
+      else{
+
+        // ✅ 已支援 → 鎖顯示
+        actionHTML += `
+          <span style="color:#2563eb;font-weight:700;">
+            ✅ 已支援
+          </span>
+        `;
+      }
+    }
+
+    // ✅ 人員選單
+    actionHTML += `
+      <select class="select-user">
+        <option value="">選擇人員</option>
+        ${
+          userList
+            .filter(u => !usedUserIds.includes(String(u.user_id)))
+            .map(u =>
+              `<option value="${u.user_id}">
+                ${u.name || u.username}
+              </option>`
+            ).join('')
+        }
+      </select>
+    `;
+  }
 
   return `
     <div class="person ${p.status} ${isReplacement ? 'replacement' : ''}"
@@ -706,49 +789,12 @@ function renderRow(p, g, isReplacement=false){
       </div>
 
       <div class="actions-box">
-
-        ${ (locked || rowDone) ? `
-          <button onclick="unlock('${p.assignment_id}')">✏️ 更正</button>
-        ` : `
-          <button class="btn btn-ok"
-            onclick="updateStatus('${p.assignment_id}','completed',this)">完成</button>
-
-          <button class="btn btn-late"
-            onclick="updateStatus('${p.assignment_id}','late',this)">遲到</button>
-
-          <button class="btn btn-no"
-            onclick="updateStatus('${p.assignment_id}','no_show',this)">缺席</button>
-
-          ${canAssign ? `
-            <button class="btn btn-assign"
-              onclick="quickAssign('${p.assignment_id}', this)">改派</button>
-          `:''}
-
-          ${hasNoShow ? `
-            <button class="btn btn-replace"
-              ${hasReplacement ? 'disabled style="opacity:.4;cursor:not-allowed;"' : ''}
-              onclick="quickReplace('${g.game_id}','${p.role}', this)">
-              支援
-            </button>
-          `:''}
-
-          <select class="select-user">
-            <option value="">選擇人員</option>
-            ${
-              userList
-                .filter(u => !usedUserIds.includes(String(u.user_id)))
-                .map(u =>
-                  `<option value="${u.user_id}">
-                    ${u.name || u.username}
-                  </option>`
-                ).join('')
-            }
-          </select>
-        `}
+        ${actionHTML}
       </div>
     </div>
   `;
 }
+
 
   
   /* ========================
