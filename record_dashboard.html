@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>裁判報名</title>
+<title>紀錄員報名</title>
 
 <style>
 /* ===============================
@@ -64,8 +64,8 @@ body {
  ✅ 日期標題
 ================================ */
 .date-header{
-  font-size:20px;
-  font-weight:1000;
+  font-size:16px;
+  font-weight:800;
   color:#1d4ed8;
   margin:22px 10px 10px;
   padding-left:6px;
@@ -175,6 +175,7 @@ body {
   border-top:1px dashed #ddd;
   padding-top:6px;
   margin-top:6px;
+  text-align:center;
 }
 
 .slot{
@@ -222,10 +223,9 @@ body {
   background:#2563eb;
   color:#fff;
   border-radius:4px;
-  font-size:13px;
+  font-size:11px;
   padding:1px 0;
   margin-top:2px;
-  pointer-events: none;
 }
 
 /* 取消 */
@@ -304,15 +304,15 @@ body {
 }
 
 .category-title{
-  font-size:16px;
-  font-weight:800;
-  /* color:#1976d2; */
-  color:#1d4ed8;
+  font-size:14px;
+  font-weight:700;
+  color:#1976d2;
   margin:14px 10px 6px;
 }
 
 .game-card.loading{
   opacity:0.5;
+  pointer-events:none;
 }
 
 .row-warning{
@@ -370,12 +370,12 @@ body {
 
 
 <!-- 共用 Header -->
-<body data-page-title="裁判報名" class="page-judge">
+<body data-page-title="紀錄報名" class="page-record">
 
 
 <script src="js/auth.js"></script>
 <script src="js/config.js"></script>
-<script src="js/core.js"></script>
+<script src="js/core.js?v=2"></script>
 
 
 <!-- 畫面中間呈現訊息
@@ -510,7 +510,7 @@ function loadGames() {
  showToast('載入賽事資料中...');
 
   callApi(
-    { action:'getSignableGames', user_id: s.user_id || '' },
+    { action:'getRecordGames', user_id: s.user_id || '' },
     res => {
 
       if (!res || res.result !== 'ok') {
@@ -518,39 +518,15 @@ function loadGames() {
         return;
       }
 
-      allGames = (res.games || []).map(safeMerge);
+      allGames = res.games || [];
       games = allGames;
       
-      // ✅ ✅ ✅ 補 my_position（一定要）
-      const s = session;
-      
-      allGames.forEach(g => {
-      
-        if (g.judges){
-          for (let [role, val] of Object.entries(g.judges)){
-            if (isMySlot(val, s)){
-              g.my_position = role;
-            }
-          }
-        }
-      
-        if (g.records){
-          for (let [role, val] of Object.entries(g.records)){
-            if (isMySlot(val, s)){
-              g.my_position = role;
-            }
-          }
-        }
-      
-      });
-      
       if (typeof setGameCache === 'function'){
-        setGameCache(allGames);
+        setGameCache(allGames);   // ✅ 關鍵
       }
 
       console.log(games.map(g => g.status));
       render();
-
       ;
 
     }
@@ -721,13 +697,13 @@ function render(){
           );
 
           root.innerHTML += `
-            <div class="category-title">混合組 | ${field}</div>
+            <div class="category-title">${field}</div>
             <div class="card-grid">
               ${
-               finalList
-                 .filter(g => Number(g.status || 0) !== 3)   // ✅ 先過濾
-                 .map(g => renderGameCard(g,{ session, type:'judge' }))
-                 .join('')
+                finalList
+                  .filter(g => Number(g.status || 0) !== 3)   // ✅ 先過濾
+                  .map(g => renderGameCard(g,{ session, type:'record' }))
+                  .join('')
               }
             </div>
           `;
@@ -756,7 +732,7 @@ function render(){
                 ${
                   sorted
                     .filter(g => Number(g.status || 0) !== 3)
-                    .map(g => renderGameCard(g,{ session, type:'judge' }))
+                    .map(g => renderGameCard(g,{ session, type:'record' }))
                     .join('')
                 }
               </div>
@@ -769,34 +745,6 @@ function render(){
     });
 }
 
-/* =========================
- ✅ 單列
-========================= */
-
-function renderRow(g){
-
-  const isPast = isPastGame(g.date);
-
-  const occupied = g.judges || {};
-  const assigned = Object.values(occupied).filter(x=>x).length;
-
-  return `
-    <tr class="${isPast?'expired':''}">
-      <td>${g.game_code}</td>
-      <td>${getTime(g)}</td>
-      <td>${g.category}</td>
-      <td>${g.away_team}</td>
-      <td>${g.home_team}</td>
-      <td>${g.field}</td>
-      <td>${assigned}/${g.need_count}</td>
-
-      ${['PU','U1','U2','U3'].map(role=>{
-        return `<td>${renderPos(g,role,isPast)}</td>`;
-      }).join('')}
-
-    </tr>
-  `;
-}
 
 // ✅ 裁判頁手機版：依 日期 → 組別 → 場次 分組
 function groupGamesForMobile(games) {
@@ -825,6 +773,68 @@ function groupGamesForMobile(games) {
   return map;
 }
 
+function renderMobilePosGrid(g) {
+
+  const isPast = isPastGame(g.date);
+
+  const roles = [
+    ['REC_MAIN','紀錄'],
+    ['REC_TRAINEE','見習'],
+    ['REC_VIDEO','影像']
+  ];
+
+  return `
+  <div class="mobile-pos-grid">
+    ${
+      roles.map(([role,label])=>{
+
+        const slot = g.records?.[role];
+        const isMe = g.my_position === role;
+
+        // ✅ 已有人
+        if (slot){
+          return `
+            <div class="mobile-pos">
+              <span class="${isMe?'mobile-judge-me':''}">
+                ${getName(slot)}
+              </span>
+              ${
+                isMe && !isPast
+                ? `<div class="mobile-cancel"
+                      onclick="handleSlotClick('${g.game_id}','${role}')">
+                      取消
+                   </div>`
+                : ''
+              }
+            </div>
+          `;
+        }
+
+        // ✅ 過期
+        if (isPast){
+          return `<div class="mobile-pos">—</div>`;
+        }
+
+        // ✅ 已有其它位置
+        if (g.my_position){
+          return `<div class="mobile-pos">待位</div>`;
+        }
+
+        // ✅ 可報名
+        return `
+          <div class="mobile-pos">
+            <div class="mobile-pos-btn"
+              onclick="handleSlotClick('${g.game_id}','${role}')">
+              ${label}
+            </div>
+          </div>
+        `;
+
+      }).join('')
+    }
+  </div>
+  `;
+}
  
 function renderTimeHHmm(t) {
   if (!t) return '';
@@ -852,45 +862,7 @@ function renderTimeHHmm(t) {
   return String(t);
 }
  
-/* ===== 送出 ===== */
-
-function submitSignup(){
-  const entries = Object.keys(selectedPositions);
-  if (!entries.length){
-    showToast('尚未選擇站位');
-    return;
-  }
-
-  const session = ensureLogin();
-  if (!session) return;
-
-  const payload = entries.map(
-    id => `${id}:${selectedPositions[id]}`
-  );
-
-  // ✅ 顯示存入中
- showToast('報名資料存入中...');
-
-  callApi(
-    {
-      action: 'judgeSignupByGames',
-      user_id: s.user_id,
-      games_with_position: payload.join(',')
-    },
-    res => {
-      if (res && res.result === 'ok') {
-        showToast('✅ 報名成功');
-        setTimeout(() => location.reload(), 800);
-      } else {
-        showToast(res?.message || '❌ 報名失敗');
-      }
-    }
-  );
-}
-
-
 // 訊息function
-
 
 function logout(){
   localStorage.clear();
@@ -923,7 +895,6 @@ function initMonthTabs() {
     showToast(`載入全年班表`, 'success');
   };
 
-
   container.appendChild(allBtn);
 
 
@@ -938,14 +909,13 @@ function initMonthTabs() {
       // 預設不要 active（讓全年是預設）
     }
 
-    div.onclick = () => {
-      window.currentMonth = m;
-      window.isFullYear = false;
-      setActiveTab(div);
-      loadJudgeGamesByMonth(year, m);
-      showToast(`載入 ${m}月 班表`, 'success');
-    };
-
+   div.onclick = () => {
+     window.currentMonth = m;
+     window.isFullYear = false;
+     setActiveTab(div);
+     loadRecordGamesByMonth(year, m);
+     showToast(`載入 ${m}月 班表`, 'success');
+   };
 
     container.appendChild(div);
   }
@@ -958,14 +928,12 @@ function setActiveTab(el) {
 }
 
 // 呼叫API
-function loadJudgeGamesByMonth(year, month) {
+function loadRecordGamesByMonth(year, month){
 
   const s = JSON.parse(localStorage.getItem('session_user')||'{}');
 
- showToast('載入月份班表中...');
-
   callApi({
-    action: 'getJudgeGamesByMonth',
+    action:'getRecordGamesByMonth',   // ✅ ✅ ✅
     year: year,
     month: month,
     user_id: s.user_id
@@ -976,42 +944,10 @@ function loadJudgeGamesByMonth(year, month) {
       return;
     }
 
-    allGames = (res.games || []).map(safeMerge);
-    
-    // ✅ ✅ ✅ 同樣補
-    const s = session;
-    
-    allGames.forEach(g => {
-    
-      if (g.judges){
-        for (let [role, val] of Object.entries(g.judges)){
-          if (isMySlot(val, s)){
-            g.my_position = role;
-          }
-        }
-      }
-    
-      if (g.records){
-        for (let [role, val] of Object.entries(g.records)){
-          if (isMySlot(val, s)){
-            g.my_position = role;
-          }
-        }
-      }
-    
-    });
-    
+    allGames = res.games || [];
+
     if (typeof setGameCache === 'function'){
       setGameCache(allGames);
-    }
-
-
-    // ✅ ✅ ✅ 關鍵（補空資料）
-    if (!allGames.length) {
-      showToast('當月無賽事');
-      document.getElementById('content').innerHTML = '';
-      document.getElementById('mobileView').innerHTML = '';
-      return;
     }
 
     render();
@@ -1044,10 +980,11 @@ function safeMerge(g){
       g.signup_records?.[r] ||
       '';
   });
- 
+
   g.status = Number(g.status || 0);
   return g;
 }
+
 </script>
 </body>
 </html>
