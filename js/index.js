@@ -162,82 +162,76 @@ function loadWeeklyReminder(){
 
 
 /*********************************************************
- * ✅ Dashboard
+ * ✅ Dashboard（最終修正版）
  *********************************************************/
 function loadDashboard(){
 
   callApi({
-    action:'getSignableGames',
-    user_id: session.user_id
+    action:'getAssignments'
   }, res => {
 
     if (!res || res.result !== 'ok') return;
 
-    const games = (res.games || []).map(safeMerge);
-    
-    const s = session;
-    
-    games.forEach(g => {
-    
-      if (g.judges){
-        for (let [role, val] of Object.entries(g.judges)){
-          if (isMySlot(val, s)){
-            g.my_position = role;
-          }
-        }
-      }
-    
-      if (g.records){
-        for (let [role, val] of Object.entries(g.records)){
-          if (isMySlot(val, s)){
-            g.my_position = role;
-          }
-        }
-      }
-    
-    });
+    const list = res.data || [];
 
-    const today = new Date();
+    const uid = String(session.user_id);
+
+    const year = new Date().getFullYear();
 
     let judgeDone = 0;
     let judgeFuture = 0;
     let recordDone = 0;
     let recordFuture = 0;
 
-    games.forEach(g => {
+    list.forEach(g => {
 
-    const hasWork =
-      g.my_position ||
-      g.judges?.PU === session.name ||
-      g.judges?.U1 === session.name ||
-      g.judges?.U2 === session.name ||
-      g.judges?.U3 === session.name ||
-      g.records?.REC_MAIN === session.name ||
-      g.records?.REC_TRAINEE === session.name ||
-      g.records?.REC_VIDEO === session.name;
-    
-    if (!hasWork) return;
-          
-      const d = new Date(g.date);
+      const gameDate = parseDate(g.date);
+      if (!gameDate) return;
 
-      const isRecord = g.my_position.startsWith('REC');
+      const isThisYear =
+        gameDate.getFullYear() === year;
 
-      if (d < today){
-        isRecord ? recordDone++ : judgeDone++;
-      } else {
-        isRecord ? recordFuture++ : judgeFuture++;
-      }
+      (g.list || []).forEach(item => {
+
+        if (String(item.user_id) !== uid) return;
+
+        const isRecord = item.role.startsWith('REC');
+
+        /************* ✅ ✅ ✅ 已完成 *************/
+        if (item.status === 'completed'){
+
+          if (isThisYear){
+            isRecord ? recordDone++ : judgeDone++;
+          }
+
+        }
+
+        /************* ✅ ✅ ✅ 未來 *************/
+        else if (
+          item.status === 'assigned' ||
+          item.status === 'scheduled'
+        ){
+
+          if (isThisYear){
+            isRecord ? recordFuture++ : judgeFuture++;
+          }
+
+        }
+
+        /************* ❌ 不算 *************/
+        // late / no_show / cancelled → 全部排除主數
+
+      });
+
     });
 
-    /************* ✅ ✅ ✅ 核心修正 *************/
-    // 👉 主數字 = 已完成（不是總數）
-
+    // ✅ 主數字（年度 completed）
     document.getElementById('stat-judge').textContent = judgeDone;
     document.getElementById('stat-record').textContent = recordDone;
     document.getElementById('stat-total').textContent =
       judgeDone + recordDone;
 
-    /************* ✅ 子數據 *************/
+    // ✅ 子數據
     document.getElementById('stat-judge-sub').textContent =
       `生 ${judgeDone}　預 ${judgeFuture}`;
 
@@ -246,8 +240,10 @@ function loadDashboard(){
 
     document.getElementById('stat-total-sub').textContent =
       `生 ${judgeDone + recordDone}　預 ${judgeFuture + recordFuture}`;
+
   });
 }
+``
 
 function loadHomeGames(){
 
@@ -490,23 +486,25 @@ function openWeeklySchedule(){
       return;
     }
 
-    const games = res.games || [];
-
+    // const games = res.games || [];
+    const games = (res.games || []).map(safeMerge);
+    
     /************* ✅ 本週範圍 *************/
     const now = new Date();
     const day = now.getDay() === 0 ? 7 : now.getDay();
-
+    
     const monday = new Date(now);
     monday.setDate(now.getDate() - (day - 1));
     monday.setHours(0,0,0,0);
-
+    
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23,59,59,999);
-
+    
+    // ✅ ✅ ✅ 關鍵修正
     const weekGames = games.filter(g=>{
-      const d = new Date(g.date);
-      return d >= monday && d <= sunday;
+      const d = parseDate(g.date);
+      return d && d >= monday && d <= sunday;
     });
 
     if (!weekGames.length){
