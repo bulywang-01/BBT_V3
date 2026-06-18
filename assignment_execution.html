@@ -7,6 +7,7 @@
 
 <script src="js/auth.js"></script>
 <script src="js/config.js"></script>
+<script src="js/utils.js"></script>
  
 <style>
 
@@ -28,6 +29,13 @@ body{
   padding:14px;
   margin-bottom:14px;
   box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+/* ✅ 補賽卡 */
+.game-card.resumed{
+  border:2px solid #3b82f6;
+  box-shadow:0 4px 12px rgba(59,130,246,0.2);
+  background:#eff6ff; /* ✅ 淡藍底 */
 }
 
 .header-bar{
@@ -78,9 +86,25 @@ body{
 }
 
 /* 狀態底色 */
-.person.completed{ background:#ecfdf5; }
-.person.no_show{ background:#fef2f2; }
-.person.late{ background:#fffbeb; }
+.person.completed{
+ background:#ecfdf5;
+}
+.person.no_show{
+ background:#fef2f2;
+}
+.person.late{
+ background:#fffbeb;
+}
+
+.person.hold{
+  background:#fff7ed;   /* 延賽（橘） */
+}
+
+.person.cancelled{
+  background:#e5e7eb;   /* 停賽（灰） */
+  opacity:0.6;
+}
+
 
 /* 支援左側線 */
 .person.replacement{
@@ -165,7 +189,17 @@ body{
   background:#dc2626;
   color:#fff;
 }
+ 
+.tag-hold{
+  background:#f59e0b;  /* 延賽 */
+  color:#fff;
+}
 
+.tag-cancel{
+  background:#6b7280;  /* 停賽 */
+  color:#fff;
+}
+ 
 .tag-replace{
   background:#4f46e5;
   color:#fff;
@@ -318,6 +352,21 @@ body{
 .mini-table th{
   color:#666;
   font-size:13px;
+}
+
+.badge.warn{
+  background:#f59e0b;  /* 延賽 */
+  color:#fff;
+}
+
+.badge.cancel{
+  background:#6b7280;  /* 停賽 */
+  color:#fff;
+}
+
+.person.ignore{
+  background:#e5e7eb;
+  opacity:0.6;
 }
 </style>
 </head>
@@ -474,18 +523,18 @@ function isGameReady(g){
   if (isNaN(gameDate)) return false;
 
   const today = new Date();
-
   today.setHours(0,0,0,0);
   gameDate.setHours(0,0,0,0);
 
-  const isPast = gameDate < today;
+  const isPast = gameDate <= today;   // ✅ 今天也算
 
-  const status = String(g.status || '').toLowerCase();
+  const status = Number(g.status);
 
+  // 顯示條件
   return isPast && (
-    status === '0' ||
-    status === 'completed' ||
-    status === ''
+    status === 0 ||   // 正常
+    status === 1 ||   // 延賽
+    status === 4      // 完成
   );
 }
  
@@ -508,13 +557,26 @@ function render(list){
     return;
   }
 
-  const pending = list.filter(g => !isGameCompleted(g));
-  const done = list.filter(g => isGameCompleted(g));
+  // ✅ ✅ ✅ 最新分類（用 Game.status）
+  const pending = list.filter(g => Number(g.status) === 0);
+  const done = list.filter(g => Number(g.status) === 4);
+  const hold = list.filter(g => Number(g.status) === 1);
+  // const resumed = list.filter(g => Number(g.status) === 4 && Number(g.from_hold) === 1);
+ 
+  // ✅ ✅ ✅ 補賽（全部）
+  const resumed = list.filter(g =>Number(g.from_hold) === 1);
 
-  const data = currentTab === 'pending' ? pending : done;
+
+  let data = [];
+
+  if (currentTab === 'pending') data = pending;
+  if (currentTab === 'done') data = done;
+  if (currentTab === 'hold') data = hold;
+  if (currentTab === 'resumed') data = resumed;
 
   el.innerHTML = `
     <div class="tabs">
+
       <div class="tab ${currentTab==='pending'?'active':''}"
            onclick="switchTab('pending')">
         🔴 未完成 (${pending.length})
@@ -524,12 +586,24 @@ function render(list){
            onclick="switchTab('done')">
         ✅ 已完成 (${done.length})
       </div>
+
+      <div class="tab ${currentTab==='hold'?'active':''}"
+           onclick="switchTab('hold')">
+        ⚠️ 延賽 (${hold.length})
+      </div>
+
+      <div class="tab ${currentTab==='resumed'?'active':''}"
+           onclick="switchTab('resumed')">
+        🔄 補賽 (${resumed.length})
+      </div>
+
     </div>
 
     ${data.map(renderGame).join('')}
   `;
 }
 
+// 切換資料的地方
 function switchTab(t){
   currentTab = t;
   load();
@@ -590,23 +664,115 @@ function load(){
 // 每場 render，支援＋鎖定＋更正＋顏色
 function renderGame(g){
 
-  return `
-    <div class="game-card" data-game-id="${g.game_id}">
+  const statusNum = Number(g.status || 0);
+  const isResumed = Number(g.from_hold || 0) === 1;
 
-      <div class="game-title">
-        📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
+  // ✅ 賽事資訊
+  const info = getTournamentInfo(g.tournament_type);
 
-      ${!isGameLocked(g) ? `
+  let statusHTML = '';
+
+  // ✅ ① 延賽
+  if (statusNum === 1){
+    statusHTML = `
+      <span style="margin-left:10px;color:#f59e0b;font-weight:700;">
+        ⚠️ 延賽
+      </span>
+
+      <button class="btn"
+        style="margin-left:8px;background:#2563eb;"
+        onclick="reopenGame('${g.game_id}')">
+        🔄 補賽
+      </button>
+    `;
+  }
+
+  // ✅ ② 停賽
+  else if (statusNum === 2){
+    statusHTML = `
+      <span style="margin-left:10px;color:#6b7280;font-weight:700;">
+        ⛔ 停賽
+      </span>
+    `;
+  }
+
+  // ✅ ③ 已完成（保留）
+  else if (statusNum === 3){
+    statusHTML = `
+      <span style="margin-left:10px;color:#16a34a;font-weight:700;">
+        ✅ 已完成
+      </span>
+    `;
+  }
+
+  // ✅ ④ 完成（含補賽完成）
+  else if (statusNum === 4){
+
+    if (isResumed){
+      statusHTML = `
+        <span style="margin-left:10px;color:#2563eb;font-weight:700;">
+          🔄 補賽完成
+        </span>
+      `;
+    }else{
+      statusHTML = `
+        <span style="margin-left:10px;color:#16a34a;font-weight:700;">
+          ✅ 已完成
+        </span>
+      `;
+    }
+  }
+
+  // ✅ ⑤ 未完成（含補賽中🔥）
+  else{
+
+    // ✅ ✅ ✅ 補賽中顯示
+    if (isResumed){
+      statusHTML += `
+        <span style="margin-left:10px;color:#2563eb;font-weight:700;">
+          🔄 補賽中
+        </span>
+      `;
+    }
+
+    if (!isGameLocked(g)){
+      statusHTML += `
         <button class="btn-complete-all"
           onclick="completeGame('${g.game_id}')">
           ✅ 整場完成
         </button>
-      ` : `
+
+        <button class="btn"
+          style="margin-left:8px;background:#f59e0b;"
+          onclick="setGameHold('${g.game_id}')">
+          ⚠️ 延賽
+        </button>
+      `;
+    }
+    else{
+      statusHTML += `
         <span style="margin-left:10px;color:#16a34a;font-weight:700;">
           ✅ 已完成
         </span>
-      `}
+      `;
+    }
+  }
 
+
+  const cardClass = isResumed ? 'game-card resumed' : 'game-card';
+  
+  return `
+    <div class="${cardClass}" data-game-id="${g.game_id}">
+
+
+      <div class="game-title">
+        📅 ${g.date} ｜ ${g.game_code || ''} ｜ ${g.field || ''}
+
+        ｜ <span style="color:${info.color};font-weight:700;">
+            ${info.text}
+          </span>
+
+        ${statusHTML}
       </div>
 
       ${renderGroup(g)}
@@ -666,7 +832,20 @@ function renderRow(p, g, isReplacement=false){
   const isLate = p.status === 'late';
   const isScheduled = p.status === 'scheduled';
 
-  const hasUser = !!p.name;
+  // const hasUser = !!p.name;
+  
+  // ✅ ✅ ✅ 若沒 name，用 user_id 補查
+  let displayName = p.name;
+  
+  if (!displayName && p.user_id){
+    const u = userList.find(x => String(x.user_id) === String(p.user_id));
+    if (u){
+      displayName = u.name || u.username;
+    }
+  }
+  
+  const hasUser = !!displayName;
+
   const usedUserIds = list.map(x => String(x.user_id || ''));
 
   // ✅ 判斷該角色是否已有支援
@@ -676,6 +855,15 @@ function renderRow(p, g, isReplacement=false){
 
   const locked = isGameLocked(g);
   const done = (p.status === 'completed' || p.status === 'late');
+  // const isHold = p.status === 'hold';
+  // const isCancelled = p.status === 'ignore' || p.status === 'cancelled';
+  // const isHold = g.status_text === 'hold';
+  // const isCancelled = g.status_text === 'ignore';
+  const isHold = Number(g.status) === 1;
+  const isCancelled = Number(g.status) === 2
+  const isGameCompleted = Number(g.status) === 3;
+
+
 
   const replaceTag = p.is_replacement == 1
     ? '<span class="tag tag-replace">支</span>'
@@ -685,8 +873,11 @@ function renderRow(p, g, isReplacement=false){
     completed:'<span class="tag tag-ok">完成</span>',
     late:'<span class="tag tag-late">遲</span>',
     no_show:'<span class="tag tag-no">缺</span>',
+    hold:'<span class="tag tag-hold">延</span>',        // ✅ 新增
+    ignore:'<span class="tag tag-cancel">停</span>',    // ✅ 新增
     scheduled:''
   };
+
 
   /* ========================
      🎯 狀態機核心
@@ -694,8 +885,8 @@ function renderRow(p, g, isReplacement=false){
 
   let actionHTML = '';
 
-  // ✅ 已鎖定 / 已完成
-  if (locked || done){
+  // ✅ 已鎖定 / 已完成 / 已延賽 / 已停賽
+  if (locked || done || isHold || isCancelled){
 
     actionHTML = `
       <button onclick="unlock('${p.assignment_id}')">
@@ -766,6 +957,23 @@ function renderRow(p, g, isReplacement=false){
         ${
           userList
             .filter(u => !usedUserIds.includes(String(u.user_id)))
+            .filter(u => {
+          
+              if (p.role.startsWith('REC')){
+                return (
+                  u.role.includes('record') ||
+                  u.role.includes('record_chief') ||
+                  u.role.includes('admin')
+                );
+              }
+          
+              return (
+                u.role.includes('judge') ||
+                u.role.includes('chief_judge') ||
+                u.role.includes('admin')
+              );
+          
+            })
             .map(u =>
               `<option value="${u.user_id}">
                 ${u.name || u.username}
@@ -784,7 +992,7 @@ function renderRow(p, g, isReplacement=false){
       <div class="info">
         <div class="info-line">
           ${getRoleText(p.role)} ${replaceTag}
-          ｜ ${p.name || '（待位）'}
+          ｜ ${displayName || '（待位）'}
           ｜ ${
             hasUser
               ? `<span class="status-mini">${statusTag[p.status] || ''}</span>`
@@ -937,15 +1145,21 @@ function renderRow(p, g, isReplacement=false){
 // 判斷是否已完成
 function isGameCompleted(g){
 
+  // ✅ ✅ ✅ ① 優先使用 Game.status（正式標準）
+  if (g && g.status !== undefined){
+    return Number(g.status) === 3;
+  }
+
+  // ✅ ✅ ✅ ② fallback（避免舊資料或 API 沒帶 status）
   const roleDone = {};
 
-  g.list.forEach(p=>{
+  (g.list || []).forEach(p=>{
     if (p.status === 'completed'){
       roleDone[p.role] = true;
     }
   });
 
-  const roleCount = new Set(g.list.map(x=>x.role)).size;
+  const roleCount = new Set((g.list || []).map(x=>x.role)).size;
 
   return Object.keys(roleDone).length === roleCount;
 }
@@ -954,12 +1168,15 @@ function isGameCompleted(g){
 // 狀態中文化
 function getStatusText(s){
 
-  const map = {
-    scheduled:'待確認',
-    completed:'已完成',
-    late:'遲到',
-    no_show:'缺席'
-  };
+ const map = {
+   scheduled:'待確認',
+   completed:'已完成',
+   late:'遲到',
+   no_show:'缺席',
+   hold:'延賽',
+   ignore:'停賽'
+ };
+
 
   return map[s] || s;
 }
@@ -987,7 +1204,10 @@ function getStatusBadge(s){
     completed:'<span class="badge done">已完成</span>',
     no_show:'<span class="badge no">缺席</span>',
     late:'<span class="badge late">遲到</span>',
-    scheduled:'<span class="badge">待確認</span>'
+    scheduled:'<span class="badge">待確認</span>',
+    hold:'<span class="badge warn">延賽</span>',
+    ignore:'<span class="badge cancel">停賽</span>'
+
   };
 
   return map[s] || '';
@@ -1006,16 +1226,55 @@ function quickAssign(id, btn){
     return;
   }
 
-  callApi({
-    action:'updateAssignment',
-    assignment_id:id,
-    user_id:uid,
-    source:'assign'
-  }, ()=>{
+  const role = row.getAttribute('data-role');
+  const gameId = btn.closest('.game-card').getAttribute('data-game-id');
+
+  let params = {};
+  let action = '';
+
+  // ✅ ✅ ✅ 裁判
+  if (!role.startsWith('REC')){
+
+    action = 'assignJudgeToPosition_admin';
+
+    params = {
+      action,
+      game_id: gameId,
+      role: role,
+      judge_id: uid
+    };
+
+  }
+  // ✅ ✅ ✅ 紀錄
+  else{
+
+    action = 'assignRecord_admin';
+
+    params = {
+      action,
+      game_id: gameId,
+      record_role: role,
+      user_id: uid
+    };
+  }
+
+  // ✅ ✅ ✅ debug（超重要）
+  console.log('assign payload =', params);
+
+  callApi(params, (res)=>{
+
+    console.log('assign result =', res);
+
+    if (!res || res.result !== 'ok'){
+      toast(res?.message || '❌ 改派失敗','error');
+      return;
+    }
+
     toast('✅ 已改派');
     load();
   });
 }
+
 
 /* ========================
    快速支援（最終穩定版）
@@ -1089,19 +1348,25 @@ function completeGame(gameId){
 
   callApi({
     action:'completeGame',
-    game_id:gameId,
-    status:'completed'
+    game_id: gameId
   }, res=>{
+
+    if (!res){
+      toast('❌ API 無回應','error');
+      return;
+    }
 
     if(res.result==='ok'){
       toast('✅ 本場已全部完成');
       load();
     }else{
-      toast('❌ 處理失敗','error');
+      toast(res.message || '❌ 處理失敗','error');
     }
 
   });
 }
+
+
 
 // 單一完成
 function completeOne(btn){
@@ -1753,6 +2018,60 @@ function card(label, value){
     </div>
   `;
 }
+
+// 補賽
+function reopenGame(gameId){
+
+  if (!confirm('確定要重新開放此場比賽（補賽）？')) return;
+
+  toast('補賽開啟中...','loading');
+
+  callApi({
+    action:'reopenGame',
+    game_id:gameId
+  }, res=>{
+
+    console.log('reopenGame result =', res);  // ✅ 🔥 debug用
+
+    if (!res){
+      toast('❌ API 無回應','error');
+      return;
+    }
+
+    if (res.result === 'ok'){
+      toast('✅ 已開放補賽，可重新指派');
+      load();
+      return;
+    }
+
+    // ✅ ✅ ✅ 🔥 顯示後端錯誤訊息（關鍵）
+    toast(res.message || '❌ 補賽失敗','error');
+
+  });
+}
+
+
+// 延賽
+function setGameHold(gameId){
+
+  if (!confirm('確定要將本場設為延賽？')) return;
+
+  toast('更新中...','loading');
+
+  callApi({
+    action:'setGameStatus',
+    game_id:gameId,
+    status:1   // hold
+  }, res=>{
+    if (res.result === 'ok'){
+      toast('✅ 已延賽');
+      load();
+    }else{
+      toast('❌ 失敗','error');
+    }
+  });
+}
+
 </script>
 
 </body>
