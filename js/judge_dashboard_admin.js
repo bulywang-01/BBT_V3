@@ -180,10 +180,42 @@ function renderPosCell(game, role) {
       </div>`;
   }
 
-  const preferredText =
-    pos.preferred && pos.preferred.length > 0
-      ? pos.preferred.map(j => j.name).join('、')
-      : '尚未報名';
+      let preferredText = '尚未報名';
+      
+      if (pos.preferred && pos.preferred.length > 0){
+      
+        const list = pos.preferred;
+      
+        if (list.length === 1){
+      
+          preferredText = `<span class="rank-1">${list[0].name}</span>`;
+      
+        } else {
+      
+          const circled = ['①','②','③','④','⑤'];  // ✅ 支援到5
+      
+          preferredText = list.map((j, i) => {
+      
+            const rank = i;
+      
+            const num = circled[rank] || (rank+1);
+      
+            if (rank === 0){
+              return `<span class="rank-1">${num} ${j.name}</span>`;
+            }
+      
+            if (rank === 1){
+              return `<span class="rank-2">${num} ${j.name}</span>`;
+            }
+      
+            return `<span class="rank-3">${num} ${j.name}</span>`;
+      
+          }).join('');
+        }
+      }
+
+
+
 
   return `
     <div class="pos-cell">
