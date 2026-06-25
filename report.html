@@ -528,9 +528,11 @@ function render(data, gameDays){
 
   const today = new Date();
   today.setHours(0,0,0,0);
+
   const currentYear = today.getFullYear();
 
   const monthMap = {};
+  const gameSet = new Set(gameDays); // ✅ 用來判斷有沒有比賽
 
   gameDays.forEach(fullDate=>{
     const [y, m, d] = fullDate.split('-');
@@ -543,7 +545,6 @@ function render(data, gameDays){
   });
 
   let html = '';
-
   const users = sortUsers(Object.values(data));
 
   users.forEach(u=>{
@@ -592,60 +593,61 @@ function render(data, gameDays){
             let cls = 'empty';
             let tooltip = '';
 
-            /* ✅ ✅ ✅ 日期判斷 */
             const fullDateStr = `${currentYear}-${m}-${d}`;
             const dateObj = new Date(fullDateStr);
             dateObj.setHours(0,0,0,0);
 
             const isFuture = dateObj > today;
 
-            if(!isFuture){
+            const hasGame = gameSet.has(fullDateStr);
 
-              /* ✅ ✅ ✅ 過去 → 用 assignment */
-              if(rec){
+            if(hasGame){
 
-                const hasNo = rec.some(x=>x.status==='no_show');
-                const hasLate = rec.some(x=>x.status==='late');
-                const hasSub = rec.some(x=>x.is_replacement);
-                const hasDone = rec.some(x=>x.status==='completed');
+              if(!isFuture){
 
-                if(hasNo) cls='no';
-                else if(hasLate) cls='late';
-                else if(hasSub) cls='sub';
-                else if(hasDone) cls='ok';
-              }
+                // ✅ 過去 → assignment
+                if(rec){
+                  const hasNo = rec.some(x=>x.status==='no_show');
+                  const hasLate = rec.some(x=>x.status==='late');
+                  const hasSub = rec.some(x=>x.is_replacement);
+                  const hasDone = rec.some(x=>x.status==='completed');
 
-            }else{
-
-              /* ✅ ✅ ✅ 未來 → 判斷「是否有報名/指派」 */
-              if(rec){
-
-                // ✅ 代表有 Assignment(未完成) → 已排
-                const hasSub = rec.some(x=>x.is_replacement);
-
-                if(hasSub){
-                  cls = 'future-sub';
-                }else{
-                  cls = 'future';
+                  if(hasNo) cls='no';
+                  else if(hasLate) cls='late';
+                  else if(hasSub) cls='sub';
+                  else if(hasDone) cls='ok';
                 }
 
               }else{
 
-                // ✅ ✅ ✅ 🔥 補強：用 summary.total 判斷「未來有報名」
-                // 因為你 API 還沒送 judge_signup / record_signup
+                // ✅ ✅ ✅ 未來 → 有這天比賽就一定顯示（關鍵🔥）
 
-                if(u.summary.pending_days && u.summary.pending_days.includes(d)){
-                  cls = 'future';
+                if(rec && rec.length){
+
+                  const hasSub = rec.some(x=>x.is_replacement);
+
+                  if(hasSub){
+                    cls = 'future-sub';
+                  }else{
+                    cls = 'future';
+                  }
+
                 }else{
-                  cls = 'empty';
+
+                  // ✅ ✅ ✅ fallback（沒有 assignment 也顯示）
+                  cls = 'future';   // ✅ 有報名可能在 API 外層
+
                 }
 
               }
 
+            }else{
+              cls = 'empty';
             }
 
-            /* ✅ tooltip */
-            if(rec){
+            // ✅ tooltip
+            if(rec && rec.length){
+
               const roleMap = {
                 PU:'主審',
                 U1:'一壘審',
@@ -657,20 +659,28 @@ function render(data, gameDays){
               };
 
               const statusMap = {
-                completed:'完成',
-                late:'遲到',
-                no_show:'缺席',
-                sub:'替補'
+                completed:'✅ 完成',
+                late:'⏰ 遲到',
+                no_show:'❌ 缺席'
               };
 
               tooltip = rec.map(x=>{
-                return `${roleMap[x.role] || x.role}：${statusMap[x.status] || x.status}`;
+                if(isFuture){
+                  if(x.is_replacement){
+                    return `${roleMap[x.role] || x.role}：🔵 已排（替補）`;
+                  }else{
+                    return `${roleMap[x.role] || x.role}：🟢 已排班`;
+                  }
+                }else{
+                  return `${roleMap[x.role] || x.role}：${statusMap[x.status] || x.status}`;
+                }
               }).join('\n');
             }
 
             html += `
               <span class="day ${cls}" 
-                onclick='showDayDetail(${JSON.stringify(rec || [])}, "${m}/${d}")'
+                onclick='showDayDetail(${JSON.stringify(rec || [])}, "${m}/${d}", "${currentYear}-${m}-${d}")'
+                
                 title="${tooltip}">
                 ${Number(d)}
               </span>
@@ -687,16 +697,25 @@ function render(data, gameDays){
   document.getElementById('reportArea').innerHTML = html;
 }
 
+
 /*
 ✅ 手機點 → 展開
 ✅ 可看當天細節
 ✅ 不影響桌機
 ✅ 不改資料結構
 */
-function showDayDetail(list, date){
+function showDayDetail(list, date, fullDate){
 
   const modal = document.getElementById('dayDetailModal');
   const content = document.getElementById('dayDetailContent');
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const gameDate = new Date(fullDate);
+  gameDate.setHours(0,0,0,0);
+
+  const isFuture = gameDate > today;
 
   if(!list || !list.length){
     content.innerHTML = `<div>📌 ${date}<br>無出勤紀錄</div>`;
@@ -720,7 +739,7 @@ function showDayDetail(list, date){
       substitute:'🔵 替補'
     };
 
-    // ✅ ✅ ✅ 先做去重（防止 PU / PU 重複）
+    // ✅ ✅ ✅ 去重（保留你原本）
     const uniqueList = [];
     const seen = new Set();
 
@@ -732,7 +751,7 @@ function showDayDetail(list, date){
       }
     });
 
-    // ✅ ✅ ✅ 再依場次分組
+    // ✅ ✅ ✅ 分場次（保留你原本）
     const gameMap = {};
 
     uniqueList.forEach(x=>{
@@ -768,20 +787,38 @@ function showDayDetail(list, date){
           </div>
       `;
 
+      gameMap[gid].forEach(x=>{
 
-        gameMap[gid].forEach(x=>{
-          const statusText = x.is_replacement
-            ? '🔵 替補'
-            : (statusMap[x.status] || x.status);
-        
-          html += `
-            <div style="margin-bottom:4px;">
-              ${roleMap[x.role] || x.role}：
-              ${statusText}
-            </div>
-          `;
-        });
+        let statusText = '';
 
+        /* ✅ ✅ ✅ 這裡是關鍵修正 */
+        if(isFuture){
+
+          // ✅ 未來 → 永遠不要顯示 completed
+          if(x.is_replacement){
+            statusText = '🔵 已排（替補）';
+          }else{
+            statusText = '🟢 已排班';
+          }
+
+        }else{
+
+          // ✅ 過去 → 才用原本 status
+          if(x.is_replacement){
+            statusText = '🔵 替補';
+          }else{
+            statusText = statusMap[x.status] || x.status;
+          }
+
+        }
+
+        html += `
+          <div style="margin-bottom:4px;">
+            ${roleMap[x.role] || x.role}：
+            ${statusText}
+          </div>
+        `;
+      });
 
       html += `</div>`;
     });
