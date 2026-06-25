@@ -528,7 +528,6 @@ function render(data, gameDays){
 
   const today = new Date();
   today.setHours(0,0,0,0);
-
   const currentYear = today.getFullYear();
 
   const monthMap = {};
@@ -593,39 +592,60 @@ function render(data, gameDays){
             let cls = 'empty';
             let tooltip = '';
 
-            /* ✅ ✅ ✅ 日期判斷（核心🔥） */
+            /* ✅ ✅ ✅ 日期判斷 */
             const fullDateStr = `${currentYear}-${m}-${d}`;
             const dateObj = new Date(fullDateStr);
             dateObj.setHours(0,0,0,0);
 
             const isFuture = dateObj > today;
 
-            if(rec){
+            if(!isFuture){
 
-              const hasNo = rec.some(x=>x.status==='no_show');
-              const hasLate = rec.some(x=>x.status==='late');
-              const hasSub = rec.some(x=>x.is_replacement);
-              const hasDone = rec.some(x=>x.status==='completed');
+              /* ✅ ✅ ✅ 過去 → 用 assignment */
+              if(rec){
 
-              /* ✅ 已發生 */
-              if(!isFuture){
+                const hasNo = rec.some(x=>x.status==='no_show');
+                const hasLate = rec.some(x=>x.status==='late');
+                const hasSub = rec.some(x=>x.is_replacement);
+                const hasDone = rec.some(x=>x.status==='completed');
 
                 if(hasNo) cls='no';
                 else if(hasLate) cls='late';
                 else if(hasSub) cls='sub';
                 else if(hasDone) cls='ok';
-                else cls='empty';
+              }
 
-              }else{
+            }else{
 
-                /* ✅ 未來 */
+              /* ✅ ✅ ✅ 未來 → 判斷「是否有報名/指派」 */
+              if(rec){
+
+                // ✅ 代表有 Assignment(未完成) → 已排
+                const hasSub = rec.some(x=>x.is_replacement);
+
                 if(hasSub){
                   cls = 'future-sub';
                 }else{
                   cls = 'future';
                 }
+
+              }else{
+
+                // ✅ ✅ ✅ 🔥 補強：用 summary.total 判斷「未來有報名」
+                // 因為你 API 還沒送 judge_signup / record_signup
+
+                if(u.summary.pending_days && u.summary.pending_days.includes(d)){
+                  cls = 'future';
+                }else{
+                  cls = 'empty';
+                }
+
               }
 
+            }
+
+            /* ✅ tooltip */
+            if(rec){
               const roleMap = {
                 PU:'主審',
                 U1:'一壘審',
@@ -646,9 +666,6 @@ function render(data, gameDays){
               tooltip = rec.map(x=>{
                 return `${roleMap[x.role] || x.role}：${statusMap[x.status] || x.status}`;
               }).join('\n');
-
-            }else{
-              cls = 'empty';
             }
 
             html += `
