@@ -554,7 +554,6 @@ function render(data, gameDays){
 
     html += `
     <div class="user-row">
-
       <div class="user-header">
         <div class="user-name">
           ${u.name}
@@ -598,13 +597,12 @@ function render(data, gameDays){
 
             const isFuture = dateObj > today;
 
-            /******** ✅ 核心邏輯（乾淨版） ********/
+            /******** ✅ 核心邏輯 ********/
 
             if(rec && rec.length){
 
               if(!isFuture){
 
-                // ✅ 過去
                 const hasNo = rec.some(x=>x.status==='no_show');
                 const hasLate = rec.some(x=>x.status==='late');
                 const hasSub = rec.some(x=>x.is_replacement);
@@ -617,7 +615,6 @@ function render(data, gameDays){
 
               }else{
 
-                // ✅ 未來（只要有 assignment 才顯示）
                 const hasSub = rec.some(x=>x.is_replacement);
 
                 if(hasSub){
@@ -629,8 +626,7 @@ function render(data, gameDays){
               }
 
             }else{
-              // ✅ 沒資料 → 不顯示
-              cls = 'empty';
+              cls = 'empty'; // ✅ 沒資料 → 不顯示
             }
 
             /******** ✅ tooltip ********/
@@ -654,13 +650,15 @@ function render(data, gameDays){
               };
 
               tooltip = rec.map(x=>{
+
                 if(isFuture){
                   return x.is_replacement
-                    ? `${roleMap[x.role]}：🔵 已排（替補）`
-                    : `${roleMap[x.role]}：🟢 已排班`;
+                    ? `${roleMap[x.role] || x.role}：🔵 已排（替補）`
+                    : `${roleMap[x.role] || x.role}：🟢 已排班`;
                 }else{
-                  return `${roleMap[x.role]}：${statusMap[x.status]}`;
+                  return `${roleMap[x.role] || x.role}：${statusMap[x.status] || x.status}`;
                 }
+
               }).join('\n');
             }
 
@@ -682,7 +680,6 @@ function render(data, gameDays){
 
   document.getElementById('reportArea').innerHTML = html;
 }
-
 
 
 /*
@@ -721,28 +718,28 @@ function showDayDetail(list, date, fullDate){
     const statusMap = {
       completed:'✅ 完成',
       late:'⏰ 遲到',
-      no_show:'❌ 缺席',
-      sub:'🔵 替補',
-      substitute:'🔵 替補'
+      no_show:'❌ 缺席'
     };
 
-    // ✅ ✅ ✅ 去重（保留你原本）
     const uniqueList = [];
     const seen = new Set();
 
     list.forEach(x=>{
-      const key = (x.game_id || '') + '_' + x.role;
+      const key = (x.game_code || x.game_id) + '_' + x.role;
       if(!seen.has(key)){
         seen.add(key);
         uniqueList.push(x);
       }
     });
 
-    // ✅ ✅ ✅ 分場次（保留你原本）
     const gameMap = {};
 
     uniqueList.forEach(x=>{
-      const gid = x.game_code || x.game_id || '未指定場次';
+
+      // ✅ ✅ ✅ 核心修正：強制用 game_code
+      const gid = (x.game_code && x.game_code.trim())
+        ? x.game_code
+        : (x.game_id || '未指定場次');
 
       if(!gameMap[gid]) gameMap[gid] = [];
       gameMap[gid].push(x);
@@ -778,31 +775,23 @@ function showDayDetail(list, date, fullDate){
 
         let statusText = '';
 
-        /* ✅ ✅ ✅ 這裡是關鍵修正 */
         if(isFuture){
 
-          // ✅ 未來 → 永遠不要顯示 completed
-          if(x.is_replacement){
-            statusText = '🔵 已排（替補）';
-          }else{
-            statusText = '🟢 已排班';
-          }
+          statusText = x.is_replacement
+            ? '🔵 已排（替補）'
+            : '🟢 已排班';
 
         }else{
 
-          // ✅ 過去 → 才用原本 status
-          if(x.is_replacement){
-            statusText = '🔵 替補';
-          }else{
-            statusText = statusMap[x.status] || x.status;
-          }
+          statusText = x.is_replacement
+            ? '🔵 替補'
+            : (statusMap[x.status] || x.status);
 
         }
 
         html += `
           <div style="margin-bottom:4px;">
-            ${roleMap[x.role] || x.role}：
-            ${statusText}
+            ${roleMap[x.role] || x.role}：${statusText}
           </div>
         `;
       });
@@ -816,6 +805,7 @@ function showDayDetail(list, date, fullDate){
   modal.style.display = 'flex';
 }
 
+// 關閉Detail視窗
 function closeDayDetail(){
   document.getElementById('dayDetailModal').style.display = 'none';
 }
