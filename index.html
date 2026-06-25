@@ -725,11 +725,14 @@
       fetch('header.html')
         .then(res => res.text())
         .then(html => {
+    
           // 1️⃣ 插入 header
           document.getElementById('header-container').innerHTML = html;
     
-          // 2️⃣ 設定身分 → 只影響 body class
+          // ✅ 先取 session（只在這裡用）
           const session = (typeof getSession === 'function') ? getSession() : null;
+    
+          // 2️⃣ 設定身分 → body class
           document.body.classList.remove(
             'role-admin','role-judge','role-record'
           );
@@ -747,14 +750,16 @@
               document.body.classList.add('role-record');
             }
           }
+    
+          // ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅
+          // 🔥 顯示登入者姓名（要放這裡）
+          if (session && session.name) {
+            const nameEl = document.getElementById('header-username');
+            if (nameEl) nameEl.textContent = session.name;
+          }
+    
         })
         .catch(err => console.error('Header 載入失敗', err));
- 
-        // ✅ 顯示登入者姓名
-        if (session && session.name) {
-          const nameEl = document.getElementById('header-username');
-          if (nameEl) nameEl.textContent = session.name;
-        }
     }
     
     document.addEventListener('DOMContentLoaded', loadHeader);
@@ -822,7 +827,6 @@
     <div class="panel">
       <h3>📢 聯盟公告</h3>
       <ul>
-        <li>七月份賽程將於6/18 12:00開放，請裁判員及紀錄員至班表頁面登記。</li>
         <li>六月份賽程已上傳，請裁判員及紀錄員至班表頁面報名。</li>
       </ul>
     </div>
@@ -1022,69 +1026,6 @@
       </button>
     </div>
   </div>
-  
- 
-<!-- ✅ ✅ ✅ ✅ ✅ 核心修正區（不要再亂動） -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-  // ✅ ✅ ✅ 統一登入檢查（唯一入口）
-  if (typeof initAuth === 'function') {
-    const session = initAuth();
-    if (!session) return;
-
-    // ✅ ✅ ✅ Welcome 顯示（保留你原邏輯但修安全）
-    const roleMap = {
-      admin: '系統管理員',
-      chief_judge: '裁判長',
-      record_chief: '紀錄長',
-      judge: '裁判員',
-      record: '紀錄員'
-    };
-
-    const nameEl = document.getElementById('welcome-name');
-    const roleEl = document.getElementById('welcome-role');
-
-    if (nameEl) {
-      nameEl.textContent = session.name + ' 您好，歡迎使用出勤管理系統';
-    }
-
-    if (roleEl) {
-      roleEl.textContent =
-        (session.role || '')
-          .split(',')
-          .map(r => roleMap[r])
-          .filter(Boolean)
-          .join('／');
-    }
-  }
-
-  // ✅ Button 綁定（避免 null 爆）
-  document.getElementById('open-rules')?.addEventListener('click', () => {
-    document.getElementById('rules-overlay').style.display = 'flex';
-  });
-
-  document.getElementById('open-league')?.addEventListener('click', () => {
-    document.getElementById('league-overlay').style.display = 'flex';
-  });
-
-  document.getElementById('open-schedule')?.addEventListener('click', () => {
-    document.getElementById('schedule-overlay').style.display = 'flex';
-  });
-
-  document.getElementById('open-weekly')?.addEventListener('click', () => {
-    if (typeof openWeeklySchedule === 'function'){
-      openWeeklySchedule();
-    }
-  });
-});
-
-function hideOverlay(id) {
-  document.getElementById(id).style.display = 'none';
-}
-
-</script>
-
 
 </body>
 </html>
