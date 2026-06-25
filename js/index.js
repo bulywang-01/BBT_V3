@@ -110,6 +110,7 @@ function loadWeeklyReminder(){
     const games = (res.games || []).map(safeMerge);
 
     const now = new Date();
+    now.setHours(0,0,0,0);
     const day = now.getDay() === 0 ? 7 : now.getDay();
 
     const monday = new Date(now);
@@ -160,18 +161,65 @@ function loadWeeklyReminder(){
   });
 }
 
+/*********************************************************
+ * ✅ 統一計算數據
+ *********************************************************/
+function calcStatsFromAssignments(assignments, userId){
+
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const year = now.getFullYear();
+
+  let done = 0;
+  let future = 0;
+
+  assignments.forEach(g=>{
+
+    const d = parseDate(g.date);
+    if (!d) return;
+
+    const isFuture = d >= now;
+    const isThisYear = d.getFullYear() === year;
+
+    (g.list || []).forEach(a=>{
+
+      if (String(a.user_id) !== String(userId)) return;
+
+      // ✅ ✅ ✅ 完成（只算 completed / late）
+      if (
+        (a.status === 'completed' || a.status === 'late') &&
+        isThisYear
+      ){
+        done++;
+      }
+
+      // ✅ ✅ ✅ 未來（只算 scheduled / assigned）
+      if (
+        (a.status === 'scheduled' || a.status === 'assigned') &&
+        isFuture && isThisYear
+      ){
+        future++;
+      }
+
+    });
+
+  });
+
+  return { done, future };
+}
+
 
 /*********************************************************
  * ✅ Dashboard（最終修正版）
  *********************************************************/
 function loadDashboard(){
-
-  // ✅ 1️⃣ 先抓 assignment（已排）
+  
+  console.log('✅ loadDashboard 有進來');
+  
   callApi({ action:'getAssignments' }, resAssign => {
 
     if (!resAssign || resAssign.result !== 'ok') return;
 
-    // ✅ 2️⃣ 再抓 signup（未排）
     callApi({
       action:'getSignableGames',
       user_id: session.user_id
@@ -180,111 +228,223 @@ function loadDashboard(){
       const uid = String(session.user_id);
       const year = new Date().getFullYear();
 
+      const now = new Date();
+      now.setHours(0,0,0,0);
+
       let judgeDone = 0;
       let judgeFuture = 0;
       let recordDone = 0;
       let recordFuture = 0;
 
-      const assignedGameSet = new Set();  // ✅ 防重複🔥
+      const assignedGameSet = new Set();  // ✅ 已排（防 signup 重覆）
 
-      /************* ✅ 已完成 + 已排 *************/
+      /************* ✅ 已完成 + 已排（精準最終版） *************/
+      const countedAssignedGame = new Set();
+      
       (resAssign.data || []).forEach(g => {
 
-        const d = parseDate(g.date);
-        if (!d) return;
-
-        const isFuture = d >= new Date();
-        const isThisYear = d.getFullYear() === year;
-
-        (g.list || []).forEach(item => {
-
-          if (String(item.user_id) !== uid) return;
-
-          const isRecord = item.role.startsWith('REC');
-
-          // ✅ completed
-          if (item.status === 'completed' && isThisYear){
-            isRecord ? recordDone++ : judgeDone++;
+          const d = parseDate(g.date);
+          if (!d) return;
+        
+          const isFuture = d >= now;
+          const isThisYear = d.getFullYear() === year;
+        
+          let hasJudgeFuture = false;
+          let hasRecordFuture = false;
+        
+          let hasJudgeDone = false;
+          let hasRecordDone = false;
+        
+          let isMyGame = false;
+        
+          /************* ✅ ① 未來（用 judges / records） *************/
+        
+          Object.values(g.judges || {}).forEach(slot => {
+        
+            if (!slot) return;
+        
+            const uidMatch =
+              typeof slot === 'object'
+                ? String(slot.user_id) === uid
+                : slot === session.name;
+        
+            if (!uidMatch) return;
+        
+            isMyGame = true;
+        
+            if (isFuture && isThisYear){
+              hasJudgeFuture = true;
+            }
+          });
+        
+          Object.values(g.records || {}).forEach(slot => {
+        
+            if (!slot) return;
+        
+            const uidMatch =
+              typeof slot === 'object'
+                ? String(slot.user_id) === uid
+                : slot === session.name;
+        
+            if (!uidMatch) return;
+        
+            isMyGame = true;
+        
+            if (isFuture && isThisYear){
+              hasRecordFuture = true;
+            }
+          });
+        
+          /************* ✅ ② 完成（🔥 改回用 g.list ） *************/
+          (g.list || []).forEach(item => {
+        
+            if (String(item.user_id) !== uid) return;
+        
+            const isRecord = String(item.role || '').toUpperCase().includes('REC');
+        
+            isMyGame = true;
+        
+            if (
+              (item.status === 'completed' || item.status === 'late') &&
+              isThisYear
+            ){
+              if (isRecord){
+                hasRecordDone = true;
+              } else {
+                hasJudgeDone = true;
+              }
+            }
+          });
+        
+          if (!isMyGame) return;
+        
+          assignedGameSet.add(g.game_id);
+        
+          /************* ✅ ✅ ✅ 最終只加一次 *************/
+        
+          // ✅ 生涯
+          if (hasJudgeDone || hasRecordDone){
+            if (hasJudgeDone){
+              judgeDone++;
+            } else if (hasRecordDone){
+              recordDone++;
+            }
           }
-
-          // ✅ 已排未來
+        
+          // ✅ 預
           if (
-            (item.status === 'assigned' || item.status === 'scheduled') &&
-            isFuture && isThisYear
+            (hasJudgeFuture || hasRecordFuture) &&
+            !countedAssignedGame.has(g.game_id)
           ){
-            isRecord ? recordFuture++ : judgeFuture++;
-
-            // ✅ ✅ ✅ 記錄 game_id → 避免 signup 再加一次
-            assignedGameSet.add(g.game_id);
+            countedAssignedGame.add(g.game_id);
+        
+            if (hasJudgeFuture){
+              judgeFuture++;
+            } else if (hasRecordFuture){
+              recordFuture++;
+            }
           }
-
+        
         });
 
-      });
 
-      /************* ✅ ✅ ✅ 補「報名但尚未指派」 *************/
+
+      /************* ✅ 報名（未指派） *************/
       const games = (resSignup.games || []).map(safeMerge);
 
-      games.forEach(g => {
 
-        // ✅ 已在 assignment → 跳過
+      // ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅
+      // 🔥🔥🔥 核心修正：先做 game_id 去重 🔥🔥🔥
+      const uniqueGamesMap = new Map();
+
+      games.forEach(g => {
+        if (!uniqueGamesMap.has(g.game_id)) {
+          uniqueGamesMap.set(g.game_id, g);
+        }
+      });
+
+      const uniqueGames = Array.from(uniqueGamesMap.values());
+      // ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅ ✅
+
+
+      const countedGame = new Set();  // ✅ 防同場重複
+
+      uniqueGames.forEach(g => {
+
         if (assignedGameSet.has(g.game_id)) return;
 
         const d = parseDate(g.date);
-        if (!d || d < new Date()) return;
+        if (!d || d < now) return;
 
-        // ✅ 我有報名（改成用 mapping）
-        let hasSignup = false;
-        let isRecord = false;
-        
-        // ✅ 裁判（merge後）
+        if (countedGame.has(g.game_id)) return;
+
+        let hasJudge = false;
+        let hasRecord = false;
+
+        // ✅ 裁判
         Object.entries(g.judges || {}).forEach(([role, name]) => {
           if (name === session.name){
-            hasSignup = true;
-            isRecord = false;
+            hasJudge = true;
           }
         });
-        
-        // ✅ 紀錄（merge後）
+
+        // ✅ 紀錄
         Object.entries(g.records || {}).forEach(([role, name]) => {
           if (name === session.name){
-            hasSignup = true;
-            isRecord = true;
+            hasRecord = true;
           }
         });
 
+        if (!hasJudge && !hasRecord) return;
 
-        if (!hasSignup) return;
+        countedGame.add(g.game_id);
 
-        // ✅ ✅ ✅ 只算「第一順位」（這行你很重要🔥）
-        // 👉 如果不是第一順位 → 不算
-        // 👉 這部分要靠你後端排序（現在先假設 signup 已是 winner）
-
-        isRecord ? recordFuture++ : judgeFuture++;
+        // ✅ ✅ ✅ 同一場只算一次
+        if (hasJudge){
+          judgeFuture++;
+        }
+        else if (hasRecord){
+          recordFuture++;
+        }
 
       });
 
-      /************* ✅ UI *************/
-      document.getElementById('stat-judge').textContent = judgeDone;
-      document.getElementById('stat-record').textContent = recordDone;
-      document.getElementById('stat-total').textContent =
-        judgeDone + recordDone;
 
-      document.getElementById('stat-judge-sub').textContent =
-        `生 ${judgeDone}　預 ${judgeFuture}`;
-
-      document.getElementById('stat-record-sub').textContent =
-        `生 ${recordDone}　預 ${recordFuture}`;
-
-      document.getElementById('stat-total-sub').textContent =
-        `生 ${judgeDone + recordDone}　預 ${judgeFuture + recordFuture}`;
+        /************* ✅ UI *************/
+        setTimeout(() => {
+        
+          console.log('🔥 強制覆蓋（最終）', {
+            judgeDone,
+            judgeFuture,
+            recordDone,
+            recordFuture
+          });
+        
+          const el1 = document.getElementById('stat-judge');
+          const el2 = document.getElementById('stat-record');
+          const el3 = document.getElementById('stat-total');
+        
+          const sub1 = document.getElementById('stat-judge-sub');
+          const sub2 = document.getElementById('stat-record-sub');
+          const sub3 = document.getElementById('stat-total-sub');
+        
+          if (el1) el1.textContent = judgeDone;
+          if (el2) el2.textContent = recordDone;
+          if (el3) el3.textContent = judgeDone + recordDone;
+        
+          if (sub1) sub1.textContent = `生 ${judgeDone}　預 ${judgeFuture}`;
+          if (sub2) sub2.textContent = `生 ${recordDone}　預 ${recordFuture}`;
+          if (sub3) sub3.textContent = `生 ${judgeDone + recordDone}　預 ${judgeFuture + recordFuture}`;
+        
+        }, 500);
 
     });
 
   });
+
 }
 
-
+// 
 function loadHomeGames(){
 
   callApi({
@@ -531,6 +691,7 @@ function openWeeklySchedule(){
     
     /************* ✅ 本週範圍 *************/
     const now = new Date();
+    now.setHours(0,0,0,0);
     const day = now.getDay() === 0 ? 7 : now.getDay();
     
     const monday = new Date(now);
@@ -1292,4 +1453,9 @@ function cardMini(label, value){
 function fmt(n){
   const num = Number(n ?? 0);
   return Number.isInteger(num) ? num : num.toFixed(2);
+}
+
+// close 
+function hideOverlay(id) {
+  document.getElementById(id).style.display = 'none';
 }
