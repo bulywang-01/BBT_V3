@@ -532,7 +532,6 @@ function render(data, gameDays){
   const currentYear = today.getFullYear();
 
   const monthMap = {};
-  const gameSet = new Set(gameDays); // ✅ 用來判斷有沒有比賽
 
   gameDays.forEach(fullDate=>{
     const [y, m, d] = fullDate.split('-');
@@ -599,53 +598,43 @@ function render(data, gameDays){
 
             const isFuture = dateObj > today;
 
-            const hasGame = gameSet.has(fullDateStr);
+            /******** ✅ 核心邏輯（乾淨版） ********/
 
-            if(hasGame){
+            if(rec && rec.length){
 
               if(!isFuture){
 
-                // ✅ 過去 → assignment
-                if(rec){
-                  const hasNo = rec.some(x=>x.status==='no_show');
-                  const hasLate = rec.some(x=>x.status==='late');
-                  const hasSub = rec.some(x=>x.is_replacement);
-                  const hasDone = rec.some(x=>x.status==='completed');
+                // ✅ 過去
+                const hasNo = rec.some(x=>x.status==='no_show');
+                const hasLate = rec.some(x=>x.status==='late');
+                const hasSub = rec.some(x=>x.is_replacement);
+                const hasDone = rec.some(x=>x.status==='completed');
 
-                  if(hasNo) cls='no';
-                  else if(hasLate) cls='late';
-                  else if(hasSub) cls='sub';
-                  else if(hasDone) cls='ok';
-                }
+                if(hasNo) cls='no';
+                else if(hasLate) cls='late';
+                else if(hasSub) cls='sub';
+                else if(hasDone) cls='ok';
 
               }else{
 
-                // ✅ ✅ ✅ 未來 → 有這天比賽就一定顯示（關鍵🔥）
+                // ✅ 未來（只要有 assignment 才顯示）
+                const hasSub = rec.some(x=>x.is_replacement);
 
-                if(rec && rec.length){
-
-                  const hasSub = rec.some(x=>x.is_replacement);
-
-                  if(hasSub){
-                    cls = 'future-sub';
-                  }else{
-                    cls = 'future';
-                  }
-
+                if(hasSub){
+                  cls = 'future-sub';
                 }else{
-
-                  // ✅ ✅ ✅ fallback（沒有 assignment 也顯示）
-                  cls = 'future';   // ✅ 有報名可能在 API 外層
-
+                  cls = 'future';
                 }
 
               }
 
             }else{
+              // ✅ 沒資料 → 不顯示
               cls = 'empty';
             }
 
-            // ✅ tooltip
+            /******** ✅ tooltip ********/
+
             if(rec && rec.length){
 
               const roleMap = {
@@ -666,13 +655,11 @@ function render(data, gameDays){
 
               tooltip = rec.map(x=>{
                 if(isFuture){
-                  if(x.is_replacement){
-                    return `${roleMap[x.role] || x.role}：🔵 已排（替補）`;
-                  }else{
-                    return `${roleMap[x.role] || x.role}：🟢 已排班`;
-                  }
+                  return x.is_replacement
+                    ? `${roleMap[x.role]}：🔵 已排（替補）`
+                    : `${roleMap[x.role]}：🟢 已排班`;
                 }else{
-                  return `${roleMap[x.role] || x.role}：${statusMap[x.status] || x.status}`;
+                  return `${roleMap[x.role]}：${statusMap[x.status]}`;
                 }
               }).join('\n');
             }
@@ -680,7 +667,6 @@ function render(data, gameDays){
             html += `
               <span class="day ${cls}" 
                 onclick='showDayDetail(${JSON.stringify(rec || [])}, "${m}/${d}", "${currentYear}-${m}-${d}")'
-                
                 title="${tooltip}">
                 ${Number(d)}
               </span>
@@ -696,6 +682,7 @@ function render(data, gameDays){
 
   document.getElementById('reportArea').innerHTML = html;
 }
+
 
 
 /*
