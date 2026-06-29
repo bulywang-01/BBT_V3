@@ -56,7 +56,7 @@ function renderGameCard(g, opt={}){
     return '';
   }
 
-  // ✅ ✅ ✅ 2️⃣ 鎖定
+  // ✅ ✅ ✅ 鎖定
  
   const session =
     opt.session
