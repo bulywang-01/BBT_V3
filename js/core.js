@@ -58,7 +58,12 @@ function renderGameCard(g, opt={}){
 
   // ✅ ✅ ✅ 2️⃣ 鎖定
  
-  const session = opt.session || null;
+  const session =
+    opt.session
+    || (typeof getSession === 'function'
+        ? getSession()
+        : JSON.parse(localStorage.getItem('session_user')||'{}'));
+ 
   const isViewMode = opt.mode === 'view';
 
   // ✅ ✅ ✅ 自動判斷頁面（核心封裝）
