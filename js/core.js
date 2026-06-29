@@ -628,6 +628,8 @@ function renderJudgeSlots(g, isPast, session){
 ========================= */
 function renderRecordSlots(g, isPast, session){
 
+  const teamConflict = isMyTeamConflict(g, session);
+ 
   const roles = [
     ['REC_MAIN','紀錄'],
     ['REC_TRAINEE','見習'],
@@ -667,12 +669,14 @@ function renderRecordSlots(g, isPast, session){
       const conflict = conflictInfo.conflict;
       
       if (
+        teamConflict ||
         (g.my_position && g.my_position !== role)
         || conflict
       ){
         return `
           <div class="record-role other waiting">
-            ${label}<br>待位
+            ${label}<br>
+            ${teamConflict ? '不可報名' : '待位'}
           </div>
         `;
       }
@@ -695,12 +699,21 @@ function renderRecordSlots(g, isPast, session){
       }
       
       // ✅ ✅ ✅ 正常可報名
+      if (teamConflict){
+        return `
+          <div class="record-role other">
+            ${label}<br>不可報名
+          </div>
+        `;
+      }
+      
       return `
         <div class="record-role action"
           onclick="handleSlotClick('${g.game_id}','${role}')">
           ＋${label}
         </div>
       `;
+      
       }).join('')}
     </div>
   `;
