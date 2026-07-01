@@ -51,7 +51,6 @@ function callApi(params, callback) {
   document.body.appendChild(script);
 }
 
-
 function jsonOutput(obj, callback) {
   if (!callback) {
     throw new Error('Missing JSONP callback');
