@@ -94,6 +94,11 @@ function bindButtons(){
   document.getElementById('open-record-rules')?.addEventListener('click', () => {
     document.getElementById('record-rules-overlay').style.display = 'flex';
   });
+
+  document.getElementById('open-system-guide')?.addEventListener('click', () => {
+    document.getElementById('system-guide-overlay').style.display = 'flex';
+  });
+  
 }
 
 /*********************************************************
