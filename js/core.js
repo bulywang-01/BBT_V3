@@ -14,7 +14,7 @@ const CATEGORY_FALLBACK = [
   'card-extra-1',
   'card-extra-2'
 ];
-
+ 
 // ✅ 動態分配
 function getCategoryClass(category){
 
