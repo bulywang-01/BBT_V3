@@ -869,86 +869,165 @@ function handleSlotClick(gid, role){
 // ✅ 報名（裁判）
 function signupJudge(g, role){
 
-  const s = JSON.parse(localStorage.getItem('session_user') || '{}');
+  const s = JSON.parse(
+    localStorage.getItem('session_user') || '{}'
+  );
 
-  const el = document.getElementById(`game-${g.game_id}`);
-  if (el) el.classList.add('loading');   // ✅ ✅ ✅ 加在這
+  const el =
+    document.getElementById(`game-${g.game_id}`);
+
+  if (el) el.classList.add('loading');
 
   showToast('報名中...');
 
   callApi({
     action:'judgeSignupByGames',
-    user_id: s.user_id,
+    user_id:s.user_id,
     games_with_position:`${g.game_id}:${role}`
   }, res => {
 
     if (el) el.classList.remove('loading');
 
-    if (res.result === 'ok'){
-
-      // ✅ ✅ ✅ 直接改資料
-     
-      g.judges ||= {};
-
-      g.judges[role] = {
-        user_id: s.user_id,
-        name: s.name
-      };
-     
-      g.my_position = role;
-
-      // updateGameCard(g, 'judge');   // ✅ ✅ ✅ 重點（不用 render）
-      updateAffectedCards(g);
-
-      showToast('✅ 已報名','success');
-
-    } else {
-      showToast(res?.message || '失敗','error');
+    /* =====================
+       被搶走
+    ===================== */
+    if (res.result === 'occupied'){
+    
+      showToast(
+        `🚫 ${res.message}`,
+        'error'
+      );
+    
+      setTimeout(() => {
+        loadGames();
+      }, 100);
+    
+      return;
     }
 
+    /* =====================
+       一般錯誤
+    ===================== */
+    if (res.result !== 'ok'){
+
+      showToast(
+        res.message || '報名失敗',
+        'error'
+      );
+
+      loadGames();
+
+      return;
+    }
+
+    /* =====================
+       成功
+    ===================== */
+    g.judges ||= {};
+
+    g.judges[role] = {
+      user_id:s.user_id,
+      name:s.name
+    };
+
+    g.my_position = role;
+
+    updateAffectedCards(g);
+
+    showToast(
+      `✅ 已成功報名 ${roleMap(role)}`,
+      'success'
+    );
+
+    /* 再同步最新畫面 */
+    setTimeout(() => {
+      loadGames();
+    }, 300);
+
   });
+
 }
 
 // ✅ 報名（紀錄）
 function signupRecord(g, role){
 
-  const s = JSON.parse(localStorage.getItem('session_user') || '{}');
+  const s = JSON.parse(
+    localStorage.getItem('session_user') || '{}'
+  );
 
-  const el = document.getElementById(`game-${g.game_id}`);
+  const el =
+    document.getElementById(`game-${g.game_id}`);
+
   if (el) el.classList.add('loading');
 
-  showToast('報名中...');   // ✅ 加這行
+  showToast('報名中...');
 
   callApi({
     action:'recordSignup',
-    game_id: g.game_id,
-    user_id: s.user_id,
-    record_role: role
+    game_id:g.game_id,
+    user_id:s.user_id,
+    record_role:role
   }, res => {
 
     if (el) el.classList.remove('loading');
 
-    if (res.result === 'ok'){
-
-      g.records ||= {};
-
-      g.records[role] = {
-        user_id: s.user_id,
-        name: s.name
-      };
-
-      g.my_position = role;
-
-      // updateGameCard(g);
-      updateAffectedCards(g);
-
-      showToast('✅ 已報名','success');
-
-    } else {
-      showToast(res?.message || '失敗','error');
+    /* =====================
+       被搶走
+    ===================== */
+    if (res.result === 'occupied'){
+    
+      showToast(
+        `🚫 ${res.message}`,
+        'error'
+      );
+    
+      setTimeout(() => {
+        loadGames();
+      }, 100);
+    
+      return;
     }
 
+    /* =====================
+       一般錯誤
+    ===================== */
+    if (res.result !== 'ok'){
+
+      showToast(
+        res.message || '報名失敗',
+        'error'
+      );
+
+      loadGames();
+
+      return;
+    }
+
+    /* =====================
+       成功
+    ===================== */
+    g.records ||= {};
+
+    g.records[role] = {
+      user_id:s.user_id,
+      name:s.name
+    };
+
+    g.my_position = role;
+
+    updateAffectedCards(g);
+
+    showToast(
+      `✅ 已成功報名 ${role}`,
+      'success'
+    );
+
+    setTimeout(() => {
+      loadGames();
+    }, 300);
+
   });
+
 }
 
 // ✅ 取消（裁判）完整最終版
