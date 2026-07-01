@@ -876,48 +876,48 @@ function signupJudge(g, role){
   const el =
     document.getElementById(`game-${g.game_id}`);
 
-  if (el) el.classList.add('loading');
+  if (el){
+    el.classList.add('loading');
+  }
 
-  showToast('報名中...');
+  showToast('📨 報名送出中...');
 
   callApi({
+
     action:'judgeSignupByGames',
     user_id:s.user_id,
     games_with_position:`${g.game_id}:${role}`
+
   }, res => {
 
-    if (el) el.classList.remove('loading');
+    if (el){
+      el.classList.remove('loading');
+    }
 
-    /* =====================
-       被搶走
-    ===================== */
     if (!res){
-    
+
       showToast(
-        '❌ 連線逾時，請再試一次',
+        '❌ 系統回應逾時，請稍後再試',
         'error'
       );
-    
+
       return;
     }
-    
+
     if (res.result === 'occupied'){
-    
+
       showToast(
-        `🚫 ${res.message}`,
+        res.message,
         'error'
       );
-    
+
       setTimeout(() => {
         loadGames();
-      }, 2500);
-    
+      }, 3000);
+
       return;
     }
 
-    /* =====================
-       一般錯誤
-    ===================== */
     if (res.result !== 'ok'){
 
       showToast(
@@ -925,14 +925,9 @@ function signupJudge(g, role){
         'error'
       );
 
-      loadGames();
-
       return;
     }
 
-    /* =====================
-       成功
-    ===================== */
     g.judges ||= {};
 
     g.judges[role] = {
@@ -949,10 +944,9 @@ function signupJudge(g, role){
       'success'
     );
 
-    /* 再同步最新畫面 */
     setTimeout(() => {
       loadGames();
-    }, 300);
+    }, 2500);
 
   });
 
@@ -968,49 +962,49 @@ function signupRecord(g, role){
   const el =
     document.getElementById(`game-${g.game_id}`);
 
-  if (el) el.classList.add('loading');
+  if (el){
+    el.classList.add('loading');
+  }
 
-  showToast('報名中...');
+  showToast('📨 報名送出中...');
 
   callApi({
+
     action:'recordSignup',
     game_id:g.game_id,
     user_id:s.user_id,
     record_role:role
+
   }, res => {
 
-    if (el) el.classList.remove('loading');
+    if (el){
+      el.classList.remove('loading');
+    }
 
-    /* =====================
-       被搶走
-    ===================== */
     if (!res){
-    
+
       showToast(
-        '❌ 連線逾時，請再試一次',
+        '❌ 系統回應逾時，請稍後再試',
         'error'
       );
-    
+
       return;
     }
-    
+
     if (res.result === 'occupied'){
-    
+
       showToast(
-        `🚫 ${res.message}`,
+        res.message,
         'error'
       );
-    
+
       setTimeout(() => {
         loadGames();
-      }, 2500);
-    
+      }, 3000);
+
       return;
     }
 
-    /* =====================
-       一般錯誤
-    ===================== */
     if (res.result !== 'ok'){
 
       showToast(
@@ -1018,14 +1012,9 @@ function signupRecord(g, role){
         'error'
       );
 
-      loadGames();
-
       return;
     }
 
-    /* =====================
-       成功
-    ===================== */
     g.records ||= {};
 
     g.records[role] = {
@@ -1038,13 +1027,13 @@ function signupRecord(g, role){
     updateAffectedCards(g);
 
     showToast(
-      `✅ 已成功報名 ${role}`,
+      `✅ 已成功報名 ${roleTextMap(role)}`,
       'success'
     );
 
     setTimeout(() => {
       loadGames();
-    }, 300);
+    }, 2500);
 
   });
 
@@ -1284,52 +1273,59 @@ function validateSignup(targetGame, role){
  *********************************************************/
 let __toastTimer = null;
 
-function showToast(msg,type='normal'){
+function showToast(msg, type='normal'){
 
   let el = document.getElementById('_toast');
 
   if (!el){
 
     el = document.createElement('div');
-    el.id='_toast';
-    document.body.appendChild(el);
+    el.id = '_toast';
 
+    document.body.appendChild(el);
   }
 
   if (__toastTimer){
     clearTimeout(__toastTimer);
   }
 
-  let bg='#374151';
+  let bg = '#374151';
 
-  if(type==='error') bg='#dc2626';
-  if(type==='success') bg='#16a34a';
+  if (type === 'error'){
+    bg = '#dc2626';
+  }
 
-  el.innerHTML=msg;
+  if (type === 'success'){
+    bg = '#16a34a';
+  }
 
-  el.style.cssText=`
+  el.innerHTML = msg;
+
+  el.style.cssText = `
     position:fixed;
     top:20px;
     left:50%;
     transform:translateX(-50%);
     background:${bg};
     color:#fff;
-    padding:12px 18px;
-    border-radius:8px;
-    font-size:14px;
+    padding:14px 20px;
+    border-radius:10px;
+    font-size:15px;
+    font-weight:600;
     z-index:99999;
     opacity:1;
     transition:.25s;
     max-width:90%;
     text-align:center;
     white-space:pre-line;
+    box-shadow:0 4px 16px rgba(0,0,0,.25);
   `;
 
-  __toastTimer = setTimeout(()=>{
+  __toastTimer = setTimeout(() => {
 
     el.style.opacity = 0;
 
-  }, type==='error' ? 8000 : 3000);
+  }, type === 'error' ? 8000 : 3000);
 
 }
 
