@@ -891,6 +891,16 @@ function signupJudge(g, role){
     /* =====================
        被搶走
     ===================== */
+    if (!res){
+    
+      showToast(
+        '❌ 連線逾時，請再試一次',
+        'error'
+      );
+    
+      return;
+    }
+    
     if (res.result === 'occupied'){
     
       showToast(
@@ -974,6 +984,16 @@ function signupRecord(g, role){
     /* =====================
        被搶走
     ===================== */
+    if (!res){
+    
+      showToast(
+        '❌ 連線逾時，請再試一次',
+        'error'
+      );
+    
+      return;
+    }
+    
     if (res.result === 'occupied'){
     
       showToast(
@@ -1262,40 +1282,55 @@ function validateSignup(targetGame, role){
 /*********************************************************
  * ✅ Toast 系統（取代 alert）
  *********************************************************/
-function showToast(msg, type='normal'){
+let __toastTimer = null;
+
+function showToast(msg,type='normal'){
 
   let el = document.getElementById('_toast');
 
   if (!el){
+
     el = document.createElement('div');
-    el.id = '_toast';
+    el.id='_toast';
     document.body.appendChild(el);
+
   }
 
-  let bg = '#374151';
+  if (__toastTimer){
+    clearTimeout(__toastTimer);
+  }
 
-  if (type === 'error') bg = '#dc2626';
-  if (type === 'success') bg = '#16a34a';
+  let bg='#374151';
 
-  el.innerHTML = msg;
+  if(type==='error') bg='#dc2626';
+  if(type==='success') bg='#16a34a';
 
-  el.style.cssText = `
+  el.innerHTML=msg;
+
+  el.style.cssText=`
     position:fixed;
     top:20px;
     left:50%;
     transform:translateX(-50%);
     background:${bg};
     color:#fff;
-    padding:10px 16px;
+    padding:12px 18px;
     border-radius:8px;
     font-size:14px;
-    z-index:9999;
-    opacity:0;
+    z-index:99999;
+    opacity:1;
     transition:.25s;
+    max-width:90%;
+    text-align:center;
+    white-space:pre-line;
   `;
 
-  setTimeout(()=> el.style.opacity = 1, 10);
-  setTimeout(()=> el.style.opacity = 0, 4000);
+  __toastTimer = setTimeout(()=>{
+
+    el.style.opacity = 0;
+
+  }, type==='error' ? 8000 : 3000);
+
 }
 
 
