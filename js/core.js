@@ -900,7 +900,7 @@ function signupJudge(g, role){
     
       setTimeout(() => {
         loadGames();
-      }, 100);
+      }, 2500);
     
       return;
     }
@@ -983,7 +983,7 @@ function signupRecord(g, role){
     
       setTimeout(() => {
         loadGames();
-      }, 100);
+      }, 2500);
     
       return;
     }
