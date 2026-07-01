@@ -98,6 +98,11 @@ function bindButtons(){
   document.getElementById('open-system-guide')?.addEventListener('click', () => {
     document.getElementById('system-guide-overlay').style.display = 'flex';
   });
+
+  document.getElementById('open-system-history')?.addEventListener('click', () => {
+    document.getElementById('system-history-overlay').style.display = 'flex';
+  });
+
   
 }
 
