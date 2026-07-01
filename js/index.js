@@ -103,6 +103,9 @@ function bindButtons(){
     document.getElementById('system-history-overlay').style.display = 'flex';
   });
 
+  document.getElementById('open-analysis-guide')?.addEventListener('click', () => {
+    document.getElementById('analysis-guide-overlay').style.display = 'flex';
+  });
   
 }
 
