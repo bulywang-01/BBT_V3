@@ -1,6 +1,6 @@
 // ===== Apps Script Web App URL =====
 const API_BASE =
-  'https://script.google.com/macros/s/AKfycbxpPh817pN0w8mJB2arXqV7cdSVz7RDy8KV_39KrunhDXaEBCe1f_HdHeVPytvi6WF5IA/exec';
+  'https://script.google.com/macros/s/AKfycbzGpAesqAWQL5ZC_tLrdwepv6mbaUuz1jlVnBygU6tb0Bf969LomuSG0jKXixe20b-cww/exec';
 
 // ===== JSONP helper（封版唯一安全版）=====
 function callApi(params, callback) {
@@ -20,7 +20,7 @@ function callApi(params, callback) {
     console.error('JSONP timeout:', url);
     callback && callback(null);
     cleanup();
-  }, 8000);
+  }, 20000);
 
   function cleanup(){
     delete window[cbName];
