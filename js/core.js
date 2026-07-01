@@ -894,14 +894,30 @@ function signupJudge(g, role){
       el.classList.remove('loading');
     }
 
-    if (!res){
-    
-      loadGames();
+    if (!res || res.result === 'timeout'){
     
       showToast(
-        '🚫 此位置可能已被其他人搶先報名',
+        '⏳ 系統忙碌中，正在確認報名結果...',
         'error'
       );
+    
+      setTimeout(() => {
+        loadGames();
+      }, 3000);
+    
+      return;
+    }
+    
+    if (res.result === 'busy'){
+    
+      showToast(
+        '⏳ 目前有其他人正在報名此位置',
+        'error'
+      );
+    
+      setTimeout(() => {
+        loadGames();
+      }, 1000);
     
       return;
     }
@@ -983,14 +999,30 @@ function signupRecord(g, role){
       el.classList.remove('loading');
     }
 
-    if (!res){
-    
-      loadGames();
+    if (!res || res.result === 'timeout'){
     
       showToast(
-        '🚫 此位置可能已被其他人搶先報名',
+        '⏳ 系統忙碌中，正在確認報名結果...',
         'error'
       );
+    
+      setTimeout(() => {
+        loadGames();
+      }, 3000);
+    
+      return;
+    }
+    
+    if (res.result === 'busy'){
+    
+      showToast(
+        '⏳ 目前有其他人正在報名此位置',
+        'error'
+      );
+    
+      setTimeout(() => {
+        loadGames();
+      }, 1000);
     
       return;
     }
