@@ -895,12 +895,14 @@ function signupJudge(g, role){
     }
 
     if (!res){
-
+    
+      loadGames();
+    
       showToast(
-        '❌ 系統回應逾時，請稍後再試',
+        '🚫 此位置可能已被其他人搶先報名',
         'error'
       );
-
+    
       return;
     }
 
@@ -982,12 +984,14 @@ function signupRecord(g, role){
     }
 
     if (!res){
-
+    
+      loadGames();
+    
       showToast(
-        '❌ 系統回應逾時，請稍後再試',
+        '🚫 此位置可能已被其他人搶先報名',
         'error'
       );
-
+    
       return;
     }
 
@@ -1273,30 +1277,33 @@ function validateSignup(targetGame, role){
  *********************************************************/
 let __toastTimer = null;
 
-function showToast(msg, type='normal'){
+function showToast(msg,type='normal'){
 
-  let el = document.getElementById('_toast');
+  let el =
+    document.getElementById('_toast');
 
-  if (!el){
+  if(!el){
 
-    el = document.createElement('div');
+    el =
+      document.createElement('div');
+
     el.id = '_toast';
 
     document.body.appendChild(el);
   }
 
-  if (__toastTimer){
+  if(__toastTimer){
     clearTimeout(__toastTimer);
   }
 
   let bg = '#374151';
 
-  if (type === 'error'){
-    bg = '#dc2626';
+  if(type==='error'){
+    bg='#dc2626';
   }
 
-  if (type === 'success'){
-    bg = '#16a34a';
+  if(type==='success'){
+    bg='#16a34a';
   }
 
   el.innerHTML = msg;
@@ -1308,24 +1315,22 @@ function showToast(msg, type='normal'){
     transform:translateX(-50%);
     background:${bg};
     color:#fff;
-    padding:14px 20px;
+    padding:14px 22px;
     border-radius:10px;
     font-size:15px;
-    font-weight:600;
+    font-weight:700;
     z-index:99999;
     opacity:1;
     transition:.25s;
     max-width:90%;
-    text-align:center;
-    white-space:pre-line;
-    box-shadow:0 4px 16px rgba(0,0,0,.25);
+    box-shadow:0 4px 20px rgba(0,0,0,.25);
   `;
 
-  __toastTimer = setTimeout(() => {
+  __toastTimer = setTimeout(()=>{
 
     el.style.opacity = 0;
 
-  }, type === 'error' ? 8000 : 3000);
+  }, type==='error' ? 8000 : 3000);
 
 }
 
