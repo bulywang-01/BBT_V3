@@ -987,6 +987,20 @@
     box-shadow:
       0 14px 24px rgba(0,0,0,.08);
   }
+
+  .system-guide-box{
+      width:95vw !important;
+      max-width:900px !important;
+      max-height:85vh !important;
+  }
+  
+  .guide-img{
+      width:100%;
+      border-radius:12px;
+      margin:12px 0;
+      border:1px solid #dbeafe;
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+  }
   </style>
 
 </head>
@@ -1841,216 +1855,140 @@
   
       <h2>📖 BBT 出勤系統使用教學</h2>
   
-      <div style="
-        padding:12px;
-        background:#f5f8ff;
-        border:1px solid #dbeafe;
-        border-radius:10px;
-        margin-bottom:16px;
-      ">
-        本系統提供裁判員及紀錄員查看賽事資訊、
-        選擇站位並完成報名。
+      <div class="guide-tip">
+        歡迎使用 BBT 軟式棒球大聯盟出勤系統，本教學將帶您完成登入、報名、取消報名及查詢班表等操作。
       </div>
   
-      <h3>🔐 第一步｜登入系統</h3>
+      <div class="guide-step">
+        <h3>🔐 Step 1｜登入系統</h3>
   
-      <ul>
-        <li>
-          登入網址：
+        <img src="images/guide/guide-01.jpg" class="guide-img">
+  
+        <div class="guide-tip">
+          ✅ 登入網址：
           <br>
-          <a href="https://bulywang-01.github.io/bbt/login.html"
-             target="_blank">
-             https://bulywang-01.github.io/bbt/login.html
+          <a href="https://bulywang-01.github.io/bbt/login.html" target="_blank">
+            https://bulywang-01.github.io/bbt/login.html
           </a>
-        </li>
+          <br><br>
   
-        <li>
-          帳號為 Email @ 前帳號或系統預設帳號。
-        </li>
+          ✅ 帳號為 Email @ 前帳號或系統預設帳號
+          <br>
+          ✅ 預設密碼：12345678
+          <br>
+          ✅ 第一次登入請立即修改密碼
+          <br>
+          ✅ 支援手機與電腦操作
+        </div>
+      </div>
   
-        <li>
-          預設密碼：
-          <strong>12345678</strong>
-        </li>
+      <div class="guide-step">
+        <h3>📅 Step 2｜進入出勤報名</h3>
   
-        <li>
-          第一次登入後建議立即修改密碼。
-        </li>
+        <img src="images/guide/guide-02.jpg" class="guide-img">
   
-        <li>
-          支援手機與電腦操作。
-        </li>
-      </ul>
+        <div class="guide-tip">
+          點選「出勤報名」即可查看當月份賽程，並可切換瀏覽其他月份班表。
+        </div>
+      </div>
   
-      <h3>📅 第二步｜進入出勤報名</h3>
+      <div class="guide-step">
+        <h3>🧑‍⚖️ Step 3｜裁判員報名（桌機版）</h3>
   
-      <ul>
-        <li>點選「裁判班表」進入報名頁面。</li>
-        <li>系統預設顯示當月賽程。</li>
-        <li>可檢視其他月份賽事。</li>
-      </ul>
+        <img src="images/guide/guide-03.jpg" class="guide-img">
   
-      <h3>🧑‍⚖️ 裁判員報名</h3>
+        <div class="guide-tip">
+          ✅ 點選主審、一壘審、二壘審或三壘審即可完成報名
+          <br>
+          ✅ 顯示自己姓名代表報名成功
+          <br>
+          ✅ 若多人同時報名，以先完成者為準
+          <br>
+          ✅ 點擊姓名下方【取消】可取消報名
+        </div>
+      </div>
   
-      <ul>
-        <li>
-          點選欲執勤場次的位置即可完成報名。
-        </li>
+      <div class="guide-step">
+        <h3>📱 Step 4｜裁判員報名（手機版）</h3>
   
-        <li>
-          同場若多人報名同位置，
-          以最先完成報名者為準。
-        </li>
-      </ul>
+        <img src="images/guide/guide-04.jpg" class="guide-img">
   
-      <h3>裁判位置狀態說明</h3>
+        <div class="guide-tip">
+          手機版操作方式與桌機版相同，找到欲執勤場次後直接點選職務即可完成報名。
+        </div>
+      </div>
   
-      <ul>
+      <div class="guide-step">
+        <h3>📝 Step 5｜紀錄員報名（桌機版）</h3>
   
-        <li>
-          <strong>主審／一壘／二壘／三壘</strong><br>
-          代表尚未有人報名。
-        </li>
+        <img src="images/guide/guide-05.jpg" class="guide-img">
   
-        <li>
-          <strong>顯示其他人姓名</strong><br>
-          該位置已有人報名。
-        </li>
+        <div class="guide-tip">
+          ✅ 點擊「+報名」即可完成報名
+          <br>
+          ✅ 顯示自己姓名代表報名成功
+          <br>
+          ✅ 如需取消，可點選姓名下方【取消】
+        </div>
+      </div>
   
-        <li>
-          <strong>顯示自己姓名</strong><br>
-          表示已成功報名。
-        </li>
+      <div class="guide-step">
+        <h3>📱 Step 6｜紀錄員報名（手機版）</h3>
   
-        <li>
-          <strong>待位中</strong><br>
-          已報名本場比賽，
-          其餘位置等待補齊。
-        </li>
+        <img src="images/guide/guide-06.jpg" class="guide-img">
   
-        <li>
-          <strong>－</strong><br>
-          該場比賽不需要此職務。
-        </li>
+        <div class="guide-tip">
+          ✅ 灰底姓名：已有其他紀錄員報名
+          <br>
+          ✅ 綠底姓名：您已完成報名
+        </div>
+      </div>
   
-      </ul>
+      <div class="guide-step">
+        <h3>⚠️ Step 7｜注意事項</h3>
   
-      <h3>❌ 裁判取消報名</h3>
+        <img src="images/guide/guide-07.jpg" class="guide-img">
   
-      <ul>
-        <li>找到自己的姓名。</li>
-        <li>點選旁邊的「取消」。</li>
-        <li>
-          若為裁判長指定班表，
-          無法自行取消。
-        </li>
-      </ul>
+        <div class="guide-tip">
+          ✅ 請確認可出勤再進行報名
+          <br>
+          ✅ 臨時無法出勤請盡早取消並通知相關人員
+          <br>
+          ✅ 已過期賽事無法再報名
+          <br>
+          ✅ 同場賽事不可同時擔任裁判與紀錄員
+        </div>
+      </div>
   
-      <h3>📝 紀錄員報名</h3>
+      <div class="guide-step">
+        <h3>❓ Step 8｜常見問題 FAQ</h3>
   
-      <ul>
+        <img src="images/guide/guide-08.jpg" class="guide-img">
   
-        <li>
-          點選「+報名」即可完成報名。
-        </li>
+        <div class="guide-tip">
+          <strong>Q：什麼是「待位中」？</strong>
+          <br>
+          A：表示您已報名該場比賽，目前正在等待其他職務補齊。
+          <br><br>
   
-        <li>
-          同位置多人報名時，
-          以最先完成者為準。
-        </li>
+          <strong>Q：為什麼有些位置顯示「－」？</strong>
+          <br>
+          A：該場比賽依規定不需要該職務。
+          <br><br>
   
-      </ul>
+          <strong>Q：可以改站位嗎？</strong>
+          <br>
+          A：請先取消原位置，再重新報名新位置即可。
+        </div>
+      </div>
   
-      <h3>紀錄位置狀態說明</h3>
-  
-      <ul>
-  
-        <li>
-          <strong>+報名</strong><br>
-          尚未有人報名。
-        </li>
-  
-        <li>
-          <strong>灰底姓名</strong><br>
-          已有人報名。
-        </li>
-  
-        <li>
-          <strong>綠底姓名</strong><br>
-          您已成功報名。
-        </li>
-  
-      </ul>
-  
-      <h3>❌ 紀錄取消報名</h3>
-  
-      <ul>
-  
-        <li>
-          找到自己的姓名後點選取消。
-        </li>
-  
-        <li>
-          紀錄長指定班表無法自行取消。
-        </li>
-  
-      </ul>
-  
-      <h3>⚠️ 注意事項</h3>
-  
-      <ul>
-  
-        <li>
-          請確認可出勤再進行報名。
-        </li>
-  
-        <li>
-          臨時無法出勤請盡早取消，
-          並於 Line 群組通知。
-        </li>
-  
-        <li>
-          已過期賽事僅供查詢，
-          無法報名。
-        </li>
-  
-        <li>
-          同時具有裁判及紀錄身份者，
-          同場比賽不得同時報名兩種職務。
-        </li>
-  
-      </ul>
-  
-      <h3>❓ 常見問題 FAQ</h3>
-  
-      <ul>
-  
-        <li>
-          <strong>Q：待位中為何不能點？</strong><br>
-          A：代表您已參與該場賽事，
-          正等待其他人員補齊。
-        </li>
-  
-        <li>
-          <strong>Q：為什麼有些位置是「－」？</strong><br>
-          A：該場賽事不需要該職務。
-        </li>
-  
-        <li>
-          <strong>Q：可以改站位嗎？</strong><br>
-          A：先取消原站位，
-          再重新報名新位置。
-        </li>
-  
-      </ul>
-  
-      <button
-        class="close-btn full"
-        onclick="hideOverlay('user-guide-overlay')">
+      <button class="close-btn full"
+              onclick="hideOverlay('user-guide-overlay')">
         關閉
       </button>
   
     </div>
+  
   </div>
 
 </body>
