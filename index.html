@@ -1037,28 +1037,87 @@ margin-top:8px;
     color:#64748b;
   }
 
-  /* 手機版 */
-  @media (max-width:768px){
-  .stat-value{
-    font-size:clamp(22px,6vw,30px) !important;
-    font-size:28px !important;
+/* =====================================
+   📱 Mobile UI Optimize
+===================================== */
+@media (max-width:768px){
+
+  /* 主卡 */
+  .welcome-box{
+    margin-top:8px;
   }
 
+  /* 統計卡 */
   .stat-card{
-      min-height:72px;
-      padding:10px;
+    min-height:72px;
+    padding:10px;
   }
 
+  .stat-value{
+    font-size:28px !important;
+    line-height:1.1;
+    white-space:nowrap;
+  }
+
+  .stat-title{
+    font-size:11px;
+  }
+
+  /* 功能按鈕 */
   .welcome-actions{
-     display:grid;
-     grid-template-columns:
-       repeat(2,1fr);
-     gap:8px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    width:100%;
   }
 
+  .pill{
+    width:100%;
+    box-sizing:border-box;
+    text-align:center;
+    font-size:12px;
+  }
+
+  /* 文件中心 */
   .download-grid{
-     grid-template-columns:
-       repeat(2,1fr);
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+  }
+
+  .download-card{
+    min-height:72px;
+    padding:10px;
+  }
+
+  .download-title{
+    font-size:13px;
+  }
+
+  .download-desc{
+    font-size:11px;
+  }
+
+  /* 系統資訊中心 */
+  .system-center{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+  }
+
+  /* Footer */
+  .footer{
+    font-size:12px;
+    line-height:1.8;
+  }
+
+  .footer .title{
+    font-size:14px;
+  }
+
+  /* 使用教學圖片 */
+  .guide-img{
+    width:90%;
+    max-width:420px;
   }
 
 }
