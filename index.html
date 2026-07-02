@@ -769,6 +769,8 @@
       #f8fbff 100%
     );
     border:1px solid #dbeafe;
+margin-top:8px;
+
   }
     
   /* ===== 身分 ===== */
@@ -1037,9 +1039,26 @@
 
   /* 手機版 */
   @media (max-width:768px){
-
   .stat-value{
     font-size:clamp(22px,6vw,30px) !important;
+    font-size:28px !important;
+  }
+
+  .stat-card{
+      min-height:72px;
+      padding:10px;
+  }
+
+  .welcome-actions{
+     display:grid;
+     grid-template-columns:
+       repeat(2,1fr);
+     gap:8px;
+  }
+
+  .download-grid{
+     grid-template-columns:
+       repeat(2,1fr);
   }
 
 }
